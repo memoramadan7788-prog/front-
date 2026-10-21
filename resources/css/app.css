@@ -2,8 +2,114 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
 
+/*
+ |--------------------------------------------------------------------------
+ | Hirebridge design tokens (Figma · 51 · Shared visual system)
+ | Primary Navy #142B4A · Primary Blue #2457C5 · Accent Teal #14B8A6
+ |--------------------------------------------------------------------------
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    --color-hb-navy: #142b4a;
+    --color-hb-blue: #2457c5;
+    --color-hb-teal: #14b8a6;
+    --color-hb-page: #f5f7fa;
+    --color-hb-surface: #ffffff;
+    --color-hb-text: #1f2937;
+    --color-hb-muted: #64748b;
+    --color-hb-border: #e2e8f0;
+    --color-hb-success: #276749;
+    --color-hb-success-soft: #edf7f0;
+    --color-hb-pending: #8a5b16;
+    --color-hb-pending-soft: #fff7e8;
+    --color-hb-error: #b04040;
+    --color-hb-error-soft: #fdf0f0;
+    --color-hb-info-soft: #edf3ff;
+    --color-hb-sidebar: #142b4a;
+    --color-hb-nav-muted: #b8c6d9;
+
+    --shadow-hb-sm: 0 1px 2px rgb(20 43 74 / 0.06);
+    --shadow-hb-md: 0 8px 24px rgb(20 43 74 / 0.08);
+    --radius-hb: 0.75rem;
+}
+
+@layer base {
+    html {
+        @apply scroll-smooth antialiased;
+    }
+
+    body {
+        @apply bg-hb-page font-sans text-hb-text;
+    }
+
+    [dir='rtl'] body {
+        font-family: 'Inter', 'Noto Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    a {
+        @apply transition-colors;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-hb-blue;
+    }
+}
+
+@layer components {
+    .hb-container {
+        @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-16;
+    }
+
+    .hb-brand-mark {
+        @apply inline-flex h-8 w-8 items-center justify-center rounded-full bg-hb-blue text-sm font-semibold text-white;
+    }
+
+    .hb-nav-link {
+        @apply text-sm font-medium text-hb-text/80 hover:text-hb-blue;
+    }
+
+    .hb-btn-primary {
+        @apply inline-flex items-center justify-center rounded-lg bg-hb-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-hb-blue/90;
+    }
+
+    .hb-btn-ghost {
+        @apply inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-hb-text hover:bg-hb-page;
+    }
+
+    .hb-btn-outline {
+        @apply inline-flex items-center justify-center rounded-lg border border-hb-border bg-hb-surface px-4 py-2.5 text-sm font-semibold text-hb-text hover:bg-hb-page;
+    }
+
+    .hb-surface {
+        @apply rounded-hb border border-hb-border bg-hb-surface shadow-hb-sm;
+    }
+
+    .hb-mock-banner {
+        @apply border-b border-hb-pending/30 bg-hb-pending-soft px-4 py-2 text-center text-xs font-medium text-hb-pending;
+    }
+
+    .hb-label {
+        @apply mb-1.5 block text-sm font-medium text-hb-text;
+    }
+
+    .hb-input {
+        @apply w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2.5 text-sm text-hb-text placeholder:text-hb-muted/70;
+        @apply transition-[border-color,box-shadow] focus:border-hb-blue focus:outline-none focus:ring-2 focus:ring-hb-blue/20;
+        @apply disabled:cursor-not-allowed disabled:bg-hb-page disabled:opacity-60;
+        @apply aria-[invalid=true]:border-hb-error aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-hb-error/20;
+    }
+
+    .hb-checkbox {
+        @apply h-4 w-4 rounded border-hb-border text-hb-blue focus:ring-hb-blue/30;
+    }
+
+    .hb-field-error {
+        @apply mt-1.5 text-xs font-medium text-hb-error;
+    }
 }

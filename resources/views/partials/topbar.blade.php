@@ -1,0 +1,104 @@
+@php
+    $topbarUser = $topbarUser ?? [
+        'name' => match ($uiRole ?? 'candidate') {
+            'company' => 'Olivia Bennett',
+            'interviewer' => 'Alex Morgan',
+            'admin' => 'Priya Shah',
+            default => 'Maya Chen',
+        },
+        'initials' => match ($uiRole ?? 'candidate') {
+            'company' => 'OB',
+            'interviewer' => 'AM',
+            'admin' => 'PS',
+            default => 'MC',
+        },
+    ];
+    $profilePanelId = 'profile-menu-panel';
+@endphp
+
+<header class="sticky top-0 z-30 flex h-[72px] items-center justify-between gap-4 border-b border-hb-border bg-hb-surface px-4 sm:px-6 lg:px-8">
+    <div class="flex min-w-0 flex-1 items-center gap-3">
+        <button
+            type="button"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-hb-border text-hb-text lg:hidden"
+            data-mobile-sidebar-toggle
+            aria-expanded="false"
+            aria-controls="mobile-sidebar-drawer"
+            aria-label="Open navigation"
+        >
+            <span class="flex flex-col gap-1" aria-hidden="true">
+                <span class="block h-0.5 w-4 bg-current"></span>
+                <span class="block h-0.5 w-4 bg-current"></span>
+                <span class="block h-0.5 w-3 bg-current"></span>
+            </span>
+        </button>
+
+        {{-- Presentation-only search — no search contract yet --}}
+        <label class="relative hidden min-w-0 max-w-md flex-1 sm:block">
+            <span class="sr-only">Search Hirebridge</span>
+            <span class="pointer-events-none absolute inset-y-0 start-3 flex items-center text-hb-muted" aria-hidden="true">⌕</span>
+            <input
+                type="search"
+                name="q"
+                placeholder="Search Hirebridge…"
+                class="w-full rounded-lg border border-hb-border bg-hb-page py-2.5 ps-9 pe-14 text-sm text-hb-text placeholder:text-hb-muted focus:border-hb-blue focus:bg-hb-surface"
+                autocomplete="off"
+                aria-describedby="search-contract-note"
+            >
+            <kbd class="pointer-events-none absolute inset-y-0 end-3 my-auto hidden h-6 items-center rounded border border-hb-border bg-hb-surface px-1.5 text-[10px] font-medium text-hb-muted sm:inline-flex">⌘ K</kbd>
+        </label>
+        <p id="search-contract-note" class="sr-only">Search is presentation-only until a backend search contract exists.</p>
+    </div>
+
+    <div class="flex items-center gap-1 sm:gap-2">
+        <a href="#" class="hidden rounded-lg px-2 py-2 text-sm font-medium text-hb-muted hover:bg-hb-page hover:text-hb-text md:inline-flex" onclick="return false;">
+            Help
+        </a>
+
+        @include('partials.language-switch')
+        @include('partials.notifications-dropdown')
+
+        <div class="relative">
+            <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-hb-page"
+                data-dropdown-trigger
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="{{ $profilePanelId }}"
+                id="{{ $profilePanelId }}-trigger"
+            >
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-hb-navy text-xs font-semibold text-white" aria-hidden="true">
+                    {{ $topbarUser['initials'] }}
+                </span>
+                <span class="hidden text-sm font-medium text-hb-text sm:inline">{{ $topbarUser['name'] }}</span>
+                <span class="hidden text-hb-muted sm:inline" aria-hidden="true">⌄</span>
+            </button>
+
+            <div
+                id="{{ $profilePanelId }}"
+                class="absolute end-0 z-50 mt-2 hidden w-56 overflow-hidden rounded-hb border border-hb-border bg-hb-surface shadow-hb-md"
+                role="menu"
+                aria-labelledby="{{ $profilePanelId }}-trigger"
+                data-dropdown-panel
+            >
+                <div class="border-b border-hb-border px-4 py-3">
+                    <p class="text-sm font-semibold text-hb-navy">{{ $topbarUser['name'] }}</p>
+                    <p class="mt-0.5 text-xs text-hb-muted">Mock profile · not signed in</p>
+                </div>
+                <ul class="py-1 text-sm">
+                    <li>
+                        <span class="block cursor-not-allowed px-4 py-2 text-hb-muted" role="menuitem" aria-disabled="true">
+                            Profile settings <span class="text-[10px] uppercase">Soon</span>
+                        </span>
+                    </li>
+                    <li>
+                        <span class="block cursor-not-allowed px-4 py-2 text-hb-muted" role="menuitem" aria-disabled="true">
+                            Sign out <span class="text-[10px] uppercase">Soon</span>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>

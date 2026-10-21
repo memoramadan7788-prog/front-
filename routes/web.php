@@ -1,15 +1,163 @@
 <?php
 
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Candidate\ApplicationController as CandidateApplicationController;
+use App\Http\Controllers\Candidate\AssessmentController as CandidateAssessmentController;
+use App\Http\Controllers\Candidate\DashboardController as CandidateDashboardController;
+use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
+use App\Http\Controllers\Candidate\JobController as CandidateJobController;
+use App\Http\Controllers\Candidate\MessageController as CandidateMessageController;
+use App\Http\Controllers\Candidate\NotificationController as CandidateNotificationController;
+use App\Http\Controllers\Candidate\OfferController as CandidateOfferController;
+use App\Http\Controllers\Candidate\PreferenceController as CandidatePreferenceController;
+use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
+use App\Http\Controllers\Company\DashboardController as CompanyDashboardController;
+use App\Http\Controllers\Company\ProfileController as CompanyProfileController;
+use App\Http\Controllers\Frontend\ComponentShowcaseController;
+use App\Http\Controllers\Frontend\LayoutPreviewController;
+use App\Http\Controllers\Onboarding\CandidateOnboardingController;
+use App\Http\Controllers\Onboarding\CompanyOnboardingController;
+use App\Http\Controllers\Public\AboutController;
+use App\Http\Controllers\Public\CompanyController;
+use App\Http\Controllers\Public\ContactController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\JobController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', HomeController::class)->name('home');
 
-Route::view('/', 'public.landing')->name('home');
+Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
+Route::get('/jobs/{job}', [JobController::class, 'show'])->name('jobs.show');
 
-Route::view('/jobs', 'public.jobs.index')
-    ->name('jobs.index');
+Route::get('/about', AboutController::class)->name('about');
+Route::get('/contact', ContactController::class)->name('contact');
+Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 
-Route::view('/jobs/{id}', 'public.jobs.show')
-    ->name('jobs.show');
+/*
+|--------------------------------------------------------------------------
+| Authentication UI (Batch 3B — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. No credential processing, sessions, or email delivery.
+*/
+Route::get('/login', [LoginController::class, 'create'])->name('login');
+Route::get('/register', [RegisterController::class, 'create'])->name('register');
+Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])->name('password.request');
+Route::get('/verify-email', [VerifyEmailController::class, 'notice'])->name('verification.notice');
+Route::get('/reset-password', [ResetPasswordController::class, 'create'])->name('password.reset');
+
+/*
+|--------------------------------------------------------------------------
+| Onboarding UI (Batch 3C — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. No profile/company persistence or document uploads.
+*/
+Route::get('/onboarding/candidate', [CandidateOnboardingController::class, 'create'])
+    ->name('onboarding.candidate');
+Route::get('/onboarding/company', [CompanyOnboardingController::class, 'create'])
+    ->name('onboarding.company');
+Route::get('/onboarding/company/status', [CompanyOnboardingController::class, 'status'])
+    ->name('onboarding.company.status');
+
+/*
+|--------------------------------------------------------------------------
+| Candidate workspace UI (Batch 4A — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. No auth middleware, persistence, or live metrics.
+*/
+Route::get('/candidate/dashboard', CandidateDashboardController::class)
+    ->name('candidate.dashboard');
+Route::get('/candidate/profile', [CandidateProfileController::class, 'index'])
+    ->name('candidate.profile');
+
+/*
+|--------------------------------------------------------------------------
+| Candidate jobs UI (Batch 4B — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. Filters/save state are client-side mock interactions.
+*/
+Route::get('/candidate/jobs', [CandidateJobController::class, 'index'])
+    ->name('candidate.jobs.index');
+Route::get('/candidate/jobs/saved', [CandidateJobController::class, 'saved'])
+    ->name('candidate.jobs.saved');
+
+/*
+|--------------------------------------------------------------------------
+| Candidate applications UI (Batch 4C — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. Apply / confirmation are mock UI — no persistence.
+*/
+Route::get('/candidate/applications', [CandidateApplicationController::class, 'index'])
+    ->name('candidate.applications.index');
+Route::get('/candidate/applications/apply/{job?}', [CandidateApplicationController::class, 'apply'])
+    ->name('candidate.applications.apply');
+Route::get('/candidate/applications/submitted', [CandidateApplicationController::class, 'submitted'])
+    ->name('candidate.applications.submitted');
+Route::get('/candidate/applications/{application}', [CandidateApplicationController::class, 'show'])
+    ->name('candidate.applications.show');
+
+/*
+|--------------------------------------------------------------------------
+| Candidate interviews, messages & assessments (Batch 4D — frontend only)
+|--------------------------------------------------------------------------
+| GET page routes only. No booking, delivery, grading, or proctoring.
+*/
+Route::get('/candidate/interviews', [CandidateInterviewController::class, 'index'])
+    ->name('candidate.interviews.index');
+Route::get('/candidate/interviews/{interview}', [CandidateInterviewController::class, 'show'])
+    ->name('candidate.interviews.show');
+Route::get('/candidate/messages', [CandidateMessageController::class, 'index'])
+    ->name('candidate.messages.index');
+Route::get('/candidate/assessments', [CandidateAssessmentController::class, 'index'])
+    ->name('candidate.assessments.index');
+Route::get('/candidate/assessments/{assessment}/take', [CandidateAssessmentController::class, 'take'])
+    ->name('candidate.assessments.take');
+Route::get('/candidate/assessments/{assessment}/result', [CandidateAssessmentController::class, 'result'])
+    ->name('candidate.assessments.result');
+Route::get('/candidate/assessments/{assessment}', [CandidateAssessmentController::class, 'show'])
+    ->name('candidate.assessments.show');
+
+/*
+|--------------------------------------------------------------------------
+| Candidate preferences, offers & notifications (Batch 4E — frontend only)
+|--------------------------------------------------------------------------
+| GET page routes only. No preference persistence or offer decisions.
+*/
+Route::get('/candidate/preferences', [CandidatePreferenceController::class, 'edit'])
+    ->name('candidate.preferences');
+Route::get('/candidate/offers', [CandidateOfferController::class, 'index'])
+    ->name('candidate.offers.index');
+Route::get('/candidate/offers/{offer}', [CandidateOfferController::class, 'show'])
+    ->name('candidate.offers.show');
+Route::get('/candidate/notifications', [CandidateNotificationController::class, 'index'])
+    ->name('candidate.notifications.index');
+
+/*
+|--------------------------------------------------------------------------
+| Company / HR workspace UI (Batch 5A — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. No auth middleware, persistence, or live analytics.
+*/
+Route::get('/company/dashboard', CompanyDashboardController::class)
+    ->name('company.dashboard');
+Route::get('/company/profile', [CompanyProfileController::class, 'show'])
+    ->name('company.profile');
+
+/*
+|--------------------------------------------------------------------------
+| Development-only frontend previews (Stages 1–2)
+|--------------------------------------------------------------------------
+| Unavailable in production.
+*/
+if (! app()->isProduction()) {
+    Route::prefix('_frontend/layouts')->name('frontend.layouts.')->group(function () {
+        Route::get('/auth', [LayoutPreviewController::class, 'auth'])->name('auth');
+        Route::get('/app', [LayoutPreviewController::class, 'app'])->name('app');
+    });
+
+    Route::get('/_frontend/components', ComponentShowcaseController::class)
+        ->name('frontend.components');
+}
