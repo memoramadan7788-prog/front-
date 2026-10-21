@@ -31,6 +31,9 @@
             <a href="{{ route('company.evaluations.show', 'eval-ethan-cole') }}" class="hb-btn-outline">
                 {{ __('company.interviews.open_evaluation') }}
             </a>
+            <a href="{{ route('company.offers.create', ['applicant' => 'ethan-cole']) }}" class="hb-btn-outline">
+                {{ __('company.evaluations.open_draft_offer') }}
+            </a>
         @endif
         <button type="button" class="hb-btn-outline" data-open-move-stage>
             {{ __('company.applicants.move_stage') }}

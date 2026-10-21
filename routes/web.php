@@ -20,7 +20,9 @@ use App\Http\Controllers\Company\DashboardController as CompanyDashboardControll
 use App\Http\Controllers\Company\EvaluationController as CompanyEvaluationController;
 use App\Http\Controllers\Company\InterviewController as CompanyInterviewController;
 use App\Http\Controllers\Company\JobController as CompanyJobController;
+use App\Http\Controllers\Company\OfferController as CompanyOfferController;
 use App\Http\Controllers\Company\ProfileController as CompanyProfileController;
+use App\Http\Controllers\Company\TalentPoolController as CompanyTalentPoolController;
 use App\Http\Controllers\Frontend\ComponentShowcaseController;
 use App\Http\Controllers\Frontend\LayoutPreviewController;
 use App\Http\Controllers\Frontend\LocaleController;
@@ -198,6 +200,17 @@ Route::get('/company/interviews/{interview}', [CompanyInterviewController::class
     ->name('company.interviews.show');
 Route::get('/company/evaluations/{evaluation}', [CompanyEvaluationController::class, 'show'])
     ->name('company.evaluations.show');
+
+/*
+|--------------------------------------------------------------------------
+| Company offers & talent pool UI (Batch 5E — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. Save / send / invite are client-side mock interactions.
+*/
+Route::get('/company/offers/create', [CompanyOfferController::class, 'create'])
+    ->name('company.offers.create');
+Route::get('/company/talent-pool', [CompanyTalentPoolController::class, 'index'])
+    ->name('company.talent-pool.index');
 
 /*
 |--------------------------------------------------------------------------

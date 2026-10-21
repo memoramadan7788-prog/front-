@@ -114,9 +114,9 @@
                     <x-badge variant="success" :dot="true">{{ $evaluation['decision']['status'] }}</x-badge>
                     <p class="mt-3 text-sm text-hb-muted">{{ $evaluation['decision']['detail'] }}</p>
                     <div class="mt-5 flex flex-col gap-2">
-                        <button type="button" class="hb-btn-primary" disabled title="{{ __('company.evaluations.offer_soon') }}">
+                        <a href="{{ route('company.offers.create', ['applicant' => $evaluation['applicant_id']]) }}" class="hb-btn-primary text-center">
                             {{ __('company.evaluations.open_draft_offer') }}
-                        </button>
+                        </a>
                         <button type="button" class="hb-btn-outline" data-request-clarification>
                             {{ __('company.evaluations.request_clarification') }}
                         </button>

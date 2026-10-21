@@ -196,6 +196,10 @@
                                 <a href="{{ route('company.jobs.create') }}" class="hb-btn-outline mt-3 w-full text-sm">
                                     {{ $item['action'] }}
                                 </a>
+                            @elseif (($item['pending_batch'] ?? '') === '5E')
+                                <a href="{{ route('company.offers.create', ['applicant' => 'ethan-cole']) }}" class="hb-btn-outline mt-3 w-full text-sm">
+                                    {{ $item['action'] }}
+                                </a>
                             @else
                                 <button
                                     type="button"
