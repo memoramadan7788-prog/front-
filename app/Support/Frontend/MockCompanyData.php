@@ -2086,4 +2086,297 @@ class MockCompanyData
 
         return collect(self::joinRequests()['requests'])->firstWhere('id', $id);
     }
+
+    /**
+     * Figma Frame 38 — Hiring analytics (static mock snapshot aligned to open Northstar requisitions).
+     *
+     * @return array<string, mixed>
+     */
+    public static function analytics(): array
+    {
+        return [
+            'metric_source' => 'static_snapshot',
+            'as_of' => 'October 20, 2026',
+            'subtitle' => 'Northstar Labs · Current cohort for open requisitions · As of October 20, 2026',
+            'date_label' => 'Oct 1–20, 2026 · Cohort includes earlier active applicants',
+            'date_options' => [
+                'oct-1-20' => 'Oct 1–20, 2026 · Cohort includes earlier active applicants',
+                'sep-1-30' => 'Sep 1–30, 2026 · Prior month cohort',
+                'q3' => 'Jul 1–Sep 30, 2026 · Q3 snapshot',
+            ],
+            'kpis' => [
+                [
+                    'key' => 'records',
+                    'label' => 'Candidate records',
+                    'value' => '28',
+                    'detail' => 'Across 3 open requisitions',
+                ],
+                [
+                    'key' => 'interview_share',
+                    'label' => 'Interview-stage share',
+                    'value' => '29%',
+                    'detail' => '8 / 28 currently at Interview',
+                ],
+                [
+                    'key' => 'screening_age',
+                    'label' => 'Median screening age',
+                    'value' => '4 days',
+                    'detail' => 'Current screening-stage records',
+                ],
+                [
+                    'key' => 'hired',
+                    'label' => 'Hired in cohort',
+                    'value' => '1',
+                    'detail' => 'Grace Liu · NS-204',
+                ],
+            ],
+            'stages' => [
+                ['key' => 'applied', 'label' => 'Applied', 'count' => 8, 'tone' => 'blue'],
+                ['key' => 'screening', 'label' => 'Screening', 'count' => 8, 'tone' => 'blue'],
+                ['key' => 'interview', 'label' => 'Interview', 'count' => 8, 'tone' => 'blue'],
+                ['key' => 'offer', 'label' => 'Offer', 'count' => 3, 'tone' => 'blue'],
+                ['key' => 'hired', 'label' => 'Hired', 'count' => 1, 'tone' => 'success'],
+            ],
+            'stage_max' => 8,
+            'stage_note' => 'Snapshot, not cumulative stage conversion',
+            'time_in_stage' => [
+                ['key' => 'applied', 'label' => 'Applied', 'median' => 2, 'records' => 8],
+                ['key' => 'screening', 'label' => 'Screening', 'median' => 4, 'records' => 8],
+                ['key' => 'interview', 'label' => 'Interview', 'median' => 5, 'records' => 8],
+                ['key' => 'offer', 'label' => 'Offer', 'median' => 2, 'records' => 3],
+            ],
+            'time_note' => 'Stage age measures time since the latest stage entry, not total time to hire.',
+            'sources' => [
+                [
+                    'key' => 'direct',
+                    'label' => 'Direct hire',
+                    'records' => 17,
+                    'interview' => 5,
+                    'offer' => 2,
+                    'hired' => 0,
+                ],
+                [
+                    'key' => 'agency',
+                    'label' => 'Agency-managed',
+                    'records' => 11,
+                    'interview' => 3,
+                    'offer' => 1,
+                    'hired' => 1,
+                ],
+            ],
+            'sources_total' => [
+                'records' => 28,
+                'interview' => 8,
+                'offer' => 3,
+                'hired' => 1,
+            ],
+            'sources_note' => 'Source is recorded at application entry. Small samples are descriptive and should not be treated as a ranking of candidate quality.',
+            'requisitions' => [
+                [
+                    'id' => 'ns-204',
+                    'label' => 'NS-204 · Design',
+                    'applied' => 3,
+                    'screening' => 3,
+                    'interview' => 3,
+                    'offer' => 2,
+                    'hired' => 1,
+                    'source_key' => 'mixed',
+                ],
+                [
+                    'id' => 'ns-205',
+                    'label' => 'NS-205 · Engineering',
+                    'applied' => 3,
+                    'screening' => 2,
+                    'interview' => 3,
+                    'offer' => 1,
+                    'hired' => 0,
+                    'source_key' => 'mixed',
+                ],
+                [
+                    'id' => 'ns-206',
+                    'label' => 'NS-206 · Product',
+                    'applied' => 2,
+                    'screening' => 3,
+                    'interview' => 2,
+                    'offer' => 0,
+                    'hired' => 0,
+                    'source_key' => 'direct',
+                ],
+            ],
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ];
+    }
+
+    /**
+     * Company assessments — workflow/ERD-derived (no dedicated Figma frame for Batch 5G).
+     * Aligned with MockCandidateData::assessments() for NS-204 Design systems practical.
+     *
+     * @return array<string, mixed>
+     */
+    public static function assessments(): array
+    {
+        return [
+            'design_source' => 'workflow',
+            'items' => [
+                [
+                    'id' => 'exam-ns204-systems',
+                    'title' => 'Design systems practical',
+                    'job_id' => 'ns-204',
+                    'job_code' => 'NS-204',
+                    'job_title' => 'Senior Product Designer',
+                    'status' => 'Active',
+                    'status_key' => 'active',
+                    'time_limit_min' => 45,
+                    'attempt_limit' => 2,
+                    'passing_score' => 70,
+                    'questions_count' => 4,
+                    'assigned_count' => 3,
+                    'completed_count' => 1,
+                    'updated' => 'Oct 18, 2026',
+                    'owner' => 'Olivia Bennett',
+                    'questions' => [
+                        [
+                            'id' => 'q1',
+                            'type' => 'mc',
+                            'prompt' => 'When introducing a new component to a shared design system, what should you validate first?',
+                            'choices' => [
+                                'Visual polish only',
+                                'Usage patterns, accessibility, and token alignment',
+                                'Marketing screenshots',
+                                'Font licensing alone',
+                            ],
+                        ],
+                        [
+                            'id' => 'q2',
+                            'type' => 'mc',
+                            'prompt' => 'A product squad needs a temporary one-off pattern. Best next step?',
+                            'choices' => [
+                                'Add it to the core system immediately',
+                                'Prototype locally, document constraints, then propose promotion criteria',
+                                'Block the squad until a system owner rebuilds it',
+                                'Copy from a competitor without review',
+                            ],
+                        ],
+                        [
+                            'id' => 'q3',
+                            'type' => 'mc',
+                            'prompt' => 'Which signal best indicates a workflow is ready for design-system extraction?',
+                            'choices' => [
+                                'It appeared once in a pitch deck',
+                                'Repeated use across squads with stable interaction rules',
+                                'An engineer prefers a custom CSS file',
+                                'The brand team likes the color',
+                            ],
+                        ],
+                        [
+                            'id' => 'q4',
+                            'type' => 'short',
+                            'prompt' => 'In 2–3 sentences, describe how you would prioritize accessibility fixes versus new feature work on an operations SaaS surface.',
+                            'choices' => [],
+                        ],
+                    ],
+                    'assignees' => [
+                        [
+                            'id' => 'maya-chen',
+                            'name' => 'Maya Chen',
+                            'status' => 'Ready to start',
+                            'status_key' => 'ready',
+                            'score' => null,
+                        ],
+                        [
+                            'id' => 'ethan-cole',
+                            'name' => 'Ethan Cole',
+                            'status' => 'Completed',
+                            'status_key' => 'completed',
+                            'score' => 82,
+                        ],
+                        [
+                            'id' => 'nora-kim',
+                            'name' => 'Nora Kim',
+                            'status' => 'In progress',
+                            'status_key' => 'in_progress',
+                            'score' => null,
+                        ],
+                    ],
+                    'results' => [
+                        [
+                            'candidate' => 'Ethan Cole',
+                            'candidate_id' => 'ethan-cole',
+                            'score' => 82,
+                            'pass' => true,
+                            'completed_at' => 'Oct 16, 2026',
+                            'attempt' => '1 of 2',
+                        ],
+                    ],
+                ],
+                [
+                    'id' => 'exam-ns205-frontend',
+                    'title' => 'Frontend reliability scenarios',
+                    'job_id' => 'ns-205',
+                    'job_code' => 'NS-205',
+                    'job_title' => 'Senior Frontend Engineer',
+                    'status' => 'Draft',
+                    'status_key' => 'draft',
+                    'time_limit_min' => 40,
+                    'attempt_limit' => 1,
+                    'passing_score' => 75,
+                    'questions_count' => 3,
+                    'assigned_count' => 0,
+                    'completed_count' => 0,
+                    'updated' => 'Oct 19, 2026',
+                    'owner' => 'Jordan Lee',
+                    'questions' => [
+                        [
+                            'id' => 'q1',
+                            'type' => 'mc',
+                            'prompt' => 'Which practice best reduces regressions in a shared component library?',
+                            'choices' => [
+                                'Ship without tests to move faster',
+                                'Visual + interaction tests with clear owners',
+                                'Only manual QA on release day',
+                                'Disable TypeScript',
+                            ],
+                        ],
+                        [
+                            'id' => 'q2',
+                            'type' => 'short',
+                            'prompt' => 'Describe how you would triage a production performance regression affecting form submissions.',
+                            'choices' => [],
+                        ],
+                        [
+                            'id' => 'q3',
+                            'type' => 'mc',
+                            'prompt' => 'Best default for handling API timeouts in a hiring dashboard?',
+                            'choices' => [
+                                'Silent failure',
+                                'Retry with backoff and clear user feedback',
+                                'Infinite spinner',
+                                'Hard refresh only',
+                            ],
+                        ],
+                    ],
+                    'assignees' => [],
+                    'results' => [],
+                ],
+            ],
+            'job_options' => [
+                ['id' => 'ns-204', 'label' => 'NS-204 · Senior Product Designer'],
+                ['id' => 'ns-205', 'label' => 'NS-205 · Senior Frontend Engineer'],
+                ['id' => 'ns-206', 'label' => 'NS-206 · Product Manager'],
+            ],
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function assessment(?string $id): ?array
+    {
+        if ($id === null || $id === '') {
+            return null;
+        }
+
+        return collect(self::assessments()['items'])->firstWhere('id', $id);
+    }
 }

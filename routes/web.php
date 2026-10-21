@@ -15,7 +15,9 @@ use App\Http\Controllers\Candidate\NotificationController as CandidateNotificati
 use App\Http\Controllers\Candidate\OfferController as CandidateOfferController;
 use App\Http\Controllers\Candidate\PreferenceController as CandidatePreferenceController;
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
+use App\Http\Controllers\Company\AnalyticsController as CompanyAnalyticsController;
 use App\Http\Controllers\Company\ApplicantController as CompanyApplicantController;
+use App\Http\Controllers\Company\AssessmentController as CompanyAssessmentController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboardController;
 use App\Http\Controllers\Company\EmployeeController as CompanyEmployeeController;
 use App\Http\Controllers\Company\EvaluationController as CompanyEvaluationController;
@@ -226,6 +228,24 @@ Route::get('/company/employees/requests', [CompanyEmployeeController::class, 're
     ->name('company.employees.requests');
 Route::get('/company/employees/{employee}', [CompanyEmployeeController::class, 'show'])
     ->name('company.employees.show');
+
+/*
+|--------------------------------------------------------------------------
+| Company analytics & assessments UI (Batch 5G — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. Export / grading / assignment are client-side mock interactions.
+| Static assessment paths must be registered before /{assessment}.
+*/
+Route::get('/company/analytics', [CompanyAnalyticsController::class, 'index'])
+    ->name('company.analytics.index');
+Route::get('/company/assessments', [CompanyAssessmentController::class, 'index'])
+    ->name('company.assessments.index');
+Route::get('/company/assessments/create', [CompanyAssessmentController::class, 'create'])
+    ->name('company.assessments.create');
+Route::get('/company/assessments/{assessment}/results', [CompanyAssessmentController::class, 'results'])
+    ->name('company.assessments.results');
+Route::get('/company/assessments/{assessment}', [CompanyAssessmentController::class, 'show'])
+    ->name('company.assessments.show');
 
 /*
 |--------------------------------------------------------------------------

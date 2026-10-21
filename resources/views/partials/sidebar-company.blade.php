@@ -41,6 +41,15 @@
             'route' => 'company.employees.index',
             'active' => request()->routeIs('company.employees.*'),
         ],
-        ['label' => __('navigation.company.analytics'), 'pending' => true],
+        [
+            'label' => __('navigation.company.assessments'),
+            'route' => 'company.assessments.index',
+            'active' => request()->routeIs('company.assessments.*'),
+        ],
+        [
+            'label' => __('navigation.company.analytics'),
+            'route' => 'company.analytics.index',
+            'active' => request()->routeIs('company.analytics.*'),
+        ],
     ],
 ])

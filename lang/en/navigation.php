@@ -34,6 +34,7 @@ return [
         'talent_pool' => 'Talent pool',
         'messages' => 'Messages',
         'team' => 'Team & permissions',
+        'assessments' => 'Assessments',
         'analytics' => 'Hiring analytics',
     ],
     'interviewer' => [

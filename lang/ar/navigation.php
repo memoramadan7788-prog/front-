@@ -34,6 +34,7 @@ return [
         'talent_pool' => 'مجمع المواهب',
         'messages' => 'الرسائل',
         'team' => 'الفريق والصلاحيات',
+        'assessments' => 'التقييمات',
         'analytics' => 'تحليلات التوظيف',
     ],
     'interviewer' => [
