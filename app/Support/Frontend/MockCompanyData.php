@@ -1259,4 +1259,358 @@ class MockCompanyData
             'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
         ]);
     }
+
+    /**
+     * Company interview catalog (Batch 5D) — consistent with candidate NS-204 interviews.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function interviews(): array
+    {
+        return [
+            [
+                'id' => 'int-ns204-luis-team',
+                'applicant_id' => 'luis-romero',
+                'applicant' => 'Luis Romero',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'title' => 'Team interview',
+                'type' => 'Team interview',
+                'type_key' => 'team',
+                'status' => 'Confirmed',
+                'status_key' => 'confirmed',
+                'day_key' => '2026-10-21',
+                'weekday' => 'Wed',
+                'day_num' => '21',
+                'when' => 'Wednesday, Oct 21, 2026',
+                'time' => '11:00–11:45 AM Central',
+                'time_short' => '11:00 AM',
+                'duration' => '45 minutes',
+                'timezone' => 'Central Time (UTC−05:00)',
+                'interviewer' => 'Alex Morgan',
+                'organizer' => 'Olivia Bennett',
+                'format' => 'Video meeting',
+                'department' => 'Product & Design',
+                'calendar_label' => 'Luis Romero · Team interview',
+                'checklist' => [
+                    ['label' => 'Candidate invitation sent', 'done' => true],
+                    ['label' => 'Interview brief attached', 'done' => false],
+                ],
+            ],
+            [
+                'id' => 'int-ns204-portfolio',
+                'applicant_id' => 'maya-chen',
+                'applicant' => 'Maya Chen',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'title' => 'Portfolio interview',
+                'type' => 'Portfolio review',
+                'type_key' => 'portfolio',
+                'status' => 'Confirmed',
+                'status_key' => 'confirmed',
+                'day_key' => '2026-10-22',
+                'weekday' => 'Thu',
+                'day_num' => '22',
+                'when' => 'Thursday, Oct 22, 2026',
+                'time' => '10:00–10:45 AM Central',
+                'time_short' => '10:00–10:45 AM',
+                'duration' => '45 minutes',
+                'timezone' => 'Central Time (UTC−05:00)',
+                'interviewer' => 'Alex Morgan',
+                'organizer' => 'Olivia Bennett',
+                'format' => 'Video meeting',
+                'department' => 'Product & Design',
+                'calendar_label' => 'Maya Chen · Portfolio · NS-204',
+                'selected' => true,
+                'checklist' => [
+                    ['label' => 'Candidate invitation sent', 'done' => true],
+                    ['label' => 'Interview brief attached', 'done' => true],
+                ],
+            ],
+            [
+                'id' => 'int-ns204-aisha-portfolio',
+                'applicant_id' => 'aisha-patel',
+                'applicant' => 'Aisha Patel',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'title' => 'Portfolio review',
+                'type' => 'Portfolio review',
+                'type_key' => 'portfolio',
+                'status' => 'Confirmed',
+                'status_key' => 'confirmed',
+                'day_key' => '2026-10-23',
+                'weekday' => 'Fri',
+                'day_num' => '23',
+                'when' => 'Friday, Oct 23, 2026',
+                'time' => '11:00–11:45 AM Central',
+                'time_short' => '11:00 AM',
+                'duration' => '45 minutes',
+                'timezone' => 'Central Time (UTC−05:00)',
+                'interviewer' => 'Daniel Brooks',
+                'organizer' => 'Olivia Bennett',
+                'format' => 'Video meeting',
+                'department' => 'Product & Design',
+                'calendar_label' => 'Aisha Patel · Portfolio · NS-204',
+                'checklist' => [
+                    ['label' => 'Candidate invitation sent', 'done' => true],
+                    ['label' => 'Interview brief attached', 'done' => false],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function interview(string $id): ?array
+    {
+        return collect(self::interviews())->firstWhere('id', $id);
+    }
+
+    /**
+     * Figma Frame 33 — Team interview calendar.
+     *
+     * @return array<string, mixed>
+     */
+    public static function interviewCalendar(): array
+    {
+        $interviews = self::interviews();
+        $byDay = [];
+        foreach ($interviews as $interview) {
+            $byDay[$interview['day_key']][] = $interview;
+        }
+
+        $days = [
+            [
+                'key' => '2026-10-19',
+                'label' => 'Mon 19',
+                'slots' => [
+                    ['time' => '9:00 AM', 'label' => 'Available', 'available' => true],
+                    ['time' => '2:00 PM', 'label' => 'Available', 'available' => true],
+                ],
+            ],
+            [
+                'key' => '2026-10-20',
+                'label' => 'Tue 20',
+                'slots' => [
+                    ['time' => '9:00 AM', 'label' => 'Available', 'available' => true],
+                    ['time' => '2:00 PM', 'label' => 'Available', 'available' => true],
+                ],
+            ],
+            [
+                'key' => '2026-10-21',
+                'label' => 'Wed 21',
+                'highlight' => false,
+                'slots' => array_map(static fn (array $i): array => [
+                    'time' => $i['time_short'],
+                    'label' => $i['calendar_label'],
+                    'interview_id' => $i['id'],
+                    'available' => false,
+                ], $byDay['2026-10-21'] ?? []),
+            ],
+            [
+                'key' => '2026-10-22',
+                'label' => 'Thu 22',
+                'highlight' => true,
+                'slots' => array_map(static fn (array $i): array => [
+                    'time' => $i['time_short'],
+                    'label' => $i['calendar_label'],
+                    'interview_id' => $i['id'],
+                    'available' => false,
+                ], $byDay['2026-10-22'] ?? []),
+            ],
+            [
+                'key' => '2026-10-23',
+                'label' => 'Fri 23',
+                'slots' => array_map(static fn (array $i): array => [
+                    'time' => $i['time_short'],
+                    'label' => $i['calendar_label'],
+                    'interview_id' => $i['id'],
+                    'available' => false,
+                ], $byDay['2026-10-23'] ?? []),
+            ],
+        ];
+
+        $selected = collect($interviews)->firstWhere('selected', true) ?? ($interviews[0] ?? null);
+
+        return [
+            'week_label' => 'October 19–23, 2026',
+            'timezone' => 'Week view · Central Time (UTC−05:00)',
+            'department_filter' => 'Product & Design',
+            'departments' => ['Product & Design', 'Engineering', 'Product'],
+            'jobs' => array_values(array_map(static fn (array $j): array => [
+                'id' => $j['id'],
+                'code' => $j['code'],
+                'title' => $j['title'],
+            ], array_filter(self::jobs(), static fn (array $j): bool => ($j['status_key'] ?? '') === 'open'))),
+            'days' => $days,
+            'interviews' => $interviews,
+            'selected' => $selected,
+            'availability' => [
+                ['name' => 'Alex Morgan', 'windows' => 'Thu 22 · 9:00–11:30 AM, 1:00–3:00 PM'],
+                ['name' => 'Daniel Brooks', 'windows' => 'Wed 21 · 10:00 AM–12:00 PM'],
+                ['name' => 'Olivia Bennett', 'windows' => 'Weekdays · 9:00 AM–4:00 PM'],
+            ],
+            'availability_note' => 'Availability is in Central Time. Calendar conflicts are checked before confirmation.',
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ];
+    }
+
+    /**
+     * Frame 32 schedule form payload (PNG not located — fields from brief + Frame 33 continuity).
+     *
+     * @return array<string, mixed>
+     */
+    public static function interviewSchedule(?string $applicantId = null): array
+    {
+        $applicantId = $applicantId ?: 'maya-chen';
+        $applicant = self::applicant($applicantId);
+        if ($applicant === null) {
+            $applicant = self::applicant('maya-chen');
+            $applicantId = 'maya-chen';
+        }
+
+        return [
+            'applicant_id' => $applicantId,
+            'applicant' => $applicant['name'],
+            'job_id' => $applicant['job_id'],
+            'job_code' => $applicant['job_code'],
+            'job_title' => $applicant['job_title'],
+            'stage' => $applicant['stage'],
+            'owner' => $applicant['owner'],
+            'timezone' => 'Central Time (UTC−05:00)',
+            'duration_default' => '45 minutes',
+            'types' => [
+                ['value' => 'portfolio', 'label' => 'Portfolio review'],
+                ['value' => 'team', 'label' => 'Team interview'],
+                ['value' => 'screening', 'label' => 'Recruiter screening'],
+                ['value' => 'hiring_manager', 'label' => 'Hiring manager'],
+            ],
+            'interviewers' => [
+                ['value' => 'alex-morgan', 'label' => 'Alex Morgan', 'meta' => 'Portfolio interviewer'],
+                ['value' => 'daniel-brooks', 'label' => 'Daniel Brooks', 'meta' => 'Hiring manager'],
+                ['value' => 'olivia-bennett', 'label' => 'Olivia Bennett', 'meta' => 'Recruiter / HR'],
+            ],
+            'dates' => [
+                ['value' => '2026-10-22', 'label' => 'Thu, Oct 22'],
+                ['value' => '2026-10-23', 'label' => 'Fri, Oct 23'],
+                ['value' => '2026-10-27', 'label' => 'Mon, Oct 27'],
+                ['value' => '2026-10-28', 'label' => 'Tue, Oct 28'],
+            ],
+            'slots' => [
+                ['value' => '2026-10-22T10:00', 'label' => 'Thu, Oct 22 · 10:00 AM', 'meta' => '45 min · Central Time', 'date' => '2026-10-22'],
+                ['value' => '2026-10-22T14:00', 'label' => 'Thu, Oct 22 · 2:00 PM', 'meta' => '45 min · Central Time', 'date' => '2026-10-22'],
+                ['value' => '2026-10-23T09:00', 'label' => 'Fri, Oct 23 · 9:00 AM', 'meta' => '45 min · Central Time', 'date' => '2026-10-23', 'unavailable' => true],
+                ['value' => '2026-10-23T11:30', 'label' => 'Fri, Oct 23 · 11:30 AM', 'meta' => '45 min · Central Time', 'date' => '2026-10-23'],
+                ['value' => '2026-10-27T10:00', 'label' => 'Mon, Oct 27 · 10:00 AM', 'meta' => '45 min · Central Time', 'date' => '2026-10-27'],
+                ['value' => '2026-10-28T15:00', 'label' => 'Tue, Oct 28 · 3:00 PM', 'meta' => '45 min · Central Time', 'date' => '2026-10-28'],
+            ],
+            'default_type' => 'portfolio',
+            'default_interviewer' => 'alex-morgan',
+            'default_date' => '2026-10-22',
+            'default_slot' => '2026-10-22T10:00',
+            'instructions' => 'Share preparation details before every interview. Conflicts are checked against interviewer availability in Central Time.',
+            'applicants' => array_values(array_map(static fn (array $a): array => [
+                'id' => $a['id'],
+                'name' => $a['name'],
+                'job_code' => $a['job_code'],
+                'stage' => $a['stage'],
+            ], array_filter(self::applicants(), static fn (array $a): bool => in_array($a['stage_key'] ?? '', ['screening', 'interview', 'offer'], true)))),
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ];
+    }
+
+    /**
+     * Figma Frame 34 — Evaluation review (Ethan Cole).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function evaluations(): array
+    {
+        return [
+            [
+                'id' => 'eval-ethan-cole',
+                'applicant_id' => 'ethan-cole',
+                'applicant' => 'Ethan Cole',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'source' => 'Direct hire',
+                'stage' => 'Offer stage',
+                'subtitle' => 'NS-204 · Senior Product Designer · Final interviews completed October 16',
+                'decision_owner' => 'Daniel Brooks',
+                'feedback_complete' => '3 / 3',
+                'scale_legend' => '1 = Below · 2 = Developing · 3 = Meets · 4 = Strong · N/O = Not observed',
+                'competencies' => [
+                    [
+                        'label' => 'Problem framing',
+                        'alex' => ['score' => 4, 'label' => 'Strong', 'round' => 'Portfolio'],
+                        'daniel' => ['score' => 3, 'label' => 'Meets', 'round' => 'Team'],
+                        'summary' => 'Connected customer constraints to a clear opportunity.',
+                    ],
+                    [
+                        'label' => 'Interaction craft',
+                        'alex' => ['score' => 4, 'label' => 'Strong', 'round' => 'Portfolio'],
+                        'daniel' => ['score' => 3, 'label' => 'Meets', 'round' => 'Team'],
+                        'summary' => 'Demonstrated complex workflow and accessible states.',
+                    ],
+                    [
+                        'label' => 'Systems thinking',
+                        'alex' => ['score' => 3, 'label' => 'Meets', 'round' => 'Portfolio'],
+                        'daniel' => ['score' => 4, 'label' => 'Strong', 'round' => 'Team'],
+                        'summary' => 'Explained reuse, exceptions, and implementation trade-offs.',
+                    ],
+                    [
+                        'label' => 'Collaboration',
+                        'alex' => ['score' => 3, 'label' => 'Meets', 'round' => 'Portfolio'],
+                        'daniel' => ['score' => 4, 'label' => 'Strong', 'round' => 'Team'],
+                        'summary' => 'Specific examples of resolving product / engineering tension.',
+                    ],
+                ],
+                'recommendations' => [
+                    [
+                        'name' => 'Alex Morgan',
+                        'verdict' => 'Strong hire',
+                        'meta' => 'Submitted Oct 16, 3:10 PM',
+                        'comment' => 'Strong portfolio depth. Clear rationale for prioritization and accessibility decisions. Would benefit from early pairing on domain complexity.',
+                    ],
+                    [
+                        'name' => 'Daniel Brooks',
+                        'verdict' => 'Hire',
+                        'meta' => 'Submitted Oct 16, 4:20 PM',
+                        'comment' => 'Strong collaboration examples and realistic trade-offs. Recommend proceeding within the approved compensation range.',
+                    ],
+                    [
+                        'name' => 'Olivia Bennett',
+                        'verdict' => 'Proceed',
+                        'meta' => 'Screening completed Oct 9',
+                        'comment' => null,
+                    ],
+                ],
+                'decision' => [
+                    'status' => 'Proceed to offer',
+                    'status_key' => 'proceed',
+                    'detail' => 'Recorded Oct 19 by Daniel Brooks. Offer is in draft and has not been sent.',
+                ],
+                'evidence_note' => 'Evidence, not an automatic score. Ratings support structured discussion. The hiring manager records the final decision and its rationale.',
+                'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function evaluation(string $id): ?array
+    {
+        $byId = collect(self::evaluations())->firstWhere('id', $id);
+        if ($byId !== null) {
+            return $byId;
+        }
+
+        return collect(self::evaluations())->firstWhere('applicant_id', $id);
+    }
 }

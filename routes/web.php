@@ -17,6 +17,8 @@ use App\Http\Controllers\Candidate\PreferenceController as CandidatePreferenceCo
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
 use App\Http\Controllers\Company\ApplicantController as CompanyApplicantController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboardController;
+use App\Http\Controllers\Company\EvaluationController as CompanyEvaluationController;
+use App\Http\Controllers\Company\InterviewController as CompanyInterviewController;
 use App\Http\Controllers\Company\JobController as CompanyJobController;
 use App\Http\Controllers\Company\ProfileController as CompanyProfileController;
 use App\Http\Controllers\Frontend\ComponentShowcaseController;
@@ -181,6 +183,21 @@ Route::get('/company/applicants', [CompanyApplicantController::class, 'index'])
     ->name('company.applicants.index');
 Route::get('/company/applicants/{applicant}', [CompanyApplicantController::class, 'show'])
     ->name('company.applicants.show');
+
+/*
+|--------------------------------------------------------------------------
+| Company interviews & evaluations UI (Batch 5D — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. Scheduling / decisions are client-side mock interactions.
+*/
+Route::get('/company/interviews', [CompanyInterviewController::class, 'index'])
+    ->name('company.interviews.index');
+Route::get('/company/interviews/schedule', [CompanyInterviewController::class, 'schedule'])
+    ->name('company.interviews.schedule');
+Route::get('/company/interviews/{interview}', [CompanyInterviewController::class, 'show'])
+    ->name('company.interviews.show');
+Route::get('/company/evaluations/{evaluation}', [CompanyEvaluationController::class, 'show'])
+    ->name('company.evaluations.show');
 
 /*
 |--------------------------------------------------------------------------

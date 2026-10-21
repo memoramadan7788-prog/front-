@@ -23,7 +23,12 @@
             'route' => 'company.applicants.index',
             'active' => request()->routeIs('company.applicants.*'),
         ],
-        ['label' => __('navigation.company.interviews'), 'pending' => true],
+        [
+            'label' => __('navigation.company.interviews'),
+            'route' => 'company.interviews.index',
+            'active' => request()->routeIs('company.interviews.*')
+                || request()->routeIs('company.evaluations.*'),
+        ],
         ['label' => __('navigation.company.talent_pool'), 'pending' => true],
         ['label' => __('navigation.company.messages'), 'pending' => true],
         ['label' => __('navigation.company.team'), 'pending' => true],

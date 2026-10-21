@@ -163,13 +163,12 @@
             <section class="hb-surface p-5" aria-labelledby="interviews-heading">
                 <div class="flex items-start justify-between gap-2">
                     <h2 id="interviews-heading" class="text-lg font-semibold text-hb-navy">{{ __('company.dashboard.upcoming_interviews') }}</h2>
-                    <span
-                        class="cursor-not-allowed text-xs font-semibold text-hb-muted"
-                        title="{{ __('company.dashboard.calendar_soon') }}"
-                        aria-disabled="true"
+                    <a
+                        href="{{ route('company.interviews.index') }}"
+                        class="text-xs font-semibold text-hb-blue hover:underline"
                     >
-                        {{ __('company.dashboard.calendar_soon_label') }}
-                    </span>
+                        {{ __('company.dashboard.calendar_label') }}
+                    </a>
                 </div>
                 <ul class="mt-4 space-y-3">
                     @foreach ($dashboard['interviews'] as $interview)

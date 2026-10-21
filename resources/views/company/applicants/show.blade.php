@@ -24,6 +24,14 @@
         <button type="button" class="hb-btn-primary" disabled title="{{ __('company.applicants.message_soon') }}">
             {{ __('company.applicants.message_applicant', ['name' => explode(' ', $applicant['name'])[0]]) }}
         </button>
+        <a href="{{ route('company.interviews.schedule', ['applicant' => $applicant['id']]) }}" class="hb-btn-outline">
+            {{ __('company.interviews.schedule_for_applicant') }}
+        </a>
+        @if (($applicant['id'] ?? '') === 'ethan-cole')
+            <a href="{{ route('company.evaluations.show', 'eval-ethan-cole') }}" class="hb-btn-outline">
+                {{ __('company.interviews.open_evaluation') }}
+            </a>
+        @endif
         <button type="button" class="hb-btn-outline" data-open-move-stage>
             {{ __('company.applicants.move_stage') }}
             <span class="ms-1" aria-hidden="true">▾</span>
@@ -244,9 +252,16 @@
                             {{ $applicant['interview']['interviewer'] }}.
                             {{ $applicant['interview']['interviewer_meta'] }}
                         </p>
-                        <button type="button" class="hb-btn-primary mt-4 w-full" data-jump-interview-tab>
-                            {{ __('company.applicants.view_interview_plan') }}
-                        </button>
+                        <div class="mt-4 flex flex-col gap-2">
+                            <button type="button" class="hb-btn-primary w-full" data-jump-interview-tab>
+                                {{ __('company.applicants.view_interview_plan') }}
+                            </button>
+                            @if (($applicant['id'] ?? '') === 'maya-chen')
+                                <a href="{{ route('company.interviews.show', 'int-ns204-portfolio') }}" class="hb-btn-outline w-full text-center">
+                                    {{ __('company.interviews.view_details') }}
+                                </a>
+                            @endif
+                        </div>
                     </section>
                 @endif
 
