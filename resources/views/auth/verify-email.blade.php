@@ -1,33 +1,28 @@
 @extends('layouts.auth')
 
-@section('title', $pageTitle ?? 'Check your inbox · Hirebridge')
-@section('eyebrow', '09 / Account access')
-@section('brand_headline', 'Good work starts with the right connection.')
-@section('brand_copy', 'Find your next role, build your team, or partner with a recruiter. One clear workspace for every step.')
+@section('title', $pageTitle ?? __('auth.verify.page_title'))
+@section('eyebrow', __('auth.verify.eyebrow'))
 
 @section('content')
     @php($email = $email ?? 'maya.chen@example.com')
 
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — no verification email is sent from this screen. Email delivery requires Backend Team integration.
-    </div>
 
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">Check your inbox</h1>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('auth.verify.title') }}</h1>
     <p class="mt-2 text-sm text-hb-muted">
-        Enter the six-digit code we would send to
+        {{ __('auth.verify.intro_before') }}
         <span class="font-medium text-hb-text">{{ $email }}</span>
-        after Backend Team email verification is connected.
+        {{ __('auth.verify.intro_after') }}
     </p>
 
     <div class="mt-8 space-y-5" data-auth-page="verify-email">
         <div class="rounded-lg border border-hb-border bg-hb-surface px-4 py-3 text-sm">
-            <p class="font-semibold text-hb-navy">Verification code entry</p>
-            <p class="mt-1 text-hb-muted">In production, codes are valid for 10 minutes. Keep this window open while you check your email.</p>
+            <p class="font-semibold text-hb-navy">{{ __('auth.verify.entry_title') }}</p>
+            <p class="mt-1 text-hb-muted">{{ __('auth.verify.entry_note') }}</p>
         </div>
 
-        <form class="space-y-5" data-auth-form="verify-email" novalidate aria-label="Email verification">
+        <form class="space-y-5" data-auth-form="verify-email" novalidate aria-label="{{ __('auth.verify.form_aria') }}">
             <div data-field="code">
-                <label id="verify-code-label" class="hb-label">Verification code</label>
+                <label id="verify-code-label" class="hb-label">{{ __('auth.verify.code') }}</label>
                 <div
                     class="mt-2 flex justify-between gap-2"
                     data-otp-group
@@ -42,51 +37,51 @@
                             maxlength="1"
                             class="hb-input h-12 w-full max-w-12 px-0 text-center text-lg font-semibold tracking-wide"
                             data-otp-digit
-                            aria-label="Digit {{ $i + 1 }} of 6"
+                            aria-label="{{ __('auth.verify.digit_aria', ['current' => $i + 1, 'total' => 6]) }}"
                             @if ($i === 0) autofocus @endif
                         >
                     @endforeach
                 </div>
                 <input type="hidden" name="code" value="" data-otp-value>
-                <p class="mt-2 text-xs text-hb-muted">Six digits · You can paste the full code.</p>
+                <p class="mt-2 text-xs text-hb-muted">{{ __('auth.verify.otp_hint') }}</p>
                 <p id="verify-code-error" class="hb-field-error hidden" role="alert"></p>
             </div>
 
             <button type="submit" class="hb-btn-primary w-full" data-auth-submit>
-                Verify email &amp; continue
+                {{ __('auth.verify.submit') }}
             </button>
 
             <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status">
-                Code format validated on the client. Email verification is not completed — Backend Team integration is required.
+                {{ __('auth.verify.note_ready') }}
             </div>
         </form>
 
         <div class="flex flex-wrap items-center gap-2 text-sm text-hb-muted">
-            <span>Didn’t receive it?</span>
+            <span>{{ __('auth.verify.didnt_receive') }}</span>
             <button
                 type="button"
                 class="font-semibold text-hb-blue hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                 data-resend-code
-                title="Resend requires Backend Team email delivery"
+                title="{{ __('auth.verify.resend_soon_title') }}"
             >
-                Resend code
+                {{ __('auth.verify.resend') }}
             </button>
             <span class="hidden text-xs text-hb-pending" data-resend-note role="status">
-                Resend is not available until Backend Team email delivery is connected.
+                {{ __('auth.verify.resend_soon') }}
             </span>
         </div>
 
         <div class="rounded-lg border border-hb-border bg-hb-page px-4 py-3 text-sm text-hb-muted">
-            <p class="font-semibold text-hb-navy">A couple of things to check</p>
-            <p class="mt-1.5 leading-relaxed">Look in spam or promotions folders. Make sure your email address is spelled correctly. Requesting a new code makes the previous code expire.</p>
+            <p class="font-semibold text-hb-navy">{{ __('auth.verify.tips_title') }}</p>
+            <p class="mt-1.5 leading-relaxed">{{ __('auth.verify.tips_body') }}</p>
         </div>
 
         <p class="text-sm">
-            <a href="{{ route('register') }}" class="font-semibold text-hb-blue hover:underline">Change email address</a>
+            <a href="{{ route('register') }}" class="font-semibold text-hb-blue hover:underline">{{ __('auth.verify.change_email') }}</a>
         </p>
-        <p class="text-xs text-hb-muted">Need to come back later? Return anytime via <a href="{{ route('login') }}" class="text-hb-blue hover:underline">sign in</a>.</p>
+        <p class="text-xs text-hb-muted">{{ __('auth.verify.return_later') }} <a href="{{ route('login') }}" class="text-hb-blue hover:underline">{{ __('auth.verify.sign_in_link') }}</a>.</p>
         <p class="text-center text-xs text-hb-muted">
-            Need help? <a href="mailto:support@hirebridge.example" class="text-hb-blue hover:underline">support@hirebridge.example</a>
+            {{ __('auth.login.need_help') }} <a href="mailto:support@hirebridge.example" class="text-hb-blue hover:underline">support@hirebridge.example</a>
         </p>
     </div>
 @endsection

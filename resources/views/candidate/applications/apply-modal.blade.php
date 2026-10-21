@@ -19,17 +19,17 @@
         <div class="flex items-start justify-between gap-4 border-b border-hb-border px-5 py-4">
             <div class="min-w-0">
                 <h2 id="candidate-apply-modal-title" class="text-base font-semibold text-hb-navy">
-                    Apply to {{ $job['company'] }}
+                    {{ __('candidate.applications.apply_title', ['company' => $job['company']]) }}
                 </h2>
                 <p class="mt-1 text-sm text-hb-muted">
-                    {{ $job['title'] }} · {{ $job['code'] }} · Frontend apply modal
+                    {{ $job['title'] }} · {{ $job['code'] }}
                 </p>
             </div>
             <button
                 type="button"
                 class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-hb-muted hover:bg-hb-page hover:text-hb-text"
                 data-hb-modal-close
-                aria-label="Close application dialog"
+                aria-label="{{ __('candidate.applications.close_dialog') }}"
             >
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -37,7 +37,7 @@
 
         <div class="overflow-y-auto px-5 py-4">
             <div class="mb-4 rounded-lg border border-hb-blue/20 bg-hb-info-soft px-3 py-2 text-xs text-hb-blue" role="status">
-                Reusable apply modal · Mock UI only. Escape or close restores focus to the trigger.
+                {{ __('candidate.applications.modal_escape_hint') }}
             </div>
 
             <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-hb-muted">

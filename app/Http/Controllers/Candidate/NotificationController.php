@@ -17,7 +17,7 @@ class NotificationController extends Controller
         return view('candidate.notifications.index', [
             'pageTitle' => 'Notifications · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'notifications' => MockCandidateData::notifications(),
             'frontendOnly' => true,
         ]);

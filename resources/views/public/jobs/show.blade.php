@@ -1,13 +1,13 @@
 @extends('layouts.public')
 
-@section('title', $pageTitle ?? 'Job details · Hirebridge')
+@section('title', $pageTitle ?? __('public.jobs.show_page_title'))
 
 @section('content')
     {{-- Figma 03 · Job Details (8:31406) --}}
     <section class="bg-hb-page">
         <div class="hb-container py-10 lg:py-14">
             <p class="text-xs font-semibold tracking-[0.12em] text-hb-muted uppercase">
-                03 / Hirebridge / {{ $job['title'] }}
+                {{ __('public.jobs.show_eyebrow', ['title' => $job['title']]) }}
             </p>
 
             <div class="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -15,9 +15,7 @@
                     <header class="hb-surface p-6">
                         <div class="flex flex-wrap items-center gap-2">
                             <x-badge variant="info" :dot="true">{{ $job['source'] }}</x-badge>
-                            <x-badge variant="success" :dot="true">{{ $job['status'] }}</x-badge>
-                            <span class="rounded-full bg-hb-pending-soft px-2 py-0.5 text-[10px] font-semibold text-hb-pending uppercase">Mock job</span>
-                        </div>
+                            <x-badge variant="success" :dot="true">{{ $job['status'] }}</x-badge>                        </div>
                         <h1 class="mt-4 text-3xl font-semibold text-hb-navy">{{ $job['title'] }}</h1>
                         <p class="mt-2 text-sm text-hb-muted">
                             @if (($job['company_slug'] ?? null) === 'northstar-labs')
@@ -39,7 +37,7 @@
                         @endforeach
 
                         <div>
-                            <h2 class="text-base font-semibold text-hb-navy">What you’ll do</h2>
+                            <h2 class="text-base font-semibold text-hb-navy">{{ __('public.jobs.what_you_do') }}</h2>
                             <ul class="mt-3 list-disc space-y-2 ps-5 text-hb-muted">
                                 @foreach ($job['responsibilities'] as $item)
                                     <li>{{ $item }}</li>
@@ -48,7 +46,7 @@
                         </div>
 
                         <div>
-                            <h2 class="text-base font-semibold text-hb-navy">What you’ll bring</h2>
+                            <h2 class="text-base font-semibold text-hb-navy">{{ __('public.jobs.requirements') }}</h2>
                             <ul class="mt-3 list-disc space-y-2 ps-5 text-hb-muted">
                                 @foreach ($job['requirements'] as $item)
                                     <li>{{ $item }}</li>
@@ -57,25 +55,18 @@
                         </div>
 
                         <div>
-                            <h2 class="text-base font-semibold text-hb-navy">Benefits & ways of working</h2>
+                            <h2 class="text-base font-semibold text-hb-navy">{{ __('public.jobs.benefits') }}</h2>
                             <p class="mt-3 text-hb-muted">{{ $job['benefits'] }}</p>
                         </div>
 
                         <div>
-                            <h2 class="text-base font-semibold text-hb-navy">Our hiring process</h2>
+                            <h2 class="text-base font-semibold text-hb-navy">{{ __('public.jobs.hiring_process') }}</h2>
                             <div class="mt-4">
-                                <x-timeline :steps="[
-                                    ['label' => 'Applied', 'status' => 'pending'],
-                                    ['label' => 'Screening', 'status' => 'pending'],
-                                    ['label' => 'Interview', 'status' => 'pending'],
-                                    ['label' => 'Offer', 'status' => 'pending'],
-                                    ['label' => 'Hired', 'status' => 'pending'],
-                                ]" />
+                                <x-timeline :steps="collect(__('public.jobs.timeline'))->map(fn ($label) => ['label' => $label, 'status' => 'pending'])->all()" />
                             </div>
                             <p class="mt-4 text-hb-muted">{{ $job['process'] }}</p>
                             <p class="mt-3 text-hb-muted">
-                                {{ $job['company'] }} welcomes applicants from different backgrounds. Request an accommodation through the hiring team.
-                                Applications are reviewed against role-related criteria.
+                                {{ __('public.jobs.inclusive_note', ['company' => $job['company']]) }}
                             </p>
                         </div>
                     </article>
@@ -83,43 +74,43 @@
 
                 <aside class="space-y-4 lg:sticky lg:top-28 lg:self-start">
                     <div class="hb-surface p-5">
-                        <h2 class="text-sm font-semibold text-hb-navy">Your next step</h2>
+                        <h2 class="text-sm font-semibold text-hb-navy">{{ __('public.jobs.sidebar_next') }}</h2>
                         <p class="mt-3 text-2xl font-semibold text-hb-navy">{{ $job['salary_label'] }}</p>
-                        <p class="mt-1 text-xs text-hb-muted">Annual base salary · USD<br>{{ $job['location'] }} · {{ $job['work_model'] }} · {{ $job['employment'] }}</p>
+                        <p class="mt-1 text-xs text-hb-muted">{{ __('public.jobs.salary_annual') }}<br>{{ $job['location'] }} · {{ $job['work_model'] }} · {{ $job['employment'] }}</p>
                         <div class="mt-5 space-y-2">
-                            <span class="hb-btn-primary flex w-full cursor-not-allowed justify-center opacity-70" title="Applications require authentication — later stage">
-                                Apply for this role
+                            <span class="hb-btn-primary flex w-full cursor-not-allowed justify-center opacity-70" title="{{ __('public.jobs.apply_title') }}">
+                                {{ __('public.jobs.apply') }}
                             </span>
-                            <x-button variant="secondary" class="w-full" type="button" disabled>Save job</x-button>
+                            <x-button variant="secondary" class="w-full" type="button" disabled>{{ __('public.jobs.save_job') }}</x-button>
                         </div>
                         <p class="mt-3 text-xs text-hb-muted">
-                            You’ll review your materials and consent before submitting. No application is sent automatically.
+                            {{ __('public.jobs.apply_note') }}
                         </p>
                     </div>
 
                     <div class="hb-surface p-5 text-sm">
-                        <h2 class="font-semibold text-hb-navy">About {{ $job['company'] }}</h2>
+                        <h2 class="font-semibold text-hb-navy">{{ __('public.jobs.about_company', ['name' => $job['company']]) }}</h2>
                         <p class="mt-2 text-hb-muted">
-                            Collaborative software for operational teams. Based in Austin, with teammates across the United States.
+                            {{ __('public.jobs.company_blurb') }}
                         </p>
                         @if (($job['company_slug'] ?? null) === 'northstar-labs')
-                            <a href="{{ route('companies.show', $job['company_slug']) }}" class="mt-3 inline-block font-semibold text-hb-blue hover:underline">View company profile →</a>
+                            <a href="{{ route('companies.show', $job['company_slug']) }}" class="mt-3 inline-block font-semibold text-hb-blue hover:underline">{{ __('public.jobs.view_company') }}</a>
                         @endif
                         <p class="mt-4 text-hb-muted">
-                            Hiring contact: {{ $job['hiring_contact'] }}<br>
-                            Hiring manager: {{ $job['hiring_manager'] }}
+                            {{ __('public.jobs.hiring_contact') }} {{ $job['hiring_contact'] }}<br>
+                            {{ __('public.jobs.hiring_manager') }} {{ $job['hiring_manager'] }}
                         </p>
                     </div>
 
                     <div class="hb-surface p-5 text-sm">
-                        <h2 class="font-semibold text-hb-navy">Role details</h2>
+                        <h2 class="font-semibold text-hb-navy">{{ __('public.jobs.role_details') }}</h2>
                         <dl class="mt-3 space-y-2 text-hb-muted">
-                            <div><dt class="inline font-medium text-hb-text">Job ID:</dt> <dd class="inline">{{ $job['code'] }}</dd></div>
-                            <div><dt class="inline font-medium text-hb-text">Posted:</dt> <dd class="inline">{{ $job['posted_at'] }}</dd></div>
-                            <div><dt class="inline font-medium text-hb-text">Team:</dt> <dd class="inline">{{ $job['discipline'] }}</dd></div>
-                            <div><dt class="inline font-medium text-hb-text">Reports to:</dt> <dd class="inline">{{ $job['reports_to'] }}</dd></div>
+                            <div><dt class="inline font-medium text-hb-text">{{ __('public.jobs.job_id') }}</dt> <dd class="inline">{{ $job['code'] }}</dd></div>
+                            <div><dt class="inline font-medium text-hb-text">{{ __('public.jobs.posted_label') }}</dt> <dd class="inline">{{ $job['posted_at'] }}</dd></div>
+                            <div><dt class="inline font-medium text-hb-text">{{ __('public.jobs.team_label') }}</dt> <dd class="inline">{{ $job['discipline'] }}</dd></div>
+                            <div><dt class="inline font-medium text-hb-text">{{ __('public.jobs.reports_to') }}</dt> <dd class="inline">{{ $job['reports_to'] }}</dd></div>
                         </dl>
-                        <a href="{{ route('jobs.index') }}" class="mt-4 inline-block font-semibold text-hb-blue hover:underline">← Back to all jobs</a>
+                        <a href="{{ route('jobs.index') }}" class="mt-4 inline-block font-semibold text-hb-blue hover:underline">{{ __('public.jobs.back_all') }}</a>
                     </div>
                 </aside>
             </div>

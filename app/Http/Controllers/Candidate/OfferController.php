@@ -17,7 +17,7 @@ class OfferController extends Controller
         return view('candidate.offers.index', [
             'pageTitle' => 'Offers · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'offers' => MockCandidateData::offers(),
             'frontendOnly' => true,
         ]);
@@ -32,7 +32,7 @@ class OfferController extends Controller
         return view('candidate.offers.show', [
             'pageTitle' => 'Your offer from '.$record['company'].' · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'offer' => $record,
             'frontendOnly' => true,
         ]);

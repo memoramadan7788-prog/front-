@@ -17,7 +17,7 @@ class ProfileController extends Controller
         return view('company.profile.show', [
             'pageTitle' => 'Company profile · Hirebridge',
             'uiRole' => 'company',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'profile' => MockCompanyData::profile(),
             'frontendOnly' => true,
         ]);

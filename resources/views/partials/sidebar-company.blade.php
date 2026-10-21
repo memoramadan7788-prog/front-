@@ -1,24 +1,28 @@
 @include('partials.sidebar-nav', [
-    'eyebrow' => 'Company Admin / HR',
+    'eyebrow' => __('navigation.company.eyebrow'),
     'workspaceLabel' => 'Northstar Labs',
     'items' => [
         [
-            'label' => 'Overview',
+            'label' => __('navigation.company.overview'),
             'route' => 'company.dashboard',
             'active' => request()->routeIs('company.dashboard')
                 || (($uiRole ?? null) === 'company' && request()->routeIs('frontend.layouts.app')),
         ],
         [
-            'label' => 'Company profile',
+            'label' => __('navigation.company.profile'),
             'route' => 'company.profile',
             'active' => request()->routeIs('company.profile'),
         ],
-        ['label' => 'Jobs & requisitions', 'pending' => true],
-        ['label' => 'Applicants', 'pending' => true],
-        ['label' => 'Interviews', 'pending' => true],
-        ['label' => 'Talent pool', 'pending' => true],
-        ['label' => 'Messages', 'pending' => true],
-        ['label' => 'Team & permissions', 'pending' => true],
-        ['label' => 'Hiring analytics', 'pending' => true],
+        [
+            'label' => __('navigation.company.jobs'),
+            'route' => 'company.jobs.index',
+            'active' => request()->routeIs('company.jobs.*'),
+        ],
+        ['label' => __('navigation.company.applicants'), 'pending' => true],
+        ['label' => __('navigation.company.interviews'), 'pending' => true],
+        ['label' => __('navigation.company.talent_pool'), 'pending' => true],
+        ['label' => __('navigation.company.messages'), 'pending' => true],
+        ['label' => __('navigation.company.team'), 'pending' => true],
+        ['label' => __('navigation.company.analytics'), 'pending' => true],
     ],
 ])

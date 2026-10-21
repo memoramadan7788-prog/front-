@@ -28,7 +28,7 @@ class ApplicationController extends Controller
         return view('candidate.applications.index', [
             'pageTitle' => 'My applications · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'applications' => $applications,
             'activeApplications' => $active,
             'archivedApplications' => $archived,
@@ -45,7 +45,7 @@ class ApplicationController extends Controller
         return view('candidate.applications.show', [
             'pageTitle' => ($record['title'] ?? 'Application').' · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'application' => $record,
             'frontendOnly' => true,
         ]);
@@ -61,7 +61,7 @@ class ApplicationController extends Controller
         return view('candidate.applications.apply', [
             'pageTitle' => 'Apply · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'flow' => $flow,
             'frontendOnly' => true,
         ]);
@@ -75,7 +75,7 @@ class ApplicationController extends Controller
         return view('candidate.applications.submitted', [
             'pageTitle' => 'Application confirmation preview · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'preview' => $preview,
             'frontendOnly' => true,
         ]);

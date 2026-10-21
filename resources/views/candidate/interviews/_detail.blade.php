@@ -26,14 +26,14 @@
 
     @if (($interview['scope'] ?? '') === 'upcoming')
         <div class="mt-5 flex flex-wrap gap-2">
-            <button type="button" class="hb-btn-primary" data-open-modal="interview-prep-modal">View preparation</button>
-            <button type="button" class="hb-btn-outline" data-open-modal="interview-reschedule-modal">Request reschedule</button>
+            <button type="button" class="hb-btn-primary" data-open-modal="interview-prep-modal">{{ __('candidate.interviews.view_preparation') }}</button>
+            <button type="button" class="hb-btn-outline" data-open-modal="interview-reschedule-modal">{{ __('candidate.interviews.reschedule') }}</button>
         </div>
     @endif
 
     @if (! empty($interview['prep']))
         <div class="mt-6 border-t border-hb-border pt-5">
-            <h3 class="text-base font-semibold text-hb-navy">Preparation checklist</h3>
+            <h3 class="text-base font-semibold text-hb-navy">{{ __('candidate.interviews.preparation_checklist') }}</h3>
             <ul class="mt-3 space-y-2" data-prep-checklist data-prep-storage="hb_interview_prep_{{ $interview['id'] }}">
                 @foreach ($interview['prep'] as $index => $item)
                     <li>
@@ -50,15 +50,15 @@
                 @endforeach
             </ul>
             <button type="button" class="hb-btn-outline mt-4" data-open-modal="interview-prep-modal">
-                Open interview guide
+                {{ __('candidate.interviews.open_interview_guide') }}
             </button>
-            <p class="mt-2 text-xs text-hb-muted">{{ $interview['guide_note'] ?? 'Checklist state is saved in this browser only.' }}</p>
+            <p class="mt-2 text-xs text-hb-muted">{{ $interview['guide_note'] ?? __('candidate.interviews.checklist_saved') }}</p>
         </div>
     @endif
 
     @if (! empty($interview['application_id']))
         <a href="{{ route('candidate.applications.show', $interview['application_id']) }}" class="mt-4 inline-flex text-sm font-semibold text-hb-blue hover:underline">
-            View application
+            {{ __('candidate.applications.view_application') }}
         </a>
     @endif
 </section>

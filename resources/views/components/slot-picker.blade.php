@@ -9,7 +9,7 @@
     <div class="flex items-center justify-between gap-3">
         <p class="text-sm font-semibold text-hb-navy">{{ $label }}</p>
         <span class="rounded-full bg-hb-pending-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-hb-pending">
-            Mock slots
+            Available times
         </span>
     </div>
 

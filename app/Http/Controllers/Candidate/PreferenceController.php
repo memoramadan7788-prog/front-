@@ -17,7 +17,7 @@ class PreferenceController extends Controller
         return view('candidate.preferences', [
             'pageTitle' => 'Job preferences & alerts · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'preferences' => MockCandidateData::preferences(),
             'frontendOnly' => true,
         ]);

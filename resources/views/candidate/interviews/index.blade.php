@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Your interviews · Hirebridge')
-@section('breadcrumb', '20 / My workspace / Interviews')
+@section('title', $pageTitle ?? __('candidate.interviews.list_page_title'))
+@section('breadcrumb', '20 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.interviews'))
 
 @section('page_header')
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">Your interviews</h1>
-    <p class="mt-1 text-sm text-hb-muted">A clear plan for every conversation. All times shown in Central Time.</p>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.interviews.list_title') }}</h1>
+    <p class="mt-1 text-sm text-hb-muted">{{ __('candidate.interviews.list_intro') }}</p>
 @endsection
 
 @section('content')
@@ -15,12 +15,9 @@
         $selected = $selected ?? ($upcoming[0] ?? null);
     @endphp
 
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — interview times, preparation, and reschedule actions are mock presentation data.
-    </div>
 
     <div data-candidate-interviews data-tabs>
-        <div class="border-b border-hb-border" role="tablist" aria-label="Interview lists">
+        <div class="border-b border-hb-border" role="tablist" aria-label="{{ __('candidate.interviews.tablist_aria') }}">
             <div class="flex flex-wrap gap-1">
                 <button
                     type="button"
@@ -31,7 +28,7 @@
                     tabindex="0"
                     class="border-b-2 border-hb-blue px-3 py-2.5 text-sm font-semibold text-hb-blue"
                 >
-                    Upcoming ({{ count($upcoming) }})
+                    {{ __('candidate.interviews.upcoming_count', ['count' => count($upcoming)]) }}
                 </button>
                 <button
                     type="button"
@@ -42,7 +39,7 @@
                     tabindex="-1"
                     class="border-b-2 border-transparent px-3 py-2.5 text-sm font-semibold text-hb-muted"
                 >
-                    Past ({{ count($past) }})
+                    {{ __('candidate.interviews.past_count', ['count' => count($past)]) }}
                 </button>
             </div>
         </div>
@@ -55,9 +52,9 @@
         >
             @if (count($upcoming) === 0)
                 <div class="hb-surface px-5 py-10 text-center" role="status">
-                    <p class="font-semibold text-hb-navy">No upcoming interviews</p>
-                    <p class="mt-2 text-sm text-hb-muted">When a hiring team schedules a conversation, it will appear here.</p>
-                    <a href="{{ route('candidate.applications.index') }}" class="hb-btn-primary mt-4 inline-flex">My applications</a>
+                    <p class="font-semibold text-hb-navy">{{ __('candidate.interviews.empty_upcoming_title') }}</p>
+                    <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.interviews.empty_upcoming_body') }}</p>
+                    <a href="{{ route('candidate.applications.index') }}" class="hb-btn-primary mt-4 inline-flex">{{ __('candidate.interviews.my_applications') }}</a>
                 </div>
             @else
                 <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -69,9 +66,9 @@
                                     <p class="mt-1 text-xs text-hb-muted">{{ $interviews['timezone'] }}</p>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <button type="button" class="hb-btn-outline px-3 py-2" data-week-nav="prev" aria-label="Previous week">‹</button>
-                                    <button type="button" class="hb-btn-outline px-3 py-2" data-week-today>Today</button>
-                                    <button type="button" class="hb-btn-outline px-3 py-2" data-week-nav="next" aria-label="Next week">›</button>
+                                    <button type="button" class="hb-btn-outline px-3 py-2" data-week-nav="prev" aria-label="{{ __('candidate.interviews.previous_week') }}">‹</button>
+                                    <button type="button" class="hb-btn-outline px-3 py-2" data-week-today>{{ __('candidate.interviews.today') }}</button>
+                                    <button type="button" class="hb-btn-outline px-3 py-2" data-week-nav="next" aria-label="{{ __('candidate.interviews.next_week') }}">›</button>
                                 </div>
                             </div>
                             <p class="mt-2 hidden text-xs text-hb-muted" data-week-nav-status role="status"></p>
@@ -112,12 +109,12 @@
 
                         @foreach ($past as $item)
                             <section class="hb-surface p-5" aria-labelledby="prev-convo-heading">
-                                <h2 id="prev-convo-heading" class="text-base font-semibold text-hb-navy">Previous conversation</h2>
+                                <h2 id="prev-convo-heading" class="text-base font-semibold text-hb-navy">{{ __('candidate.interviews.previous_conversation') }}</h2>
                                 <p class="mt-2 text-sm font-medium text-hb-text">{{ $item['title'] }} · {{ $item['company'] }}</p>
                                 <p class="mt-1 text-sm text-hb-muted">{{ $item['when'] }} · {{ $item['time'] }}</p>
                                 <p class="mt-2 text-sm text-hb-muted">{{ $item['note'] ?? '' }}</p>
                                 <a href="{{ route('candidate.interviews.show', $item['id']) }}" class="mt-3 inline-flex text-sm font-semibold text-hb-blue hover:underline">
-                                    View details
+                                    {{ __('candidate.jobs.view_details') }}
                                 </a>
                             </section>
                         @endforeach
@@ -151,12 +148,12 @@
                             </div>
                             <x-badge variant="success" :dot="true">{{ $item['status'] }}</x-badge>
                         </div>
-                        <a href="{{ route('candidate.interviews.show', $item['id']) }}" class="hb-btn-outline mt-4 inline-flex">View details</a>
+                        <a href="{{ route('candidate.interviews.show', $item['id']) }}" class="hb-btn-outline mt-4 inline-flex">{{ __('candidate.jobs.view_details') }}</a>
                     </article>
                 @empty
                     <div class="hb-surface px-5 py-10 text-center" role="status">
-                        <p class="font-semibold text-hb-navy">No past interviews yet</p>
-                        <p class="mt-2 text-sm text-hb-muted">Completed conversations will move here.</p>
+                        <p class="font-semibold text-hb-navy">{{ __('candidate.interviews.empty_past_title') }}</p>
+                        <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.interviews.empty_past_body') }}</p>
                     </div>
                 @endforelse
             </div>
@@ -165,17 +162,17 @@
 
     @include('layouts.modal', [
         'modalId' => 'interview-prep-modal',
-        'modalTitle' => 'Interview preparation',
+        'modalTitle' => __('candidate.interviews.prep_modal_title'),
         'modalSize' => 'lg',
         'modalBody' => view('candidate.interviews._prep-modal-body', ['interview' => $selected])->render(),
     ])
 
     @include('layouts.modal', [
         'modalId' => 'interview-reschedule-modal',
-        'modalTitle' => 'Request reschedule',
+        'modalTitle' => __('candidate.interviews.reschedule'),
         'modalSize' => 'md',
-        'modalBody' => '<p class="text-sm text-hb-muted">Frontend preview only. Choose a preferred window — nothing is sent to the hiring team.</p><label class="hb-label mt-4" for="reschedule-note">Preferred times</label><textarea id="reschedule-note" class="hb-input" rows="3" placeholder="e.g. Thursday afternoon or Friday morning Central" data-reschedule-note></textarea><p class="mt-3 hidden text-sm text-hb-success" data-reschedule-status role="status"></p>',
-        'modalFooter' => '<button type="button" class="hb-btn-outline" data-hb-modal-close>Cancel</button><button type="button" class="hb-btn-primary" data-reschedule-submit>Save preview request</button>',
+        'modalBody' => view('candidate.interviews._reschedule-modal-body')->render(),
+        'modalFooter' => view('candidate.interviews._reschedule-modal-footer')->render(),
     ])
 
     <p class="mt-8 text-xs text-hb-muted">{{ $interviews['footer'] }}</p>

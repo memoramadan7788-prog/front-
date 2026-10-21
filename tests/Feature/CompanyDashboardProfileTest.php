@@ -34,7 +34,7 @@ class CompanyDashboardProfileTest extends TestCase
             ->assertSee('Pending actions', false)
             ->assertSee('Create job', false)
             ->assertSee('Last 30 days', false)
-            ->assertSee('Frontend UI only', false)
+            ->assertDontSee('Frontend UI only', false)
             ->assertSee(route('company.profile'), false)
             ->assertDontSee('Elena Rodriguez', false);
     }
@@ -61,8 +61,9 @@ class CompanyDashboardProfileTest extends TestCase
             ->assertSee('View public profile', false)
             ->assertSee('Save identity', false)
             ->assertSee('Save workspace details', false)
-            ->assertSee('no dedicated Figma profile frame', false)
-            ->assertSee('Frontend UI only', false)
+            ->assertDontSee('no dedicated Figma profile frame', false)
+            ->assertDontSee('Frontend UI only', false)
+            ->assertDontSee('Batch 5A', false)
             ->assertDontSee('Company profile saved', false);
     }
 

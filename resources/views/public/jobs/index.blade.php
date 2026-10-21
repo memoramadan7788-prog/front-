@@ -1,43 +1,43 @@
 @extends('layouts.public')
 
-@section('title', $pageTitle ?? 'Find your next role · Hirebridge')
+@section('title', $pageTitle ?? __('public.jobs.index_page_title'))
 
 @section('content')
     {{-- Figma 02 · All Jobs (8:31300) --}}
     <section class="bg-hb-page" data-jobs-directory>
         <div class="hb-container py-10 lg:py-14">
-            <p class="text-xs font-semibold tracking-[0.12em] text-hb-muted uppercase">02 / Hirebridge / Find your next role</p>
+            <p class="text-xs font-semibold tracking-[0.12em] text-hb-muted uppercase">{{ __('public.jobs.index_eyebrow') }}</p>
             <div class="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                    <h1 class="text-3xl font-semibold text-hb-navy sm:text-4xl">Find your next role</h1>
+                    <h1 class="text-3xl font-semibold text-hb-navy sm:text-4xl">{{ __('public.jobs.index_title') }}</h1>
                     <p class="mt-2 max-w-2xl text-sm text-hb-muted">
-                        Opportunities with clear expectations, transparent pay, and a better next step.
+                        {{ __('public.jobs.index_intro') }}
                     </p>
                 </div>
                 <span class="rounded-full bg-hb-pending-soft px-3 py-1 text-[10px] font-semibold tracking-wide text-hb-pending uppercase">
-                    Mock listings
+                    {{ __('public.jobs.open_roles_badge') }}
                 </span>
             </div>
 
             <div class="mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
-                <aside class="hb-surface h-fit p-5" aria-label="Refine your search">
-                    <h2 class="text-sm font-semibold text-hb-navy">Refine your search</h2>
+                <aside class="hb-surface h-fit p-5" aria-label="{{ __('public.jobs.refine_aria') }}">
+                    <h2 class="text-sm font-semibold text-hb-navy">{{ __('public.jobs.refine_title') }}</h2>
 
                     <form id="jobs-filter-form" class="mt-5 space-y-6" onsubmit="return false;">
                         <div>
-                            <label for="filter-q" class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Keyword</label>
+                            <label for="filter-q" class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.keyword') }}</label>
                             <input id="filter-q" name="q" type="search" value="{{ request('q') }}" placeholder="Product designer"
                                    class="mt-2 w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2.5 text-sm">
                         </div>
 
                         <div>
-                            <label for="filter-location" class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Location</label>
+                            <label for="filter-location" class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.location') }}</label>
                             <input id="filter-location" name="location" type="text" value="{{ request('location') }}" placeholder="Austin, TX"
                                    class="mt-2 w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2.5 text-sm">
                         </div>
 
                         <fieldset>
-                            <legend class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Work model</legend>
+                            <legend class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.work_model') }}</legend>
                             <div class="mt-2 space-y-2 text-sm">
                                 @foreach (['Hybrid', 'Remote', 'On-site'] as $model)
                                     <label class="flex items-center gap-2">
@@ -51,7 +51,7 @@
                         </fieldset>
 
                         <fieldset>
-                            <legend class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Employment</legend>
+                            <legend class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.employment') }}</legend>
                             <div class="mt-2 space-y-2 text-sm">
                                 @foreach (['Full-time', 'Contract'] as $type)
                                     <label class="flex items-center gap-2">
@@ -65,17 +65,17 @@
                         </fieldset>
 
                         <div>
-                            <label class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Annual salary · USD</label>
+                            <label class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.salary_usd') }}</label>
                             <div class="mt-2 grid grid-cols-2 gap-2">
                                 <input id="filter-salary-min" type="number" name="salary_min" value="130000" min="0" step="5000"
-                                       class="w-full rounded-lg border border-hb-border px-3 py-2 text-sm" aria-label="Minimum salary">
+                                       class="w-full rounded-lg border border-hb-border px-3 py-2 text-sm" aria-label="{{ __('public.jobs.salary_min_aria') }}">
                                 <input id="filter-salary-max" type="number" name="salary_max" value="180000" min="0" step="5000"
-                                       class="w-full rounded-lg border border-hb-border px-3 py-2 text-sm" aria-label="Maximum salary">
+                                       class="w-full rounded-lg border border-hb-border px-3 py-2 text-sm" aria-label="{{ __('public.jobs.salary_max_aria') }}">
                             </div>
                         </div>
 
                         <fieldset>
-                            <legend class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Discipline</legend>
+                            <legend class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.discipline') }}</legend>
                             <div class="mt-2 space-y-2 text-sm">
                                 @foreach (['Product & Design', 'Engineering & Data', 'Marketing & Growth', 'People & Operations'] as $discipline)
                                     <label class="flex items-center gap-2">
@@ -88,19 +88,19 @@
                             </div>
                         </fieldset>
 
-                        <x-button type="button" variant="secondary" class="w-full" data-clear-filters>Clear filters</x-button>
+                        <x-button type="button" variant="secondary" class="w-full" data-clear-filters>{{ __('public.jobs.clear_filters') }}</x-button>
                     </form>
                 </aside>
 
                 <div>
                     <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <p class="text-sm text-hb-muted">
-                            <span data-jobs-count>{{ count($jobs) }}</span> roles match your search
+                            <span data-jobs-count>{{ count($jobs) }}</span> {{ __('public.jobs.match_count_suffix') }}
                         </p>
                         <label class="text-sm text-hb-muted">
-                            <span class="sr-only">Sort</span>
+                            <span class="sr-only">{{ __('common.sort') }}</span>
                             <select class="rounded-lg border border-hb-border bg-hb-surface px-3 py-2 text-sm text-hb-text" disabled>
-                                <option>Newest first</option>
+                                <option>{{ __('public.jobs.sort_newest') }}</option>
                             </select>
                         </label>
                     </div>
@@ -112,17 +112,17 @@
                     </div>
 
                     <div class="hb-surface mt-4 hidden px-5 py-10 text-center" data-jobs-empty>
-                        <p class="font-semibold text-hb-navy">No roles match these filters</p>
-                        <p class="mt-2 text-sm text-hb-muted">Try clearing filters or broadening keyword and location.</p>
-                        <x-button class="mt-4" variant="secondary" data-clear-filters>Clear filters</x-button>
+                        <p class="font-semibold text-hb-navy">{{ __('public.jobs.empty_title') }}</p>
+                        <p class="mt-2 text-sm text-hb-muted">{{ __('public.jobs.empty_body') }}</p>
+                        <x-button class="mt-4" variant="secondary" data-clear-filters>{{ __('public.jobs.clear_filters') }}</x-button>
                     </div>
 
                     <div class="mt-8 hb-surface flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p class="font-semibold text-hb-navy">Let the right role come to you</p>
-                            <p class="mt-1 text-sm text-hb-muted">Create a free account to save this search and receive weekly job alerts.</p>
+                            <p class="font-semibold text-hb-navy">{{ __('public.jobs.alert_title') }}</p>
+                            <p class="mt-1 text-sm text-hb-muted">{{ __('public.jobs.alert_body') }}</p>
                         </div>
-                        <a href="{{ route('register') }}" class="hb-btn-primary">Create account</a>
+                        <a href="{{ route('register') }}" class="hb-btn-primary">{{ __('public.jobs.create_account') }}</a>
                     </div>
                 </div>
             </div>

@@ -75,8 +75,9 @@ function openMobileSidebar() {
     const drawer = qs('[data-mobile-sidebar]');
     const backdrop = qs('[data-mobile-sidebar-backdrop]');
     if (!drawer || !backdrop) return;
-    drawer.classList.remove('-translate-x-full');
+    drawer.classList.remove('-translate-x-full', 'rtl:translate-x-full');
     drawer.classList.add('translate-x-0');
+    drawer.classList.add('is-open');
     backdrop.classList.remove('hidden');
     document.body.classList.add('overflow-hidden');
     const toggle = qs('[data-mobile-sidebar-toggle]');
@@ -87,8 +88,8 @@ function closeMobileSidebar() {
     const drawer = qs('[data-mobile-sidebar]');
     const backdrop = qs('[data-mobile-sidebar-backdrop]');
     if (!drawer || !backdrop) return;
-    drawer.classList.add('-translate-x-full');
-    drawer.classList.remove('translate-x-0');
+    drawer.classList.add('-translate-x-full', 'rtl:translate-x-full');
+    drawer.classList.remove('translate-x-0', 'is-open');
     backdrop.classList.add('hidden');
     document.body.classList.remove('overflow-hidden');
     const toggle = qs('[data-mobile-sidebar-toggle]');
@@ -258,27 +259,63 @@ function initSlotPicker() {
     });
 }
 
-function initLanguagePreview() {
-    qsa('[data-lang-option]').forEach((btn) => {
+function t(key, replace = {}) {
+    if (typeof window.__ === 'function') {
+        return window.__(key, replace);
+    }
+    return key;
+}
+
+function applyTheme(preference) {
+    const stored = preference || localStorage.getItem('hb_theme') || 'system';
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = stored === 'dark' || (stored === 'system' && prefersDark);
+    document.documentElement.classList.toggle('dark', dark);
+    document.documentElement.dataset.theme = stored;
+    try {
+        localStorage.setItem('hb_theme', stored);
+    } catch {
+        // Ignore quota / private mode.
+    }
+
+    qsa('[data-theme-option]').forEach((btn) => {
+        const active = btn.getAttribute('data-theme-option') === stored;
+        btn.classList.toggle('bg-hb-info-soft', active);
+        btn.classList.toggle('text-hb-blue', active);
+        btn.classList.toggle('text-hb-muted', !active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+}
+
+function initThemeSwitch() {
+    applyTheme(localStorage.getItem('hb_theme') || 'system');
+
+    qsa('[data-theme-option]').forEach((btn) => {
         btn.addEventListener('click', () => {
-            const lang = btn.getAttribute('data-lang-option');
-            if (!lang) return;
-
-            document.documentElement.lang = lang;
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-
-            qsa('[data-lang-option]').forEach((other) => {
-                const active = other.getAttribute('data-lang-option') === lang;
-                other.classList.toggle('bg-hb-info-soft', active);
-                other.classList.toggle('text-hb-blue', active);
-                other.classList.toggle('text-hb-muted', !active);
-                other.setAttribute('aria-pressed', active ? 'true' : 'false');
-            });
-
-            // Presentation-only preview — not persisted.
-            document.body.dataset.langPreview = lang;
+            const value = btn.getAttribute('data-theme-option');
+            if (!value) return;
+            applyTheme(value);
         });
     });
+
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if ((localStorage.getItem('hb_theme') || 'system') === 'system') {
+                applyTheme('system');
+            }
+        });
+    }
+}
+
+function initLanguagePreview() {
+    // Locale is applied server-side via cookie + full page navigation.
+    // Keep a light client sync so aria state stays accurate after soft navigations.
+    const current = document.documentElement.lang?.startsWith('ar') ? 'ar' : 'en';
+    try {
+        localStorage.setItem('hb_locale', current);
+    } catch {
+        // Ignore.
+    }
 }
 
 function initPublicMobileNav() {
@@ -481,7 +518,7 @@ function setSubmitting(form, submitting) {
     btn.setAttribute('aria-busy', submitting ? 'true' : 'false');
     if (submitting) {
         btn.dataset.originalLabel = btn.textContent;
-        btn.textContent = 'Please wait…';
+        btn.textContent = t('status.please_wait');
     } else if (btn.dataset.originalLabel) {
         btn.textContent = btn.dataset.originalLabel;
     }
@@ -953,8 +990,8 @@ function syncCandidatePreview(root, step) {
     if (nextEl) {
         nextEl.textContent =
             step >= 4
-                ? 'Profile review ready — Backend Team persistence still required.'
-                : 'Next: Review visibility and finish your profile.';
+                ? t('status.profile_ready')
+                : t('status.profile_next');
     }
 }
 
@@ -1095,7 +1132,7 @@ function initOnboarding() {
                 finish.disabled = true;
                 finish.setAttribute('aria-busy', 'true');
                 const original = finish.textContent;
-                finish.textContent = 'Please wait…';
+                finish.textContent = t('status.please_wait');
                 window.setTimeout(() => {
                     finish.disabled = false;
                     finish.removeAttribute('aria-busy');
@@ -1435,22 +1472,22 @@ function validateApplyForm(form) {
         }
     }
     if (!values.hybrid) {
-        setApplyFieldError(form, 'hybrid', 'Select a hybrid availability option.');
+        setApplyFieldError(form, 'hybrid', t('validation.hybrid'));
         valid = false;
     }
     if (!values.interest || values.interest.length < 20) {
-        setApplyFieldError(form, 'interest', 'Share at least 20 characters about your interest.');
+        setApplyFieldError(form, 'interest', t('validation.interest_min'));
         valid = false;
     }
     if (!values.consent) {
-        setApplyFieldError(form, 'consent', 'Consent is required to continue this preview.');
+        setApplyFieldError(form, 'consent', t('validation.consent_continue'));
         valid = false;
     }
 
     if (!valid) {
         const formError = qs('[data-apply-form-error]', form);
         if (formError) {
-            formError.textContent = 'Fix the highlighted fields before continuing.';
+            formError.textContent = t('validation.fix_highlighted');
             formError.classList.remove('hidden');
         }
     }
@@ -1554,11 +1591,11 @@ function initCandidateApplyForm(form) {
         const sizeKb = Math.max(1, Math.round(file.size / 1024));
         resume.dataset.resumeFilename = file.name;
         resume.dataset.resumeSize = `${sizeKb} KB`;
-        resume.dataset.resumeUpdated = 'Just now (local only)';
+        resume.dataset.resumeUpdated = 'Just now';
         const label = qs('[data-resume-label]', resume);
         const meta = qs('[data-resume-meta]', resume);
         if (label) label.textContent = `${file.name} · ${sizeKb} KB`;
-        if (meta) meta.textContent = 'Selected locally for this frontend preview · not uploaded';
+        if (meta) meta.textContent = t('status.resume_selected');
         setApplyFieldError(form, 'resume', '');
     });
 
@@ -1568,7 +1605,7 @@ function initCandidateApplyForm(form) {
         if (key) writeApplyDraft(key, values);
         const status = qs('[data-apply-draft-status]', form);
         if (status) {
-            status.textContent = 'Draft saved in this browser only. Nothing was sent to Hirebridge.';
+            status.textContent = t('status.draft_saved');
             status.classList.remove('hidden');
         }
     });
@@ -1693,11 +1730,11 @@ function initApplicationDetail() {
     btn.addEventListener('click', () => {
         const status = qs('[data-withdraw-status]');
         if (status) {
-            status.textContent = 'Frontend preview only — withdrawal was not recorded. Backend Team owns real status changes.';
+            status.textContent = t('status.withdraw_unavailable');
             status.classList.remove('hidden');
         }
         btn.disabled = true;
-        btn.textContent = 'Withdraw preview noted';
+        btn.textContent = t('status.withdraw_button');
     });
 }
 
@@ -1735,7 +1772,7 @@ function initCandidateInterviews() {
     qsa('[data-week-nav], [data-week-today]', root).forEach((btn) => {
         btn.addEventListener('click', () => {
             if (!weekStatus) return;
-            weekStatus.textContent = 'Calendar week navigation is a frontend preview — dates stay on Oct 19–23, 2026.';
+            weekStatus.textContent = t('status.week_note');
             weekStatus.classList.remove('hidden');
         });
     });
@@ -1746,14 +1783,14 @@ function initCandidateInterviews() {
         const status = qs('[data-reschedule-status]');
         if (!note) {
             if (status) {
-                status.textContent = 'Add a preferred window before saving this preview.';
+                status.textContent = t('validation.reschedule_window');
                 status.classList.remove('hidden', 'text-hb-success');
                 status.classList.add('text-hb-error');
             }
             return;
         }
         if (status) {
-            status.textContent = 'Reschedule preview saved in this browser only. No request was sent.';
+            status.textContent = t('status.reschedule_unavailable');
             status.classList.remove('hidden', 'text-hb-error');
             status.classList.add('text-hb-success');
         }
@@ -1880,7 +1917,7 @@ function initCandidateMessages() {
         const status = qs('[data-compose-status]', root);
         if (!body) {
             if (error) {
-                error.textContent = 'Write a message before sending this local preview.';
+                error.textContent = t('validation.write_message');
                 error.classList.remove('hidden');
             }
             return;
@@ -1898,7 +1935,7 @@ function initCandidateMessages() {
             role: 'You',
             time,
             body,
-            status: `Local only · ${time}`,
+            status: `Draft · ${time}`,
         };
         if (thread) {
             thread.messages = [...(thread.messages || []), localMessage];
@@ -1907,7 +1944,7 @@ function initCandidateMessages() {
         }
         if (compose) compose.value = '';
         if (status) {
-            status.textContent = 'Message added locally. It was not delivered to the hiring team.';
+            status.textContent = t('status.message_undelivered');
             status.classList.remove('hidden');
         }
     });
@@ -1923,7 +1960,7 @@ function initAssessmentIntro() {
         if (!consent?.checked) {
             event.preventDefault();
             if (error) {
-                error.textContent = 'Acknowledge the frontend demonstration before starting.';
+                error.textContent = t('validation.acknowledge');
                 error.classList.remove('hidden');
             }
         }
@@ -2047,12 +2084,12 @@ function initAssessmentResult() {
         scoreEl.textContent = `${payload.score}%`;
         if (outcome) {
             outcome.textContent = payload.score >= passing
-                ? 'Local preview meets the mock passing threshold.'
-                : 'Local preview is below the mock passing threshold.';
+                ? t('status.score_pass')
+                : t('status.score_fail');
         }
     } else if (scoreEl) {
         scoreEl.textContent = '—';
-        if (outcome) outcome.textContent = 'No local attempt found. Complete the take preview first.';
+        if (outcome) outcome.textContent = t('status.no_attempt');
     }
 }
 
@@ -2129,7 +2166,7 @@ function initCandidatePreferences() {
             const input = qs(`[data-pref-field="${field}"]`, form);
             const ok = Boolean(String(values[field] || '').trim());
             if (el) {
-                el.textContent = ok ? '' : 'This field is required.';
+                el.textContent = ok ? '' : t('validation.required');
                 el.classList.toggle('hidden', ok);
             }
             input?.setAttribute('aria-invalid', ok ? 'false' : 'true');
@@ -2137,7 +2174,7 @@ function initCandidatePreferences() {
         });
         if (!valid) {
             if (error) {
-                error.textContent = 'Fix the highlighted fields before saving this preview.';
+                error.textContent = t('validation.fix_before_save');
                 error.classList.remove('hidden');
             }
             return;
@@ -2172,7 +2209,7 @@ function initCandidateOffer() {
             return true;
         }
         if (error) {
-            error.textContent = 'Confirm you have reviewed the offer documents before continuing.';
+            error.textContent = t('validation.offer_reviewed');
             error.classList.remove('hidden');
         }
         return false;
@@ -2196,7 +2233,7 @@ function initCandidateOffer() {
 
     qs('[data-offer-confirm-accept]')?.addEventListener('click', () => {
         if (status) {
-            status.textContent = 'Accept preview recorded locally. No offer was accepted and no employer was notified.';
+            status.textContent = t('status.offer_accept_unavailable');
             status.classList.remove('hidden');
         }
         closeOpenModals();
@@ -2204,7 +2241,7 @@ function initCandidateOffer() {
 
     qs('[data-offer-confirm-decline]')?.addEventListener('click', () => {
         if (status) {
-            status.textContent = 'Decline preview recorded locally. Your Meridian application was not withdrawn on the server.';
+            status.textContent = t('status.offer_decline_unavailable');
             status.classList.remove('hidden');
         }
         closeOpenModals();
@@ -2359,6 +2396,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     initSlotPicker();
     initLanguagePreview();
+    initThemeSwitch();
     initPublicMobileNav();
     initPasswordToggles();
     initPasswordRules();

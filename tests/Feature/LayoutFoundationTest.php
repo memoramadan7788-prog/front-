@@ -32,7 +32,7 @@ class LayoutFoundationTest extends TestCase
 
             $response->assertOk();
             $response->assertSee('Application workspace', false);
-            $response->assertSee('mock data only', false);
+            $response->assertSee('Content canvas', false);
         }
     }
 }

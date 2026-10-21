@@ -17,7 +17,7 @@ class ProfileController extends Controller
         return view('candidate.profile.index', [
             'pageTitle' => 'Profile & resume · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'profile' => MockCandidateData::profile(),
             'frontendOnly' => true,
         ]);

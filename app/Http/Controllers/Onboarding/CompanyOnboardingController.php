@@ -16,7 +16,7 @@ class CompanyOnboardingController extends Controller
         return view('onboarding.company-register', [
             'pageTitle' => 'Set up your hiring workspace · Hirebridge',
             'uiRole' => 'company',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'frontendOnly' => true,
         ]);
     }
@@ -30,7 +30,7 @@ class CompanyOnboardingController extends Controller
             'pageTitle' => 'Company review status · Hirebridge',
             'companyName' => 'Northstar Labs',
             'uiRole' => 'company',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'frontendOnly' => true,
         ]);
     }

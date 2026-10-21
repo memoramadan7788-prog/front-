@@ -1,16 +1,16 @@
 <div class="space-y-5 hidden" data-onboarding-panel data-step="3" hidden>
     <div>
-        <h2 class="text-base font-semibold text-hb-navy">Hiring preferences</h2>
-        <p class="mt-1 text-sm text-hb-muted">Choose how this workspace will hire. You can change this later in settings.</p>
+        <h2 class="text-base font-semibold text-hb-navy">{{ __('onboarding.company.hiring.title') }}</h2>
+        <p class="mt-1 text-sm text-hb-muted">{{ __('onboarding.company.hiring.intro') }}</p>
     </div>
 
     <fieldset data-field="hiring_model">
-        <legend class="hb-label">Hiring model <span class="text-hb-error">*</span></legend>
-        <div class="mt-2 grid gap-3" role="radiogroup" aria-label="Hiring model" data-hiring-model-group>
+        <legend class="hb-label">{{ __('onboarding.company.hiring.model') }} <span class="text-hb-error">*</span></legend>
+        <div class="mt-2 grid gap-3" role="radiogroup" aria-label="{{ __('onboarding.company.hiring.model_aria') }}" data-hiring-model-group>
             @foreach ([
-                ['value' => 'direct', 'title' => 'Direct hiring', 'copy' => 'Post roles and manage applicants in your company workspace.'],
-                ['value' => 'agency', 'title' => 'Agency support', 'copy' => 'Partner with Hirebridge specialists for sourced shortlists.'],
-                ['value' => 'both', 'title' => 'Direct hiring and agency support', 'copy' => 'Combine your direct pipeline with specialist recruitment support.', 'selected' => true],
+                ['value' => 'direct', 'title' => __('onboarding.company.hiring.models.direct.title'), 'copy' => __('onboarding.company.hiring.models.direct.copy')],
+                ['value' => 'agency', 'title' => __('onboarding.company.hiring.models.agency.title'), 'copy' => __('onboarding.company.hiring.models.agency.copy')],
+                ['value' => 'both', 'title' => __('onboarding.company.hiring.models.both.title'), 'copy' => __('onboarding.company.hiring.models.both.copy'), 'selected' => true],
             ] as $option)
                 <button
                     type="button"
@@ -36,6 +36,6 @@
     </fieldset>
 
     <div class="rounded-lg border border-hb-border bg-hb-page px-4 py-3 text-sm text-hb-muted">
-        Job publishing becomes available after company review. You can save draft roles now once Backend Team workspace activation is connected.
+        {{ __('onboarding.company.publish_after_review_short') }}
     </div>
 </div>

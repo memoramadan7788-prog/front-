@@ -1,26 +1,16 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Assessments · Hirebridge')
-@section('breadcrumb', 'Assessments / My workspace / Assessments')
+@section('title', $pageTitle ?? __('candidate.assessments.page_title'))
+@section('breadcrumb', __('candidate.assessments.breadcrumb_index'))
 
 @section('page_header')
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">Assessments</h1>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.assessments.title') }}</h1>
     <p class="mt-1 text-sm text-hb-muted">
-        Role-linked exams assigned by hiring teams. Frontend preview — no grading or proctoring runs here.
+        {{ __('candidate.assessments.intro') }}
     </p>
 @endsection
 
 @section('content')
-    <div class="mb-4 rounded-lg border border-hb-blue/20 bg-hb-info-soft px-4 py-3 text-sm text-hb-blue" role="status">
-        No dedicated Figma frame for assessments. UI follows Platform workflow stubs
-        (<code class="text-xs">intro</code> / <code class="text-xs">take</code> / <code class="text-xs">result</code>)
-        and ERD exam/attempt fields. Camera consent is a local acknowledgment only.
-    </div>
-
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — assessment progress is not persisted to Hirebridge.
-    </div>
-
     <div class="space-y-4" data-candidate-assessments>
         @forelse ($assessments as $assessment)
             <article class="hb-surface p-5 sm:p-6">
@@ -31,8 +21,7 @@
                             {{ $assessment['company'] }} · {{ $assessment['role'] }} · {{ $assessment['code'] }}
                         </p>
                         <p class="mt-2 text-sm text-hb-text">
-                            {{ $assessment['questions_count'] }} questions · {{ $assessment['time_limit_min'] }} min ·
-                            Pass {{ $assessment['passing_score'] }}% · Attempt limit {{ $assessment['attempt_limit'] }}
+                            {{ __('candidate.assessments.questions_meta', ['count' => $assessment['questions_count'], 'minutes' => $assessment['time_limit_min'], 'pass' => $assessment['passing_score'], 'attempts' => $assessment['attempt_limit']]) }}
                         </p>
                         <p class="mt-1 text-sm text-hb-muted">{{ $assessment['due'] }}</p>
                     </div>
@@ -44,28 +33,28 @@
                 <div class="mt-4 flex flex-wrap gap-2">
                     @if ($assessment['status_key'] === 'ready')
                         <a href="{{ route('candidate.assessments.show', $assessment['id']) }}" class="hb-btn-primary">
-                            Open instructions
+                            {{ __('candidate.assessments.open_instructions') }}
                         </a>
                     @else
-                        <button type="button" class="hb-btn-primary" disabled title="Opens after screening — mock state">
-                            Not available yet
+                        <button type="button" class="hb-btn-primary" disabled title="{{ __('candidate.assessments.available_after_screening') }}">
+                            {{ __('candidate.assessments.not_available_yet') }}
                         </button>
                         <a href="{{ route('candidate.assessments.show', $assessment['id']) }}" class="hb-btn-outline">
-                            View details
+                            {{ __('candidate.assessments.view_details') }}
                         </a>
                     @endif
                     <a href="{{ route('candidate.applications.show', $assessment['application_id']) }}" class="hb-btn-outline">
-                        View application
+                        {{ __('candidate.assessments.view_application') }}
                     </a>
                 </div>
             </article>
         @empty
             <div class="hb-surface px-5 py-10 text-center" role="status">
-                <p class="font-semibold text-hb-navy">No assessments assigned</p>
-                <p class="mt-2 text-sm text-hb-muted">When an employer assigns an exam, it will appear here.</p>
+                <p class="font-semibold text-hb-navy">{{ __('candidate.assessments.empty_title') }}</p>
+                <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.assessments.empty_body') }}</p>
             </div>
         @endforelse
     </div>
 
-    <p class="mt-8 text-xs text-hb-muted">Hirebridge · Private workspace · All times Central unless noted · October 20, 2026</p>
+    <p class="mt-8 text-xs text-hb-muted">{{ __('common.footer.workspace_note', ['date' => __('candidate.footer_date')]) }}</p>
 @endsection

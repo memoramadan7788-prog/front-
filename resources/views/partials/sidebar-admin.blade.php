@@ -1,17 +1,17 @@
 @include('partials.sidebar-nav', [
-    'eyebrow' => 'Super Admin',
-    'workspaceLabel' => 'Hirebridge platform',
+    'eyebrow' => __('navigation.admin.eyebrow'),
+    'workspaceLabel' => __('navigation.admin.workspace'),
     'items' => [
         [
-            'label' => 'Overview',
+            'label' => __('navigation.admin.overview'),
             'route' => 'frontend.layouts.app',
             'params' => ['role' => 'admin'],
             'active' => ($uiRole ?? null) === 'admin' && request()->routeIs('frontend.layouts.app'),
         ],
-        ['label' => 'Organizations', 'pending' => true],
-        ['label' => 'Users & access', 'pending' => true],
-        ['label' => 'Job moderation', 'pending' => true],
-        ['label' => 'Agency operations', 'pending' => true],
-        ['label' => 'Settings & audit', 'pending' => true],
+        ['label' => __('navigation.admin.organizations'), 'pending' => true],
+        ['label' => __('navigation.admin.users'), 'pending' => true],
+        ['label' => __('navigation.admin.moderation'), 'pending' => true],
+        ['label' => __('navigation.admin.agency'), 'pending' => true],
+        ['label' => __('navigation.admin.settings'), 'pending' => true],
     ],
 ])

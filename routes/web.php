@@ -16,9 +16,11 @@ use App\Http\Controllers\Candidate\OfferController as CandidateOfferController;
 use App\Http\Controllers\Candidate\PreferenceController as CandidatePreferenceController;
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboardController;
+use App\Http\Controllers\Company\JobController as CompanyJobController;
 use App\Http\Controllers\Company\ProfileController as CompanyProfileController;
 use App\Http\Controllers\Frontend\ComponentShowcaseController;
 use App\Http\Controllers\Frontend\LayoutPreviewController;
+use App\Http\Controllers\Frontend\LocaleController;
 use App\Http\Controllers\Onboarding\CandidateOnboardingController;
 use App\Http\Controllers\Onboarding\CompanyOnboardingController;
 use App\Http\Controllers\Public\AboutController;
@@ -27,6 +29,15 @@ use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\JobController;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Frontend presentation preferences (locale cookie only)
+|--------------------------------------------------------------------------
+*/
+Route::get('/locale/{locale}', LocaleController::class)
+    ->whereIn('locale', ['en', 'ar'])
+    ->name('locale.switch');
 
 Route::get('/', HomeController::class)->name('home');
 
@@ -145,6 +156,19 @@ Route::get('/company/dashboard', CompanyDashboardController::class)
     ->name('company.dashboard');
 Route::get('/company/profile', [CompanyProfileController::class, 'show'])
     ->name('company.profile');
+
+/*
+|--------------------------------------------------------------------------
+| Company jobs & requisitions UI (Batch 5B — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. Create / publish / archive are mock UI — no persistence.
+*/
+Route::get('/company/jobs', [CompanyJobController::class, 'index'])
+    ->name('company.jobs.index');
+Route::get('/company/jobs/create', [CompanyJobController::class, 'create'])
+    ->name('company.jobs.create');
+Route::get('/company/jobs/{job}', [CompanyJobController::class, 'show'])
+    ->name('company.jobs.show');
 
 /*
 |--------------------------------------------------------------------------

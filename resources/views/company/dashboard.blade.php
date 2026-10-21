@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Overview · Hirebridge')
-@section('breadcrumb', '25 / Company workspace / Overview')
+@section('title', $pageTitle ?? __('company.dashboard.page_title'))
+@section('breadcrumb', __('company.dashboard.breadcrumb'))
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ $dashboard['greeting'] }}</h1>
@@ -10,7 +10,7 @@
 
 @section('page_actions')
     <div class="flex flex-wrap items-center gap-2" data-company-dashboard>
-        <label class="sr-only" for="company-date-range">Date range</label>
+        <label class="sr-only" for="company-date-range">{{ __('company.dashboard.date_range') }}</label>
         <select
             id="company-date-range"
             class="hb-input w-auto min-w-[10rem] py-2 text-sm"
@@ -21,24 +21,14 @@
                 <option value="{{ $range }}" @selected($range === $dashboard['date_range'])>{{ $range }}</option>
             @endforeach
         </select>
-        <button
-            type="button"
-            class="hb-btn-primary"
-            disabled
-            title="Create job arrives in Batch 5B"
-            aria-describedby="create-job-pending"
-        >
-            + Create job
-        </button>
+        <a href="{{ route('company.jobs.create') }}" class="hb-btn-primary">
+            {{ __('company.dashboard.create_job_short') }}
+        </a>
     </div>
 @endsection
 
 @section('content')
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — dashboard metrics and actions are mock presentation data (Figma Frame 25). Analytics queries are not live.
-    </div>
-    <p id="company-date-range-note" class="sr-only">Date range filters mock presentation only until Backend analytics exist.</p>
-    <p id="create-job-pending" class="sr-only">Create job is pending Batch 5B.</p>
+    <p id="company-date-range-note" class="sr-only">{{ __('company.dashboard.date_range_note') }}</p>
 
     <p
         class="mb-4 hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy"
@@ -75,10 +65,10 @@
                     </div>
                     <span
                         class="inline-flex cursor-not-allowed items-center rounded-lg border border-hb-border px-3 py-1.5 text-xs font-semibold text-hb-muted"
-                        title="Applicant pipeline board arrives in Batch 5C"
+                        title="{{ __('company.dashboard.pipeline_soon') }}"
                         aria-disabled="true"
                     >
-                        Open board · Soon
+                        {{ __('company.dashboard.open_board') }}
                     </span>
                 </div>
 
@@ -92,7 +82,7 @@
                             <div
                                 class="mt-1.5 h-2 overflow-hidden rounded-full bg-hb-page"
                                 role="img"
-                                aria-label="{{ $stage['label'] }}: {{ $stage['count'] }} candidates"
+                                aria-label="{{ __('company.dashboard.stage_candidates_aria', ['label' => $stage['label'], 'count' => $stage['count']]) }}"
                             >
                                 <div
                                     class="h-full rounded-full {{ ($stage['tone'] ?? '') === 'success' ? 'bg-hb-success' : 'bg-hb-blue' }}"
@@ -109,27 +99,26 @@
             <section class="hb-surface p-5 sm:p-6" aria-labelledby="requisitions-heading">
                 <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h2 id="requisitions-heading" class="text-lg font-semibold text-hb-navy">Active requisitions</h2>
-                        <p class="mt-1 text-sm text-hb-muted">Open roles across Northstar Labs</p>
+                        <h2 id="requisitions-heading" class="text-lg font-semibold text-hb-navy">{{ __('company.dashboard.active_requisitions') }}</h2>
+                        <p class="mt-1 text-sm text-hb-muted">{{ __('company.dashboard.open_roles_subtitle') }}</p>
                     </div>
-                    <span
-                        class="inline-flex cursor-not-allowed items-center rounded-lg border border-hb-border px-3 py-1.5 text-xs font-semibold text-hb-muted"
-                        title="Jobs & requisitions arrives in Batch 5B"
-                        aria-disabled="true"
+                    <a
+                        href="{{ route('company.jobs.index') }}"
+                        class="inline-flex items-center rounded-lg border border-hb-border px-3 py-1.5 text-xs font-semibold text-hb-blue hover:bg-hb-page"
                     >
-                        View all · Soon
-                    </span>
+                        {{ __('common.actions.view_all') }}
+                    </a>
                 </div>
 
                 <div class="mt-5 overflow-x-auto">
                     <table class="w-full min-w-[36rem] text-start text-sm">
-                        <caption class="sr-only">Active open requisitions</caption>
+                        <caption class="sr-only">{{ __('company.dashboard.table_caption_requisitions') }}</caption>
                         <thead>
                             <tr class="border-b border-hb-border text-xs font-semibold tracking-wide text-hb-muted uppercase">
-                                <th scope="col" class="pb-3 pe-4 font-semibold">Requisition</th>
-                                <th scope="col" class="pb-3 pe-4 font-semibold">Owner / team</th>
-                                <th scope="col" class="pb-3 pe-4 font-semibold">Pipeline</th>
-                                <th scope="col" class="pb-3 font-semibold">Status</th>
+                                <th scope="col" class="pb-3 pe-4 font-semibold">{{ __('company.dashboard.col_requisition') }}</th>
+                                <th scope="col" class="pb-3 pe-4 font-semibold">{{ __('company.dashboard.col_owner_team') }}</th>
+                                <th scope="col" class="pb-3 pe-4 font-semibold">{{ __('company.dashboard.col_pipeline') }}</th>
+                                <th scope="col" class="pb-3 font-semibold">{{ __('company.dashboard.col_status') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-hb-border">
@@ -156,7 +145,7 @@
 
             {{-- Recent activity --}}
             <section class="hb-surface p-5 sm:p-6" aria-labelledby="activity-heading">
-                <h2 id="activity-heading" class="text-lg font-semibold text-hb-navy">Hiring activity</h2>
+                <h2 id="activity-heading" class="text-lg font-semibold text-hb-navy">{{ __('company.dashboard.hiring_activity') }}</h2>
                 <ol class="mt-5 space-y-4">
                     @foreach ($dashboard['activity'] as $item)
                         <li class="flex gap-3 border-s-2 border-hb-border ps-4">
@@ -174,13 +163,13 @@
             {{-- Upcoming interviews --}}
             <section class="hb-surface p-5" aria-labelledby="interviews-heading">
                 <div class="flex items-start justify-between gap-2">
-                    <h2 id="interviews-heading" class="text-lg font-semibold text-hb-navy">Upcoming interviews</h2>
+                    <h2 id="interviews-heading" class="text-lg font-semibold text-hb-navy">{{ __('company.dashboard.upcoming_interviews') }}</h2>
                     <span
                         class="cursor-not-allowed text-xs font-semibold text-hb-muted"
-                        title="Interview calendar arrives in Batch 5D"
+                        title="{{ __('company.dashboard.calendar_soon') }}"
                         aria-disabled="true"
                     >
-                        Calendar · Soon
+                        {{ __('company.dashboard.calendar_soon_label') }}
                     </span>
                 </div>
                 <ul class="mt-4 space-y-3">
@@ -199,26 +188,32 @@
 
             {{-- Pending actions --}}
             <section class="hb-surface p-5" aria-labelledby="pending-heading">
-                <h2 id="pending-heading" class="text-lg font-semibold text-hb-navy">Pending actions</h2>
+                <h2 id="pending-heading" class="text-lg font-semibold text-hb-navy">{{ __('company.dashboard.pending_actions') }}</h2>
                 <ul class="mt-4 space-y-3">
                     @foreach ($dashboard['pending'] as $item)
                         <li class="rounded-lg border border-hb-border p-3">
                             <p class="text-sm font-semibold text-hb-navy">{{ $item['title'] }}</p>
                             <p class="mt-1 text-sm text-hb-muted">{{ $item['body'] }}</p>
-                            <button
-                                type="button"
-                                class="hb-btn-outline mt-3 w-full text-sm"
-                                disabled
-                                title="Available in Batch {{ $item['pending_batch'] }}"
-                            >
-                                {{ $item['action'] }} · Soon
-                            </button>
+                            @if (($item['pending_batch'] ?? '') === '5B')
+                                <a href="{{ route('company.jobs.create') }}" class="hb-btn-outline mt-3 w-full text-sm">
+                                    {{ $item['action'] }}
+                                </a>
+                            @else
+                                <button
+                                    type="button"
+                                    class="hb-btn-outline mt-3 w-full text-sm"
+                                    disabled
+                                    title="{{ __('company.dashboard.available_in_batch', ['batch' => $item['pending_batch']]) }}"
+                                >
+                                    {{ $item['action'] }} · {{ __('common.soon') }}
+                                </button>
+                            @endif
                         </li>
                     @endforeach
                 </ul>
                 <div class="mt-4">
                     <a href="{{ route('company.profile') }}" class="text-sm font-semibold text-hb-blue hover:underline">
-                        Review company profile
+                        {{ __('company.dashboard.review_company_profile') }}
                     </a>
                 </div>
             </section>
@@ -231,9 +226,10 @@
         (() => {
             const select = document.querySelector('[data-dashboard-date-range]');
             const note = document.querySelector('[data-dashboard-range-note]');
+            const rangeTemplate = @json(__('company.dashboard.date_range_selected'));
             if (!select || !note) return;
             select.addEventListener('change', () => {
-                note.textContent = `Showing mock metrics for “${select.value}”. Date filtering is presentation-only until Backend analytics exist.`;
+                note.textContent = rangeTemplate.replace(':range', select.value);
                 note.classList.remove('hidden');
             });
         })();

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Messages · Hirebridge')
-@section('breadcrumb', '21 / My workspace / Messages')
+@section('title', $pageTitle ?? __('candidate.messages.page_title'))
+@section('breadcrumb', '21 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.messages'))
 
 @section('page_header')
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">Messages</h1>
-    <p class="mt-1 text-sm text-hb-muted">Keep hiring conversations and useful context together.</p>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.messages.title') }}</h1>
+    <p class="mt-1 text-sm text-hb-muted">{{ __('candidate.messages.intro') }}</p>
 @endsection
 
 @section('content')
@@ -14,9 +14,6 @@
         $active = collect($threads)->firstWhere('selected', true) ?? ($threads[0] ?? null);
     @endphp
 
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — messages stay in this browser. Nothing is delivered to hiring teams.
-    </div>
 
     <div
         class="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_260px]"
@@ -26,19 +23,19 @@
         {{-- Inbox --}}
         <section class="hb-surface flex flex-col overflow-hidden" aria-labelledby="inbox-heading">
             <div class="border-b border-hb-border px-4 py-3">
-                <h2 id="inbox-heading" class="text-base font-semibold text-hb-navy">Inbox</h2>
+                <h2 id="inbox-heading" class="text-base font-semibold text-hb-navy">{{ __('candidate.messages.inbox') }}</h2>
                 <label class="mt-3 block">
-                    <span class="sr-only">Search conversations</span>
+                    <span class="sr-only">{{ __('candidate.messages.search_conversations') }}</span>
                     <input
                         type="search"
                         class="hb-input"
-                        placeholder="Search conversations…"
+                        placeholder="{{ __('candidate.messages.search_placeholder') }}"
                         data-message-search
                         autocomplete="off"
                     >
                 </label>
             </div>
-            <ul class="flex-1 divide-y divide-hb-border overflow-y-auto" data-thread-list role="listbox" aria-label="Conversations">
+            <ul class="flex-1 divide-y divide-hb-border overflow-y-auto" data-thread-list role="listbox" aria-label="{{ __('candidate.messages.conversations_aria') }}">
                 @foreach ($threads as $thread)
                     <li>
                         <button
@@ -57,7 +54,7 @@
                             @if (! empty($thread['unread']))
                                 <p class="mt-1 text-xs font-medium text-hb-blue">
                                     <span aria-hidden="true">●</span>
-                                    Selected · {{ $thread['unread'] }} unread
+                                    {{ __('candidate.messages.selected_unread', ['count' => $thread['unread']]) }}
                                 </p>
                             @endif
                             <p class="mt-1 truncate text-sm text-hb-muted">{{ $thread['snippet'] }}</p>
@@ -66,8 +63,8 @@
                 @endforeach
             </ul>
             <div class="hidden border-t border-hb-border px-4 py-6 text-center" data-thread-empty role="status" hidden>
-                <p class="text-sm font-semibold text-hb-navy">No conversations match</p>
-                <p class="mt-1 text-xs text-hb-muted">Try another search.</p>
+                <p class="text-sm font-semibold text-hb-navy">{{ __('candidate.messages.no_conversations') }}</p>
+                <p class="mt-1 text-xs text-hb-muted">{{ __('candidate.messages.try_search') }}</p>
             </div>
         </section>
 
@@ -90,7 +87,7 @@
                             data-toggle-context
                             aria-expanded="false"
                         >
-                            Context
+                            {{ __('candidate.messages.context') }}
                         </button>
                     </div>
                 </div>
@@ -122,7 +119,7 @@
                                     <span class="font-semibold text-hb-blue">
                                         ↳ {{ $message['attachment']['name'] }} · {{ $message['attachment']['size'] }}
                                     </span>
-                                    <span class="sr-only">(attachment preview — not downloadable)</span>
+                                    <span class="sr-only">{{ __('candidate.messages.attachment_preview') }}</span>
                                 </p>
                             @endif
                             @if (! empty($message['status']))
@@ -133,34 +130,33 @@
                 </div>
 
                 <div class="border-t border-hb-border px-5 py-4">
-                    <label class="hb-label" for="message-compose">Reply to <span data-compose-name>{{ $active['contact'] }}</span></label>
+                    <label class="hb-label" for="message-compose">{{ __('candidate.messages.reply_to', ['name' => $active['contact']]) }}</label>
                     <textarea
                         id="message-compose"
                         class="hb-input"
                         rows="3"
-                        placeholder="Write your message…"
+                        placeholder="{{ __('candidate.messages.compose_placeholder') }}"
                         data-message-compose
                     ></textarea>
                     <p class="hb-field-error hidden" data-compose-error role="alert"></p>
                     <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <button type="button" class="hb-btn-outline" data-message-attach disabled title="Attachments — Backend Team">
-                            Attach file
+                        <button type="button" class="hb-btn-outline" data-message-attach disabled title="{{ __('candidate.messages.attach_soon') }}">
+                            {{ __('candidate.messages.attach') }}
                         </button>
                         <button type="button" class="hb-btn-primary" data-message-send>
-                            Send message
+                            {{ __('candidate.messages.send') }}
                         </button>
                     </div>
                     <p class="mt-2 text-xs text-hb-muted">
-                        Messages are visible to the authorized hiring team for this application.
-                        <span class="font-medium">Local preview only — not delivered.</span>
+                        {{ __('candidate.messages.visible_note') }}
                     </p>
                     <p class="mt-2 hidden text-sm text-hb-success" data-compose-status role="status"></p>
                 </div>
             @else
                 <div class="flex flex-1 items-center justify-center px-5 py-10 text-center" role="status">
                     <div>
-                        <p class="font-semibold text-hb-navy">No conversation selected</p>
-                        <p class="mt-2 text-sm text-hb-muted">Choose a thread from your inbox.</p>
+                        <p class="font-semibold text-hb-navy">{{ __('candidate.messages.no_thread') }}</p>
+                        <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.messages.choose_thread') }}</p>
                     </div>
                 </div>
             @endif
@@ -173,21 +169,21 @@
             data-message-context
         >
             @if ($active)
-                <h2 id="context-heading" class="text-base font-semibold text-hb-navy">Application context</h2>
+                <h2 id="context-heading" class="text-base font-semibold text-hb-navy">{{ __('candidate.messages.application_context') }}</h2>
                 <div class="mt-3">
                     <x-badge variant="info" :dot="true" data-context-stage>{{ $active['stage'] }}</x-badge>
                 </div>
                 <dl class="mt-4 space-y-2 text-sm">
                     <div>
-                        <dt class="text-hb-muted">Company</dt>
+                        <dt class="text-hb-muted">{{ __('candidate.messages.company') }}</dt>
                         <dd class="font-medium text-hb-navy" data-context-company>{{ $active['company'] }}</dd>
                     </div>
                     <div>
-                        <dt class="text-hb-muted">Role</dt>
+                        <dt class="text-hb-muted">{{ __('candidate.messages.role') }}</dt>
                         <dd class="font-medium text-hb-navy" data-context-role>{{ $active['role'] }}</dd>
                     </div>
                     <div>
-                        <dt class="text-hb-muted">ID / type</dt>
+                        <dt class="text-hb-muted">{{ __('candidate.messages.id_type') }}</dt>
                         <dd class="font-medium text-hb-navy" data-context-code>{{ $active['code'] }} · {{ $active['source'] }}</dd>
                     </div>
                 </dl>
@@ -199,7 +195,7 @@
                     class="hb-btn-outline mt-4 inline-flex w-full"
                     data-context-application
                 >
-                    View application
+                    {{ __('candidate.messages.view_application') }}
                 </a>
             @endif
         </aside>

@@ -1,39 +1,36 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Results preview · Hirebridge')
-@section('breadcrumb', 'Assessments / My workspace / Results')
+@section('title', $pageTitle ?? __('candidate.assessments.result_page_title'))
+@section('breadcrumb', __('candidate.assessments.breadcrumb_results'))
 
 @section('page_header')
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">Results preview</h1>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.assessments.results') }}</h1>
     <p class="mt-1 text-sm text-hb-muted">{{ $assessment['title'] }} · {{ $assessment['company'] }} · {{ $assessment['code'] }}</p>
 @endsection
 
 @section('content')
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Demonstration score only — no attempt was graded or stored by Hirebridge.
-    </div>
 
     <div class="mx-auto max-w-2xl space-y-6" data-assessment-result data-passing="{{ $assessment['passing_score'] }}">
         <section class="hb-surface p-5 sm:p-6 text-center">
-            <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Estimated score</p>
+            <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('candidate.assessments.estimated_score') }}</p>
             <p class="mt-2 text-4xl font-semibold text-hb-navy" data-result-score>—</p>
             <p class="mt-2 text-sm text-hb-muted">
-                Passing threshold {{ $assessment['passing_score'] }}% ·
-                <span data-result-outcome>Awaiting local calculation</span>
+                {{ __('candidate.assessments.passing_threshold', ['score' => $assessment['passing_score']]) }}
+                <span data-result-outcome>{{ __('candidate.assessments.awaiting_score') }}</span>
             </p>
         </section>
 
         <section class="hb-surface p-5 sm:p-6">
-            <h2 class="text-lg font-semibold text-hb-navy">What this preview means</h2>
+            <h2 class="text-lg font-semibold text-hb-navy">{{ __('candidate.assessments.results_mean') }}</h2>
             <ul class="mt-3 list-disc space-y-2 ps-5 text-sm text-hb-muted">
-                <li>Multiple-choice items are scored locally against mock answer keys.</li>
-                <li>Short-answer items are marked as reviewed, not auto-graded.</li>
-                <li>Employers do not receive this preview. Backend Team owns real attempts.</li>
+                <li>{{ __('candidate.assessments.results_bullet_mc') }}</li>
+                <li>{{ __('candidate.assessments.results_bullet_short') }}</li>
+                <li>{{ __('candidate.assessments.results_bullet_review') }}</li>
             </ul>
             <div class="mt-5 flex flex-wrap gap-2">
-                <a href="{{ route('candidate.assessments.index') }}" class="hb-btn-primary">Back to assessments</a>
+                <a href="{{ route('candidate.assessments.index') }}" class="hb-btn-primary">{{ __('candidate.assessments.back') }}</a>
                 <a href="{{ route('candidate.applications.show', $assessment['application_id']) }}" class="hb-btn-outline">
-                    View application
+                    {{ __('candidate.assessments.view_application') }}
                 </a>
             </div>
         </section>

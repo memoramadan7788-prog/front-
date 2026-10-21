@@ -37,7 +37,7 @@ class CandidateJobsScreensTest extends TestCase
             ->assertSee('Already Applied', false)
             ->assertSee('Help us improve your recommendations', false)
             ->assertSee('Update preferences', false)
-            ->assertSee('Frontend UI only', false)
+            ->assertDontSee('Frontend UI only', false)
             ->assertDontSee('Application submitted', false);
     }
 
@@ -66,7 +66,7 @@ class CandidateJobsScreensTest extends TestCase
             ->assertSee('Your saved search', false)
             ->assertSee('Weekly email · Enabled', false)
             ->assertSee('Manage saved-search alerts', false)
-            ->assertSee('Frontend UI only', false)
+            ->assertDontSee('Frontend UI only', false)
             ->assertDontSee('Job saved to your account', false);
     }
 

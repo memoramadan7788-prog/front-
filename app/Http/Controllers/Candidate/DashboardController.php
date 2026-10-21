@@ -17,7 +17,7 @@ class DashboardController extends Controller
         return view('candidate.dashboard', [
             'pageTitle' => 'Overview · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'dashboard' => MockCandidateData::dashboard(),
             'frontendOnly' => true,
         ]);

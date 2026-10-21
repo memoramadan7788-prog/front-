@@ -19,7 +19,7 @@ class MessageController extends Controller
         return view('candidate.messages.index', [
             'pageTitle' => 'Messages · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'inbox' => $messages,
             'frontendOnly' => true,
         ]);

@@ -22,14 +22,14 @@ class PublicScreensTest extends TestCase
         $this->get(route('jobs.index'))
             ->assertOk()
             ->assertSee('Find your next role', false)
-            ->assertSee('Mock listings', false)
+            ->assertDontSee('Mock listings', false)
             ->assertSee('NS-204', false);
 
         $this->get(route('jobs.show', 'ns-204'))
             ->assertOk()
             ->assertSee('Senior Product Designer', false)
             ->assertSee('Apply for this role', false)
-            ->assertSee('Mock job', false);
+            ->assertDontSee('Mock job', false);
     }
 
     public function test_unknown_demo_job_returns_not_found(): void
@@ -52,7 +52,7 @@ class PublicScreensTest extends TestCase
         $this->get(route('contact'))
             ->assertOk()
             ->assertSee('Request a consultation', false)
-            ->assertSee('Frontend only', false);
+            ->assertDontSee('Frontend only', false);
     }
 
     public function test_stage_one_and_two_preview_routes_remain_in_local(): void

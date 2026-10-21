@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Overview · Hirebridge')
-@section('breadcrumb', '13 / My workspace / Overview')
+@section('title', $pageTitle ?? __('candidate.dashboard.page_title'))
+@section('breadcrumb', '13 / ' . __('candidate.dashboard.breadcrumb'))
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ $dashboard['greeting'] }}</h1>
@@ -9,13 +9,10 @@
 @endsection
 
 @section('page_actions')
-    <a href="{{ route('candidate.jobs.index') }}" class="hb-btn-primary">Discover jobs</a>
+    <a href="{{ route('candidate.jobs.index') }}" class="hb-btn-primary">{{ __('candidate.dashboard.discover_jobs') }}</a>
 @endsection
 
 @section('content')
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — dashboard metrics and actions are mock presentation data.
-    </div>
 
     {{-- Stats --}}
     <div class="grid gap-4 sm:grid-cols-3">
@@ -52,14 +49,14 @@
                 </div>
 
                 <div class="mt-5 flex flex-wrap gap-2">
-                    <a href="{{ route('candidate.interviews.index') }}" class="hb-btn-primary">View preparation</a>
-                    <a href="{{ route('candidate.messages.index') }}" class="hb-btn-outline">Open messages</a>
+                    <a href="{{ route('candidate.interviews.index') }}" class="hb-btn-primary">{{ __('candidate.dashboard.view_preparation') }}</a>
+                    <a href="{{ route('candidate.messages.index') }}" class="hb-btn-outline">{{ __('candidate.dashboard.open_messages') }}</a>
                 </div>
             </section>
 
             {{-- Application snapshot --}}
             <section class="hb-surface p-5 sm:p-6" aria-labelledby="application-heading">
-                <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Your Northstar application</p>
+                <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('candidate.dashboard.northstar_application') }}</p>
                 <div class="mt-2 flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h2 id="application-heading" class="text-lg font-semibold text-hb-navy">
@@ -76,13 +73,13 @@
                 <p class="mt-5 text-sm leading-relaxed text-hb-muted">{{ $dashboard['application']['note'] }}</p>
 
                 <div class="mt-5">
-                    <a href="{{ route('candidate.applications.show', 'hb-ns204-mc-1012') }}" class="hb-btn-outline">View application</a>
+                    <a href="{{ route('candidate.applications.show', 'hb-ns204-mc-1012') }}" class="hb-btn-outline">{{ __('candidate.dashboard.view_application') }}</a>
                 </div>
             </section>
 
             {{-- Recommended --}}
             <section class="hb-surface p-5 sm:p-6" aria-labelledby="recommended-heading">
-                <h2 id="recommended-heading" class="text-lg font-semibold text-hb-navy">Recommended for you</h2>
+                <h2 id="recommended-heading" class="text-lg font-semibold text-hb-navy">{{ __('candidate.dashboard.recommended') }}</h2>
                 <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div class="min-w-0">
                         <p class="font-semibold text-hb-navy">{{ $dashboard['recommended']['title'] }}</p>
@@ -96,20 +93,20 @@
                         <p class="mt-3 text-sm text-hb-muted">{{ $dashboard['recommended']['reason'] }}</p>
                     </div>
                     <div class="flex shrink-0 flex-wrap gap-2">
-                        <button type="button" class="hb-btn-ghost" disabled title="Saved jobs — Batch 4B">Save</button>
+                        <button type="button" class="hb-btn-ghost" disabled title="{{ __('candidate.dashboard.save_soon') }}">{{ __('candidate.dashboard.save') }}</button>
                         <a href="{{ route('jobs.show', $dashboard['recommended']['id']) }}" class="hb-btn-outline">
-                            View role →
+                            {{ __('candidate.dashboard.view_role') }}
                         </a>
                     </div>
                 </div>
             </section>
         </div>
 
-        <aside class="space-y-4" aria-label="Progress and next actions">
+        <aside class="space-y-4" aria-label="{{ __('candidate.dashboard.progress_aside') }}">
             <div class="hb-surface p-5">
-                <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">A little progress goes a long way</p>
-                <h2 class="mt-2 text-base font-semibold text-hb-navy">Complete your profile</h2>
-                <p class="mt-2 text-sm font-medium text-hb-blue">{{ $dashboard['profile_progress']['percent'] }}% complete</p>
+                <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('candidate.dashboard.profile_eyebrow') }}</p>
+                <h2 class="mt-2 text-base font-semibold text-hb-navy">{{ __('candidate.dashboard.complete_profile') }}</h2>
+                <p class="mt-2 text-sm font-medium text-hb-blue">{{ __('candidate.dashboard.percent_complete', ['percent' => $dashboard['profile_progress']['percent']]) }}</p>
                 <ul class="mt-4 space-y-2 text-sm text-hb-muted">
                     @foreach ($dashboard['profile_progress']['items'] as $item)
                         <li class="flex gap-2">
@@ -120,11 +117,11 @@
                         </li>
                     @endforeach
                 </ul>
-                <a href="{{ route('candidate.profile') }}" class="hb-btn-primary mt-5 w-full">Finish profile</a>
+                <a href="{{ route('candidate.profile') }}" class="hb-btn-primary mt-5 w-full">{{ __('candidate.dashboard.finish_profile') }}</a>
             </div>
 
             <div class="hb-surface p-5">
-                <h2 class="text-base font-semibold text-hb-navy">Your next actions</h2>
+                <h2 class="text-base font-semibold text-hb-navy">{{ __('candidate.dashboard.next_actions') }}</h2>
                 <ul class="mt-4 space-y-4">
                     @foreach ($dashboard['next_actions'] as $action)
                         <li>

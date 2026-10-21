@@ -19,7 +19,7 @@ class JobController extends Controller
         return view('candidate.jobs.index', [
             'pageTitle' => 'Discover jobs · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'jobs' => $jobs,
             'preferences' => MockCandidateData::discoverPreferences(),
             'defaultSavedIds' => MockCandidateData::defaultSavedJobIds(),
@@ -40,7 +40,7 @@ class JobController extends Controller
         return view('candidate.jobs.saved', [
             'pageTitle' => 'Saved jobs · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'jobs' => $jobs,
             'savedJobs' => $savedJobs,
             'defaultSavedIds' => $defaultSavedIds,

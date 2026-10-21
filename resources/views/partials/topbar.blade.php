@@ -24,7 +24,7 @@
             data-mobile-sidebar-toggle
             aria-expanded="false"
             aria-controls="mobile-sidebar-drawer"
-            aria-label="Open navigation"
+            aria-label="{{ __('common.open_navigation') }}"
         >
             <span class="flex flex-col gap-1" aria-hidden="true">
                 <span class="block h-0.5 w-4 bg-current"></span>
@@ -33,28 +33,28 @@
             </span>
         </button>
 
-        {{-- Presentation-only search — no search contract yet --}}
         <label class="relative hidden min-w-0 max-w-md flex-1 sm:block">
-            <span class="sr-only">Search Hirebridge</span>
+            <span class="sr-only">{{ __('common.search_label') }}</span>
             <span class="pointer-events-none absolute inset-y-0 start-3 flex items-center text-hb-muted" aria-hidden="true">⌕</span>
             <input
                 type="search"
                 name="q"
-                placeholder="Search Hirebridge…"
+                placeholder="{{ __('common.search_placeholder') }}"
                 class="w-full rounded-lg border border-hb-border bg-hb-page py-2.5 ps-9 pe-14 text-sm text-hb-text placeholder:text-hb-muted focus:border-hb-blue focus:bg-hb-surface"
                 autocomplete="off"
                 aria-describedby="search-contract-note"
             >
             <kbd class="pointer-events-none absolute inset-y-0 end-3 my-auto hidden h-6 items-center rounded border border-hb-border bg-hb-surface px-1.5 text-[10px] font-medium text-hb-muted sm:inline-flex">⌘ K</kbd>
         </label>
-        <p id="search-contract-note" class="sr-only">Search is presentation-only until a backend search contract exists.</p>
+        <p id="search-contract-note" class="sr-only">{{ __('common.search_label') }}</p>
     </div>
 
     <div class="flex items-center gap-1 sm:gap-2">
         <a href="#" class="hidden rounded-lg px-2 py-2 text-sm font-medium text-hb-muted hover:bg-hb-page hover:text-hb-text md:inline-flex" onclick="return false;">
-            Help
+            {{ __('common.help') }}
         </a>
 
+        @include('partials.theme-switch')
         @include('partials.language-switch')
         @include('partials.notifications-dropdown')
 
@@ -68,7 +68,7 @@
                 aria-controls="{{ $profilePanelId }}"
                 id="{{ $profilePanelId }}-trigger"
             >
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-hb-navy text-xs font-semibold text-white" aria-hidden="true">
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-hb-navy text-xs font-semibold text-white dark:bg-hb-blue dark:text-hb-page" aria-hidden="true">
                     {{ $topbarUser['initials'] }}
                 </span>
                 <span class="hidden text-sm font-medium text-hb-text sm:inline">{{ $topbarUser['name'] }}</span>
@@ -84,17 +84,17 @@
             >
                 <div class="border-b border-hb-border px-4 py-3">
                     <p class="text-sm font-semibold text-hb-navy">{{ $topbarUser['name'] }}</p>
-                    <p class="mt-0.5 text-xs text-hb-muted">Mock profile · not signed in</p>
+                    <p class="mt-0.5 text-xs text-hb-muted">{{ __('common.workspace_account') }}</p>
                 </div>
                 <ul class="py-1 text-sm">
                     <li>
                         <span class="block cursor-not-allowed px-4 py-2 text-hb-muted" role="menuitem" aria-disabled="true">
-                            Profile settings <span class="text-[10px] uppercase">Soon</span>
+                            {{ __('common.profile_settings') }} <span class="text-[10px] uppercase">{{ __('common.soon') }}</span>
                         </span>
                     </li>
                     <li>
                         <span class="block cursor-not-allowed px-4 py-2 text-hb-muted" role="menuitem" aria-disabled="true">
-                            Sign out <span class="text-[10px] uppercase">Soon</span>
+                            {{ __('common.sign_out') }} <span class="text-[10px] uppercase">{{ __('common.soon') }}</span>
                         </span>
                     </li>
                 </ul>

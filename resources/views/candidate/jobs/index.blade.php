@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Discover jobs · Hirebridge')
-@section('breadcrumb', '14 / My workspace / Discover jobs')
+@section('title', $pageTitle ?? __('candidate.jobs.discover_page_title'))
+@section('breadcrumb', '14 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.discover_jobs'))
 
 @section('page_header')
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">Work that fits your next chapter</h1>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.jobs.discover_headline') }}</h1>
     <p class="mt-1 text-sm text-hb-muted">
-        Recommendations based on your design experience, salary range, and work preferences.
+        {{ __('candidate.jobs.discover_intro') }}
     </p>
 @endsection
 
 @section('page_actions')
-    <a href="{{ route('candidate.profile') }}" class="hb-btn-primary">Edit preferences</a>
+    <a href="{{ route('candidate.profile') }}" class="hb-btn-primary">{{ __('candidate.jobs.edit_preferences') }}</a>
 @endsection
 
 @section('content')
@@ -20,44 +20,41 @@
         data-candidate-jobs-mode="discover"
         data-default-saved='@json($defaultSavedIds)'
     >
-        <div class="hb-mock-banner mb-6 rounded-lg text-start">
-            Frontend UI only — recommendations, filters, and save/unsave use mock data in this browser. Nothing is stored on your account.
-        </div>
 
         {{-- Search / filter bar --}}
         <div class="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center">
             <label class="relative min-w-0 flex-1">
-                <span class="sr-only">Search roles</span>
+                <span class="sr-only">{{ __('candidate.jobs.search_roles') }}</span>
                 <input
                     type="search"
                     name="q"
                     value="{{ $preferences['search_default'] }}"
                     class="hb-input"
-                    placeholder="Senior product design"
+                    placeholder="{{ __('candidate.jobs.search_roles_placeholder') }}"
                     data-discover-q
                     autocomplete="off"
                 >
             </label>
             <label class="shrink-0">
-                <span class="sr-only">Location filter</span>
-                <select class="hb-input min-w-44" data-discover-location aria-label="Location filter">
-                    <option value="austin_remote" @selected($preferences['location_default'] === 'austin_remote')>Austin + Remote</option>
-                    <option value="austin">Austin only</option>
-                    <option value="remote">Remote only</option>
-                    <option value="all">All locations</option>
+                <span class="sr-only">{{ __('candidate.jobs.location_filter') }}</span>
+                <select class="hb-input min-w-44" data-discover-location aria-label="{{ __('candidate.jobs.location_filter') }}">
+                    <option value="austin_remote" @selected($preferences['location_default'] === 'austin_remote')>{{ __('candidate.jobs.location_austin_remote') }}</option>
+                    <option value="austin">{{ __('candidate.jobs.location_austin') }}</option>
+                    <option value="remote">{{ __('candidate.jobs.location_remote') }}</option>
+                    <option value="all">{{ __('candidate.jobs.location_all') }}</option>
                 </select>
             </label>
             <label class="shrink-0">
-                <span class="sr-only">Sort</span>
-                <select class="hb-input min-w-40" data-discover-sort aria-label="Sort roles">
-                    <option value="recommended" @selected($preferences['sort_default'] === 'recommended')>Recommended</option>
-                    <option value="salary_desc">Salary · high to low</option>
-                    <option value="newest">Newest first</option>
-                    <option value="company">Company A–Z</option>
+                <span class="sr-only">{{ __('candidate.jobs.sort') }}</span>
+                <select class="hb-input min-w-40" data-discover-sort aria-label="{{ __('candidate.jobs.sort_roles') }}">
+                    <option value="recommended" @selected($preferences['sort_default'] === 'recommended')>{{ __('candidate.jobs.sort_recommended') }}</option>
+                    <option value="salary_desc">{{ __('candidate.jobs.sort_salary_desc') }}</option>
+                    <option value="newest">{{ __('candidate.jobs.sort_newest') }}</option>
+                    <option value="company">{{ __('candidate.jobs.sort_company') }}</option>
                 </select>
             </label>
             <button type="button" class="shrink-0 text-sm font-semibold text-hb-blue hover:underline" data-save-search>
-                Save this search
+                {{ __('candidate.jobs.save_this_search') }}
             </button>
         </div>
 
@@ -66,13 +63,13 @@
             data-save-search-note
             role="status"
         >
-            Search criteria were not saved to your account — Backend Team alerts integration is required.
+            {{ __('candidate.jobs.search_saved_device') }}
         </div>
 
         <div class="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
             {{-- Your preferences --}}
-            <aside class="hb-surface h-fit p-5" aria-label="Your preferences">
-                <h2 class="text-sm font-semibold text-hb-navy">Your preferences</h2>
+            <aside class="hb-surface h-fit p-5" aria-label="{{ __('candidate.jobs.your_preferences_aria') }}">
+                <h2 class="text-sm font-semibold text-hb-navy">{{ __('candidate.jobs.your_preferences') }}</h2>
                 <ul class="mt-4 space-y-2 text-sm text-hb-text">
                     @foreach ($preferences['work_models'] as $item)
                         <li class="flex gap-2">
@@ -83,12 +80,12 @@
                 </ul>
 
                 <div class="mt-4 rounded-lg border border-hb-border bg-hb-page px-3 py-2.5">
-                    <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Base salary</p>
+                    <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('candidate.jobs.base_salary') }}</p>
                     <p class="mt-1 text-sm font-semibold text-hb-navy">{{ $preferences['salary'] }}</p>
                 </div>
 
                 <div class="mt-4">
-                    <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">Core skills</p>
+                    <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('candidate.jobs.core_skills') }}</p>
                     <ul class="mt-2 space-y-1.5 text-sm text-hb-text">
                         @foreach ($preferences['skills'] as $skill)
                             <li class="flex gap-2">
@@ -106,7 +103,7 @@
             <div>
                 <p class="mb-3 text-sm text-hb-muted">
                     <span data-jobs-count-label>{{ $preferences['recommended_count_label'] }}</span>
-                    <span class="sr-only">(<span data-jobs-count>{{ count($jobs) }}</span> shown)</span>
+                    <span class="sr-only">(<span data-jobs-count>{{ count($jobs) }}</span> {{ __('candidate.jobs.shown_label') }})</span>
                 </p>
 
                 <div class="hb-surface overflow-hidden" data-jobs-results>
@@ -116,20 +113,20 @@
                 </div>
 
                 <div class="hb-surface mt-4 hidden px-5 py-10 text-center" data-jobs-empty role="status">
-                    <p class="font-semibold text-hb-navy">No roles match this search</p>
-                    <p class="mt-2 text-sm text-hb-muted">Try clearing the keyword or broadening location.</p>
-                    <button type="button" class="hb-btn-outline mt-4" data-clear-discover>Clear search</button>
+                    <p class="font-semibold text-hb-navy">{{ __('candidate.jobs.empty_title') }}</p>
+                    <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.jobs.empty_body') }}</p>
+                    <button type="button" class="hb-btn-outline mt-4" data-clear-discover>{{ __('candidate.jobs.clear_search') }}</button>
                 </div>
 
-                <div class="hb-surface mt-4 p-5" aria-label="Recommendation feedback">
-                    <h2 class="text-base font-semibold text-hb-navy">Help us improve your recommendations</h2>
+                <div class="hb-surface mt-4 p-5" aria-label="{{ __('candidate.jobs.feedback_aria') }}">
+                    <h2 class="text-base font-semibold text-hb-navy">{{ __('candidate.jobs.feedback_title') }}</h2>
                     <p class="mt-1 text-sm text-hb-muted">
-                        Tell us what feels right so future matches stay closer to your preferences.
+                        {{ __('candidate.jobs.feedback_body') }}
                     </p>
                     <div class="mt-4 flex flex-wrap gap-3">
-                        <a href="{{ route('candidate.profile') }}" class="hb-btn-outline">Update preferences</a>
-                        <button type="button" class="text-sm font-semibold text-hb-blue hover:underline" disabled title="Hide roles — Backend Team">
-                            Hide irrelevant roles
+                        <a href="{{ route('candidate.profile') }}" class="hb-btn-outline">{{ __('candidate.jobs.update_preferences') }}</a>
+                        <button type="button" class="text-sm font-semibold text-hb-blue hover:underline" disabled title="{{ __('candidate.jobs.hide_roles_soon') }}">
+                            {{ __('candidate.jobs.hide_roles') }}
                         </button>
                     </div>
                 </div>
@@ -137,14 +134,14 @@
         </div>
 
         <p class="mt-8 text-xs text-hb-muted">
-            Hirebridge · Private workspace · All times Central unless noted · October 20, 2026
+            {{ __('common.footer.workspace_note', ['date' => __('candidate.footer_date')]) }}
         </p>
     </div>
 
     @isset($applyFlow)
         @include('candidate.applications.apply-modal', ['flow' => $applyFlow])
         <div class="sr-only">
-            <button type="button" data-open-modal="candidate-apply-modal">Open apply modal</button>
+            <button type="button" data-open-modal="candidate-apply-modal">{{ __('candidate.jobs.open_apply_modal') }}</button>
         </div>
     @endisset
 @endsection

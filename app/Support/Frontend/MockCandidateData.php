@@ -691,7 +691,7 @@ class MockCandidateData
                 'headline' => $profile['headline'],
                 'location_short' => $profile['location_short'],
             ],
-            'journey_banner' => 'Journey-state example: Earlier journey state · October 12, 2026. This application form precedes Maya’s later interview-stage application.',
+            'journey_banner' => 'You started this application on October 12, 2026. Complete the steps below to finish applying to Northstar Labs.',
             'steps' => [
                 ['label' => 'Your profile'],
                 ['label' => 'Screening questions'],
@@ -752,9 +752,9 @@ class MockCandidateData
             'discipline' => $job['discipline'] ?? 'Product & Design',
             'submitted_at' => 'October 12, 2026, 9:24 AM Central',
             'journey_banner' => $isNorthstarDemo
-                ? 'Journey-state example. Submission-stage example · This is the earlier confirmation for the same application shown later at Interview. It is not a second submission.'
-                : 'Frontend confirmation preview for '.$company.' · '.$code.'. This is a demonstration state only.',
-            'preview_notice' => 'Frontend confirmation preview only — no application was sent to a server. Reference and timestamps are mock demonstration data.',
+                ? 'Your Northstar Labs application is in progress. Next steps will appear here as the hiring team reviews your materials.'
+                : 'Your application to '.$company.' ('.$code.') is in progress. Next steps will appear here as the hiring team reviews your materials.',
+            'preview_notice' => 'Keep this confirmation for your records. Use the application reference if you need to follow up with the hiring team.',
             'email' => $profile['email'],
             'pipeline' => self::pipelineForStage('Applied'),
             'summary' => [
@@ -818,7 +818,7 @@ class MockCandidateData
                     ['label' => 'Test camera and microphone', 'done' => false],
                     ['label' => 'Prepare your questions', 'done' => false],
                 ],
-                'guide_note' => 'Frontend checklist only — interview guide opening is a presentation preview.',
+                'guide_note' => 'Checklist progress is saved in this browser.',
             ],
         ];
 
@@ -1018,9 +1018,9 @@ class MockCandidateData
                 'due' => 'Complete before Oct 22 interview',
                 'instructions' => [
                     'You will answer four short questions about design systems and workflow prioritization.',
-                    'Timer starts when you begin. Leaving the page does not pause the frontend timer preview.',
-                    'Camera consent is recorded as a local UI acknowledgment only — no webcam capture runs in this preview.',
-                    'Submit opens a results preview. Nothing is graded or stored on a server.',
+                    'The timer starts when you begin. Leaving the page does not pause the timer.',
+                    'Stay in a quiet space with a stable connection for the full attempt.',
+                    'Submit when you are finished to review your estimated score.',
                 ],
                 'questions' => [
                     [
@@ -1083,7 +1083,7 @@ class MockCandidateData
                 'due' => 'Opens after screening call',
                 'instructions' => [
                     'This assessment unlocks after your recruiter screening.',
-                    'Frontend preview lists it as scheduled — start remains disabled until the ready state.',
+                    'Start remains unavailable until your screening is complete.',
                 ],
                 'questions' => [],
             ],
@@ -1197,7 +1197,7 @@ class MockCandidateData
                     'note' => 'Questions about compensation, timing, or terms? Send a message before the response deadline.',
                 ],
                 'after_accept' => [
-                    'status' => 'Preview · Not started',
+                    'status' => 'Not started',
                     'steps' => [
                         'Confirm and sign your offer',
                         'Complete company checks',

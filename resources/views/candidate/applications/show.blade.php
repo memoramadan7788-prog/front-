@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Application · Hirebridge')
-@section('breadcrumb', '19 / My workspace / My applications')
+@section('title', $pageTitle ?? __('candidate.applications.show_page_title'))
+@section('breadcrumb', '19 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.applications'))
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ $application['title'] }}</h1>
     <p class="mt-1 text-sm text-hb-muted">
-        {{ $application['company'] }} · {{ $application['code'] }} · Application {{ $application['reference'] }}
+        {{ $application['company'] }} · {{ $application['code'] }} · {{ __('candidate.applications.application_label', ['reference' => $application['reference']]) }}
     </p>
     <div class="mt-3 flex flex-wrap items-center gap-2">
         <x-badge
@@ -14,36 +14,33 @@
             :dot="true"
         >{{ $application['stage'] }}</x-badge>
         <x-badge variant="neutral" :dot="true">{{ $application['source'] }}</x-badge>
-        <span class="text-sm text-hb-muted">Applied {{ $application['applied_on_long'] }}</span>
+        <span class="text-sm text-hb-muted">{{ __('candidate.applications.applied_long', ['date' => $application['applied_on_long']]) }}</span>
     </div>
 @endsection
 
 @section('page_actions')
-    <button type="button" class="hb-btn-primary" disabled title="Messaging — Batch 4D">
-        Message hiring team
+    <button type="button" class="hb-btn-primary" disabled title="{{ __('candidate.applications.messaging_soon') }}">
+        {{ __('candidate.applications.message_team') }}
     </button>
 @endsection
 
 @section('content')
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — application detail, timeline, and actions are mock presentation data.
-    </div>
 
     <div class="mb-6">
         <x-timeline :steps="$application['pipeline']" />
     </div>
 
     <div data-tabs>
-        <div class="border-b border-hb-border" role="tablist" aria-label="Application detail sections">
+        <div class="border-b border-hb-border" role="tablist" aria-label="{{ __('candidate.applications.detail_tabs_aria') }}">
             <div class="flex flex-wrap gap-1">
                 <button type="button" id="app-detail-tab-overview" role="tab" aria-selected="true" aria-controls="app-detail-panel-overview" tabindex="0" class="border-b-2 border-hb-blue px-3 py-2.5 text-sm font-semibold text-hb-blue">
-                    Overview
+                    {{ __('candidate.applications.overview') }}
                 </button>
                 <button type="button" id="app-detail-tab-documents" role="tab" aria-selected="false" aria-controls="app-detail-panel-documents" tabindex="-1" class="border-b-2 border-transparent px-3 py-2.5 text-sm font-semibold text-hb-muted">
-                    Documents
+                    {{ __('candidate.applications.documents') }}
                 </button>
                 <button type="button" id="app-detail-tab-activity" role="tab" aria-selected="false" aria-controls="app-detail-panel-activity" tabindex="-1" class="border-b-2 border-transparent px-3 py-2.5 text-sm font-semibold text-hb-muted">
-                    Activity
+                    {{ __('candidate.applications.activity') }}
                 </button>
             </div>
         </div>
@@ -73,35 +70,35 @@
                             </div>
 
                             <div class="mt-5 flex flex-wrap gap-2">
-                                <a href="{{ route('candidate.interviews.show', 'int-ns204-portfolio') }}" class="hb-btn-primary">View preparation</a>
-                                <a href="{{ route('candidate.interviews.index') }}" class="hb-btn-outline">Request reschedule</a>
+                                <a href="{{ route('candidate.interviews.show', 'int-ns204-portfolio') }}" class="hb-btn-primary">{{ __('candidate.applications.view_preparation') }}</a>
+                                <a href="{{ route('candidate.interviews.index') }}" class="hb-btn-outline">{{ __('candidate.interviews.reschedule') }}</a>
                             </div>
                         </section>
                     @elseif (! empty($application['archived']))
                         <section class="hb-surface p-5 sm:p-6">
-                            <h2 class="text-lg font-semibold text-hb-navy">Archived application</h2>
+                            <h2 class="text-lg font-semibold text-hb-navy">{{ __('candidate.applications.archived_heading') }}</h2>
                             <p class="mt-2 text-sm leading-relaxed text-hb-muted">{{ $application['archived_note'] }}</p>
                         </section>
                     @else
                         <section class="hb-surface p-5 sm:p-6">
-                            <h2 class="text-lg font-semibold text-hb-navy">Current status</h2>
+                            <h2 class="text-lg font-semibold text-hb-navy">{{ __('candidate.applications.current_status') }}</h2>
                             <p class="mt-2 text-sm text-hb-muted">
-                                Stage: <span class="font-medium text-hb-navy">{{ $application['stage'] }}</span>
+                                {{ __('candidate.applications.stage_label', ['stage' => $application['stage']]) }}
                             </p>
                             <p class="mt-2 text-sm text-hb-text">
-                                <span class="font-medium text-hb-navy">Next:</span> {{ $application['next_step'] }}
+                                <span class="font-medium text-hb-navy">{{ __('candidate.applications.next_label') }}</span> {{ $application['next_step'] }}
                             </p>
-                            <p class="mt-2 text-sm text-hb-muted">Last activity: {{ $application['last_activity'] }}</p>
+                            <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.applications.last_activity', ['date' => $application['last_activity']]) }}</p>
                             @if (($application['stage_key'] ?? '') === 'offer')
                                 <a href="{{ route('candidate.offers.show', $application['id']) }}" class="hb-btn-primary mt-4 inline-flex">
-                                    Review offer
+                                    {{ __('candidate.applications.review_offer') }}
                                 </a>
                             @endif
                         </section>
                     @endif
 
                     <section class="hb-surface mt-6 p-5 sm:p-6" aria-labelledby="activity-heading-overview">
-                        <h2 id="activity-heading-overview" class="text-lg font-semibold text-hb-navy">Application activity</h2>
+                        <h2 id="activity-heading-overview" class="text-lg font-semibold text-hb-navy">{{ __('candidate.applications.application_activity') }}</h2>
                         <ol class="mt-4 space-y-3 rounded-lg border border-hb-border px-4 py-4">
                             @foreach ($application['activity'] as $item)
                                 <li class="text-sm">
@@ -115,7 +112,7 @@
 
                 <div id="app-detail-panel-documents" role="tabpanel" aria-labelledby="app-detail-tab-documents" class="hidden" hidden>
                     <section class="hb-surface p-5 sm:p-6">
-                        <h2 class="text-lg font-semibold text-hb-navy">Submitted materials</h2>
+                        <h2 class="text-lg font-semibold text-hb-navy">{{ __('candidate.applications.submitted_materials') }}</h2>
                         <ul class="mt-4 divide-y divide-hb-border rounded-lg border border-hb-border">
                             @foreach ($application['materials'] as $material)
                                 <li class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
@@ -125,15 +122,15 @@
                             @endforeach
                         </ul>
                         <p class="mt-4 text-sm text-hb-muted">{{ $application['screening_summary'] }}</p>
-                        <button type="button" class="hb-btn-outline mt-4" disabled title="Document viewer — Backend Team">
-                            View documents
+                        <button type="button" class="hb-btn-outline mt-4" disabled title="{{ __('candidate.applications.view_documents_soon') }}">
+                            {{ __('candidate.applications.view_documents') }}
                         </button>
                     </section>
                 </div>
 
                 <div id="app-detail-panel-activity" role="tabpanel" aria-labelledby="app-detail-tab-activity" class="hidden" hidden>
                     <section class="hb-surface p-5 sm:p-6">
-                        <h2 class="text-lg font-semibold text-hb-navy">Full activity</h2>
+                        <h2 class="text-lg font-semibold text-hb-navy">{{ __('candidate.applications.full_activity') }}</h2>
                         <ol class="mt-4 space-y-4">
                             @foreach ($application['activity'] as $item)
                                 <li class="border-s-2 border-hb-border ps-4 text-sm">
@@ -148,7 +145,7 @@
 
             <aside class="space-y-4">
                 <section class="hb-surface p-5" aria-labelledby="contacts-heading">
-                    <h2 id="contacts-heading" class="text-base font-semibold text-hb-navy">Your hiring contacts</h2>
+                    <h2 id="contacts-heading" class="text-base font-semibold text-hb-navy">{{ __('candidate.applications.hiring_contacts') }}</h2>
                     <ul class="mt-3 space-y-3 text-sm">
                         @foreach ($application['contacts'] as $contact)
                             <li>
@@ -157,27 +154,27 @@
                             </li>
                         @endforeach
                     </ul>
-                    <button type="button" class="hb-btn-outline mt-4 w-full" disabled title="Messaging — Batch 4D">
-                        Send a message
+                    <button type="button" class="hb-btn-outline mt-4 w-full" disabled title="{{ __('candidate.applications.messaging_soon') }}">
+                        {{ __('candidate.applications.send_message') }}
                     </button>
                 </section>
 
                 <section class="hb-surface p-5" aria-labelledby="materials-heading">
-                    <h2 id="materials-heading" class="text-base font-semibold text-hb-navy">Submitted materials</h2>
+                    <h2 id="materials-heading" class="text-base font-semibold text-hb-navy">{{ __('candidate.applications.submitted_materials') }}</h2>
                     <ul class="mt-3 space-y-2 text-sm text-hb-text">
                         @foreach ($application['materials'] as $material)
                             <li>{{ $material['label'] }}@if (! empty($material['meta'])) · {{ $material['meta'] }}@endif</li>
                         @endforeach
                     </ul>
-                    <button type="button" class="hb-btn-outline mt-4 w-full" disabled title="Document viewer — Backend Team">
-                        View documents
+                    <button type="button" class="hb-btn-outline mt-4 w-full" disabled title="{{ __('candidate.applications.view_documents_soon') }}">
+                        {{ __('candidate.applications.view_documents') }}
                     </button>
                 </section>
 
                 <section class="hb-surface p-5" aria-labelledby="controls-heading">
-                    <h2 id="controls-heading" class="text-base font-semibold text-hb-navy">Application controls</h2>
+                    <h2 id="controls-heading" class="text-base font-semibold text-hb-navy">{{ __('candidate.applications.application_controls') }}</h2>
                     <p class="mt-2 text-sm leading-relaxed text-hb-muted">
-                        Need to step back? Withdrawing notifies the hiring team and moves this application to Archived. Frontend preview only — no status change is persisted.
+                        {{ __('candidate.applications.withdraw_note') }}
                     </p>
                     <button
                         type="button"
@@ -185,17 +182,17 @@
                         data-withdraw-preview
                         @disabled(! empty($application['archived']))
                     >
-                        {{ ! empty($application['archived']) ? 'Already withdrawn' : 'Withdraw application' }}
+                        {{ ! empty($application['archived']) ? __('candidate.applications.withdrawn') : __('candidate.applications.withdraw') }}
                     </button>
                     <p class="mt-2 hidden text-sm text-hb-muted" data-withdraw-status role="status"></p>
                 </section>
 
                 <a href="{{ route('candidate.applications.index') }}" class="inline-flex text-sm font-semibold text-hb-blue hover:underline">
-                    ← Back to My applications
+                    {{ __('candidate.applications.back_to_index') }}
                 </a>
             </aside>
         </div>
     </div>
 
-    <p class="mt-8 text-xs text-hb-muted">Hirebridge · Private workspace · All times Central unless noted · October 20, 2026</p>
+    <p class="mt-8 text-xs text-hb-muted">{{ __('common.footer.workspace_note', ['date' => __('candidate.footer_date')]) }}</p>
 @endsection

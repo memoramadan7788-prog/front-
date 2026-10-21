@@ -28,8 +28,8 @@ class CandidatePreferencesOffersNotificationsTest extends TestCase
             ->assertSee('Senior design · Austin + Remote', false)
             ->assertSee('Save preferences', false)
             ->assertSee('Cancel changes', false)
-            ->assertSee('Frontend UI only', false)
-            ->assertSee('Browser-local preview', false);
+            ->assertDontSee('Frontend UI only', false)
+            ->assertDontSee('Browser-local preview', false);
     }
 
     public function test_offer_show_matches_frame_twenty_four_structure(): void
@@ -52,7 +52,7 @@ class CandidatePreferencesOffersNotificationsTest extends TestCase
             ->assertSee('Decline offer', false)
             ->assertSee('Jamie Rivera', false)
             ->assertSee('After you accept', false)
-            ->assertSee('Frontend offer preview', false);
+            ->assertDontSee('Frontend offer preview', false);
 
         $this->get(route('candidate.offers.show', 'hb-ms108-mc-1019'))
             ->assertOk()
@@ -79,7 +79,7 @@ class CandidatePreferencesOffersNotificationsTest extends TestCase
             ->assertSee('New message from Olivia Bennett', false)
             ->assertSee('Offer response reminder', false)
             ->assertSee('Mark all as read', false)
-            ->assertSee('Frontend UI only', false);
+            ->assertDontSee('Frontend UI only', false);
 
         $this->get(route('candidate.dashboard'))
             ->assertOk()

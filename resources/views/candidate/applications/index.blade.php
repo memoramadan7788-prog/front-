@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'My applications · Hirebridge')
-@section('breadcrumb', '18 / My workspace / My applications')
+@section('title', $pageTitle ?? __('candidate.applications.index_page_title'))
+@section('breadcrumb', '18 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.applications'))
 
 @section('page_header')
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">My applications</h1>
-    <p class="mt-1 text-sm text-hb-muted">Every conversation, document, and next step in one place.</p>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.applications.index_title') }}</h1>
+    <p class="mt-1 text-sm text-hb-muted">{{ __('candidate.applications.index_intro') }}</p>
 @endsection
 
 @section('content')
@@ -14,12 +14,9 @@
         $compactActive = collect($activeApplications)->where('featured', false)->values();
     @endphp
 
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — application stages and activity are mock presentation data.
-    </div>
 
     <div data-candidate-applications data-tabs>
-        <div class="border-b border-hb-border" role="tablist" aria-label="Application lists">
+        <div class="border-b border-hb-border" role="tablist" aria-label="{{ __('candidate.applications.tablist_aria') }}">
             <div class="flex flex-wrap gap-1">
                 <button
                     type="button"
@@ -31,7 +28,7 @@
                     class="border-b-2 border-hb-blue px-3 py-2.5 text-sm font-semibold text-hb-blue"
                     data-apps-tab="active"
                 >
-                    Active ({{ count($activeApplications) }})
+                    {{ __('candidate.applications.active', ['count' => count($activeApplications)]) }}
                 </button>
                 <button
                     type="button"
@@ -43,38 +40,38 @@
                     class="border-b-2 border-transparent px-3 py-2.5 text-sm font-semibold text-hb-muted"
                     data-apps-tab="archived"
                 >
-                    Archived ({{ count($archivedApplications) }})
+                    {{ __('candidate.applications.archived', ['count' => count($archivedApplications)]) }}
                 </button>
             </div>
         </div>
 
         <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
             <label class="relative min-w-0 flex-1">
-                <span class="sr-only">Search role or company</span>
+                <span class="sr-only">{{ __('candidate.applications.search') }}</span>
                 <span class="pointer-events-none absolute inset-y-0 start-3 flex items-center text-hb-muted" aria-hidden="true">⌕</span>
                 <input
                     type="search"
                     class="hb-input ps-9"
-                    placeholder="Search role or company"
+                    placeholder="{{ __('candidate.applications.search') }}"
                     data-apps-search
                     autocomplete="off"
                 >
             </label>
             <div class="flex flex-wrap gap-2">
-                <label class="sr-only" for="apps-stage-filter">Filter by stage</label>
+                <label class="sr-only" for="apps-stage-filter">{{ __('candidate.applications.filter_stage') }}</label>
                 <select id="apps-stage-filter" class="hb-input w-auto min-w-[9rem]" data-apps-stage>
-                    <option value="all">All stages</option>
-                    <option value="applied">Applied</option>
-                    <option value="screening">Screening</option>
-                    <option value="interview">Interview</option>
-                    <option value="offer">Offer</option>
-                    <option value="withdrawn">Withdrawn</option>
+                    <option value="all">{{ __('candidate.applications.all_stages') }}</option>
+                    <option value="applied">{{ __('candidate.applications.stage_applied') }}</option>
+                    <option value="screening">{{ __('candidate.applications.stage_screening') }}</option>
+                    <option value="interview">{{ __('candidate.applications.stage_interview') }}</option>
+                    <option value="offer">{{ __('candidate.applications.stage_offer') }}</option>
+                    <option value="withdrawn">{{ __('candidate.applications.stage_withdrawn') }}</option>
                 </select>
-                <label class="sr-only" for="apps-sort">Sort applications</label>
+                <label class="sr-only" for="apps-sort">{{ __('candidate.applications.sort_apps') }}</label>
                 <select id="apps-sort" class="hb-input w-auto min-w-[10rem]" data-apps-sort>
-                    <option value="latest">Latest activity</option>
-                    <option value="company">Company A–Z</option>
-                    <option value="stage">Stage</option>
+                    <option value="latest">{{ __('candidate.applications.latest_activity') }}</option>
+                    <option value="company">{{ __('candidate.applications.sort_company') }}</option>
+                    <option value="stage">{{ __('candidate.applications.sort_stage') }}</option>
                 </select>
             </div>
         </div>
@@ -102,7 +99,7 @@
                                 {{ $featured['title'] }} · {{ $featured['company'] }}
                             </h2>
                             <p class="mt-1 text-sm text-hb-muted">
-                                {{ $featured['code'] }} · {{ $featured['source'] }} · Applied {{ $featured['applied_on'] }}
+                                {{ $featured['code'] }} · {{ $featured['source'] }} · {{ __('candidate.applications.applied_on', ['date' => $featured['applied_on']]) }}
                             </p>
                         </div>
                         <x-badge variant="info" :dot="true">{{ $featured['stage'] }}</x-badge>
@@ -113,13 +110,13 @@
                     </div>
 
                     <p class="mt-4 text-sm text-hb-text">
-                        <span class="font-medium text-hb-navy">Next:</span>
+                        <span class="font-medium text-hb-navy">{{ __('candidate.applications.next_label') }}</span>
                         {{ $featured['next_step'] }}
                     </p>
 
                     <div class="mt-5">
                         <a href="{{ route('candidate.applications.show', $featured['id']) }}" class="hb-btn-outline text-hb-blue">
-                            View application
+                            {{ __('candidate.applications.view_application') }}
                         </a>
                     </div>
                 </article>
@@ -145,18 +142,18 @@
                                         </a>
                                     </h3>
                                     <p class="mt-1 text-sm text-hb-muted">
-                                        Stage: {{ $app['stage'] }} · {{ $app['source'] }}
+                                        {{ __('candidate.applications.stage_label', ['stage' => $app['stage']]) }} · {{ $app['source'] }}
                                     </p>
-                                    <p class="mt-1 text-sm text-hb-muted">Last activity: {{ $app['last_activity'] }}</p>
-                                    <p class="mt-1 text-sm text-hb-text">Next step: {{ $app['next_step'] }}</p>
+                                    <p class="mt-1 text-sm text-hb-muted">{{ __('candidate.applications.last_activity', ['date' => $app['last_activity']]) }}</p>
+                                    <p class="mt-1 text-sm text-hb-text">{{ __('candidate.applications.next_step', ['step' => $app['next_step']]) }}</p>
                                 </div>
                                 @if (($app['stage_key'] ?? '') === 'offer')
                                     <a href="{{ route('candidate.offers.show', $app['id']) }}" class="text-sm font-semibold text-hb-blue hover:underline">
-                                        Review offer
+                                        {{ __('candidate.applications.review_offer') }}
                                     </a>
                                 @else
                                     <a href="{{ route('candidate.applications.show', $app['id']) }}" class="text-sm font-semibold text-hb-blue hover:underline">
-                                        View
+                                        {{ __('candidate.applications.view') }}
                                     </a>
                                 @endif
                             </div>
@@ -166,9 +163,9 @@
             @endif
 
             <div class="hb-surface hidden px-5 py-10 text-center" data-apps-empty="active" role="status" hidden>
-                <p class="font-semibold text-hb-navy">No active applications match</p>
-                <p class="mt-2 text-sm text-hb-muted">Try another stage filter or clear your search.</p>
-                <a href="{{ route('candidate.jobs.index') }}" class="hb-btn-primary mt-4 inline-flex">Discover jobs</a>
+                <p class="font-semibold text-hb-navy">{{ __('candidate.applications.empty_active_title') }}</p>
+                <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.applications.empty_active_body') }}</p>
+                <a href="{{ route('candidate.jobs.index') }}" class="hb-btn-primary mt-4 inline-flex">{{ __('candidate.dashboard.discover_jobs') }}</a>
             </div>
         </div>
 
@@ -181,7 +178,7 @@
             hidden
         >
             <div class="hb-surface p-5 sm:p-6">
-                <h2 class="text-base font-semibold text-hb-navy">Archived application</h2>
+                <h2 class="text-base font-semibold text-hb-navy">{{ __('candidate.applications.archived_heading') }}</h2>
                 <div class="mt-4 space-y-4">
                     @foreach ($archivedApplications as $app)
                         <article
@@ -203,7 +200,7 @@
                                 <x-badge variant="neutral" :dot="true">{{ $app['stage'] }}</x-badge>
                             </div>
                             <a href="{{ route('candidate.applications.show', $app['id']) }}" class="mt-3 inline-flex text-sm font-semibold text-hb-blue hover:underline">
-                                View application
+                                {{ __('candidate.applications.view_application') }}
                             </a>
                         </article>
                     @endforeach
@@ -211,14 +208,14 @@
             </div>
 
             <div class="hb-surface mt-4 hidden px-5 py-10 text-center" data-apps-empty="archived" role="status" hidden>
-                <p class="font-semibold text-hb-navy">No archived applications match</p>
-                <p class="mt-2 text-sm text-hb-muted">Adjust your search or stage filter.</p>
+                <p class="font-semibold text-hb-navy">{{ __('candidate.applications.empty_archived_title') }}</p>
+                <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.applications.empty_archived_body') }}</p>
             </div>
         </div>
     </div>
 
     <p class="mt-6 text-sm text-hb-muted">
-        Stages are updated by each employer or assigned recruiter. An offer from one employer does not change your other applications.
+        {{ __('candidate.applications.footer_note') }}
     </p>
-    <p class="mt-4 text-xs text-hb-muted">Hirebridge · Private workspace · All times Central unless noted · October 20, 2026</p>
+    <p class="mt-4 text-xs text-hb-muted">{{ __('common.footer.workspace_note', ['date' => __('candidate.footer_date')]) }}</p>
 @endsection

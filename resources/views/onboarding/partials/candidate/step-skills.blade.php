@@ -1,12 +1,12 @@
 <div class="space-y-5" data-onboarding-panel data-step="3">
     <div>
-        <h2 class="text-base font-semibold text-hb-navy">What are you looking for?</h2>
-        <p class="mt-1 text-sm text-hb-muted">Skills and preferences help match you with roles that fit — without oversharing.</p>
+        <h2 class="text-base font-semibold text-hb-navy">{{ __('onboarding.candidate.looking_for') }}</h2>
+        <p class="mt-1 text-sm text-hb-muted">{{ __('onboarding.candidate.skills.intro') }}</p>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2">
         <div data-field="preferred_roles" class="sm:col-span-2">
-            <label for="candidate-roles" class="hb-label">Preferred roles <span class="text-hb-error">*</span></label>
+            <label for="candidate-roles" class="hb-label">{{ __('onboarding.candidate.preferred_roles') }} <span class="text-hb-error">*</span></label>
             <input
                 id="candidate-roles"
                 name="preferred_roles"
@@ -20,7 +20,7 @@
         </div>
 
         <div data-field="home_location">
-            <label for="candidate-home-location" class="hb-label">Home location <span class="text-hb-error">*</span></label>
+            <label for="candidate-home-location" class="hb-label">{{ __('onboarding.candidate.skills.home_location') }} <span class="text-hb-error">*</span></label>
             <input
                 id="candidate-home-location"
                 name="home_location"
@@ -34,18 +34,18 @@
         </div>
 
         <div data-field="work_model">
-            <label for="candidate-work-model" class="hb-label">Work model <span class="text-hb-error">*</span></label>
+            <label for="candidate-work-model" class="hb-label">{{ __('onboarding.candidate.skills.work_model') }} <span class="text-hb-error">*</span></label>
             <select id="candidate-work-model" name="work_model" class="hb-input" required aria-describedby="candidate-work-model-error">
-                <option value="hybrid_remote" selected>Hybrid + Remote</option>
-                <option value="remote">Remote</option>
-                <option value="hybrid">Hybrid</option>
-                <option value="onsite">On-site</option>
+                <option value="hybrid_remote" selected>{{ __('onboarding.candidate.skills.work_models.hybrid_remote') }}</option>
+                <option value="remote">{{ __('onboarding.candidate.skills.work_models.remote') }}</option>
+                <option value="hybrid">{{ __('onboarding.candidate.skills.work_models.hybrid') }}</option>
+                <option value="onsite">{{ __('onboarding.candidate.skills.work_models.onsite') }}</option>
             </select>
             <p id="candidate-work-model-error" class="hb-field-error hidden" role="alert"></p>
         </div>
 
         <div data-field="skills" class="sm:col-span-2">
-            <label for="candidate-skills" class="hb-label">Skills <span class="text-hb-error">*</span></label>
+            <label for="candidate-skills" class="hb-label">{{ __('onboarding.candidate.skills.skills') }} <span class="text-hb-error">*</span></label>
             <input
                 id="candidate-skills"
                 name="skills"
@@ -55,12 +55,12 @@
                 required
                 aria-describedby="candidate-skills-hint candidate-skills-error"
             >
-            <p id="candidate-skills-hint" class="mt-1.5 text-xs text-hb-muted">Separate skills with a middle dot or comma.</p>
+            <p id="candidate-skills-hint" class="mt-1.5 text-xs text-hb-muted">{{ __('onboarding.candidate.skills.skills_hint') }}</p>
             <p id="candidate-skills-error" class="hb-field-error hidden" role="alert"></p>
         </div>
 
         <div data-field="salary">
-            <label for="candidate-salary" class="hb-label">Minimum base salary · USD</label>
+            <label for="candidate-salary" class="hb-label">{{ __('onboarding.candidate.skills.salary_min') }}</label>
             <input
                 id="candidate-salary"
                 name="salary_min"
@@ -72,12 +72,12 @@
         </div>
 
         <div data-field="availability">
-            <label for="candidate-availability" class="hb-label">Availability</label>
+            <label for="candidate-availability" class="hb-label">{{ __('onboarding.candidate.skills.availability') }}</label>
             <select id="candidate-availability" name="availability" class="hb-input">
-                <option value="immediate">Immediately</option>
-                <option value="two_weeks">Two weeks after offer</option>
-                <option value="four_weeks" selected>Four weeks after offer</option>
-                <option value="flexible">Flexible</option>
+                <option value="immediate">{{ __('onboarding.candidate.skills.availability_options.immediate') }}</option>
+                <option value="two_weeks">{{ __('onboarding.candidate.skills.availability_options.two_weeks') }}</option>
+                <option value="four_weeks" selected>{{ __('onboarding.candidate.skills.availability_options.four_weeks') }}</option>
+                <option value="flexible">{{ __('onboarding.candidate.skills.availability_options.flexible') }}</option>
             </select>
         </div>
     </div>
@@ -85,11 +85,11 @@
     <div class="space-y-3">
         <label class="flex items-start gap-2.5 text-sm text-hb-text">
             <input name="recruiter_supported" type="checkbox" class="hb-checkbox mt-0.5" checked>
-            <span>I’m open to recruiter-supported opportunities</span>
+            <span>{{ __('onboarding.candidate.skills.recruiter_supported') }}</span>
         </label>
         <label class="flex items-start gap-2.5 text-sm text-hb-text">
             <input name="private_until_apply" type="checkbox" class="hb-checkbox mt-0.5" checked>
-            <span>Only share my profile with employers when I apply or give permission</span>
+            <span>{{ __('onboarding.candidate.skills.private_until_apply') }}</span>
         </label>
     </div>
 </div>

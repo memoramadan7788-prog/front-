@@ -14,7 +14,7 @@ class AuthScreensTest extends TestCase
             ->assertSee('Keep me signed in on this device', false)
             ->assertSee('Forgot password?', false)
             ->assertSee('Create an account', false)
-            ->assertSee('Frontend UI only', false)
+            ->assertDontSee('Frontend UI only', false)
             ->assertDontSee('signed in successfully', false);
     }
 
@@ -27,7 +27,7 @@ class AuthScreensTest extends TestCase
             ->assertSee('I’m hiring', false)
             ->assertSee('Create candidate account', false)
             ->assertSee('Terms of Service', false)
-            ->assertSee('Frontend UI only', false);
+            ->assertDontSee('Frontend UI only', false);
     }
 
     public function test_verify_email_screen_is_check_your_inbox_ui(): void
@@ -38,7 +38,7 @@ class AuthScreensTest extends TestCase
             ->assertSee('maya.chen@example.com', false)
             ->assertSee('Verification code', false)
             ->assertSee('Resend code', false)
-            ->assertSee('no verification email is sent', false);
+            ->assertDontSee('no verification email is sent', false);
     }
 
     public function test_reset_password_and_forgot_password_screens_render(): void
@@ -48,12 +48,12 @@ class AuthScreensTest extends TestCase
             ->assertSee('Set a new password', false)
             ->assertSee('Password requirements', false)
             ->assertSee('At least 12 characters', false)
-            ->assertSee('passwords are not changed', false);
+            ->assertDontSee('passwords are not changed', false);
 
         $this->get(route('password.request'))
             ->assertOk()
             ->assertSee('Forgot your password?', false)
-            ->assertSee('No reset email is sent', false)
+            ->assertDontSee('No reset email is sent', false)
             ->assertSee('Back to sign in', false);
     }
 

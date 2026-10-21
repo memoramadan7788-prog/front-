@@ -25,7 +25,8 @@ class OnboardingScreensTest extends TestCase
             ->assertSee('75% complete', false)
             ->assertSee('Maya Chen', false)
             ->assertSee('You’re in control', false)
-            ->assertSee('profile data is not saved', false)
+            ->assertSee('Salary preferences aren’t shown publicly', false)
+            ->assertDontSee('profile data is not saved', false)
             ->assertDontSee('Profile saved', false);
     }
 
@@ -46,7 +47,8 @@ class OnboardingScreensTest extends TestCase
             ->assertSee('Up next', false)
             ->assertSee('Save &amp; continue', false)
             ->assertSee('Olivia Bennett', false)
-            ->assertSee('companies are not registered or approved', false)
+            ->assertSee('Job publishing becomes available after company review', false)
+            ->assertDontSee('companies are not registered or approved', false)
             ->assertDontSee('Company approved', false);
     }
 
@@ -55,7 +57,7 @@ class OnboardingScreensTest extends TestCase
         $this->get(route('onboarding.company.status'))
             ->assertOk()
             ->assertSee('Pending review', false)
-            ->assertSee('no verification was performed', false)
+            ->assertSee('waiting on document review', false)
             ->assertDontSee('Company approved', false);
     }
 

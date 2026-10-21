@@ -18,13 +18,13 @@
         aria-controls="{{ $panelId }}"
         id="{{ $panelId }}-trigger"
     >
-        Notifications
+        {{ __('common.notifications.label') }}
         <span
             class="absolute end-1 top-2 h-1.5 w-1.5 rounded-full bg-hb-blue {{ $unreadCount > 0 ? '' : 'hidden' }}"
             data-dropdown-unread-dot
             aria-hidden="true"
         ></span>
-        <span class="sr-only" data-dropdown-unread-label>{{ $unreadCount }} unread</span>
+        <span class="sr-only" data-dropdown-unread-label>{{ __('common.notifications.unread', ['count' => $unreadCount]) }}</span>
     </button>
 
     <div
@@ -35,16 +35,16 @@
         data-dropdown-panel
     >
         <div class="flex items-center justify-between border-b border-hb-border px-4 py-3">
-            <p class="text-sm font-semibold text-hb-navy">Notifications</p>
+            <p class="text-sm font-semibold text-hb-navy">{{ __('common.notifications.label') }}</p>
             <span class="rounded-full bg-hb-pending-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-hb-pending">
-                Mock data
+                {{ __('common.status.new') }}
             </span>
         </div>
 
         @if (count($notifications) === 0)
             <div class="px-4 py-8 text-center">
-                <p class="text-sm font-medium text-hb-navy">You’re all caught up</p>
-                <p class="mt-1 text-xs text-hb-muted">No notifications to show right now.</p>
+                <p class="text-sm font-medium text-hb-navy">{{ __('common.notifications.caught_up_title') }}</p>
+                <p class="mt-1 text-xs text-hb-muted">{{ __('common.notifications.caught_up_body') }}</p>
             </div>
         @else
             <ul class="max-h-80 divide-y divide-hb-border overflow-y-auto" data-dropdown-notification-list>
@@ -73,7 +73,7 @@
 
         <div class="border-t border-hb-border px-4 py-2 text-center">
             <a href="{{ route('candidate.notifications.index') }}" class="text-xs font-semibold text-hb-blue hover:underline">
-                View all notifications
+                {{ __('common.notifications.view_all') }}
             </a>
         </div>
     </div>

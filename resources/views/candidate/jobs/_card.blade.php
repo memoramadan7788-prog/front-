@@ -44,21 +44,21 @@
             data-save-job="{{ $job['id'] }}"
             aria-pressed="{{ ! empty($job['saved']) ? 'true' : 'false' }}"
         >
-            <span data-save-label>{{ ! empty($job['saved']) ? 'Saved' : 'Save' }}</span>
+            <span data-save-label>{{ ! empty($job['saved']) ? __('candidate.jobs.saved') : __('candidate.jobs.save_job') }}</span>
         </button>
         @if (($job['primary_cta'] ?? '') === 'view_application')
             <a
                 href="{{ route('candidate.applications.show', $job['id']) }}"
                 class="text-sm font-semibold text-hb-blue hover:underline"
             >
-                {{ $job['primary_cta_label'] ?? 'View application →' }}
+                {{ $job['primary_cta_label'] ?? __('candidate.jobs.view_application_arrow') }}
             </a>
         @else
             <a
                 href="{{ route('candidate.applications.apply', $job['id']) }}"
                 class="text-sm font-semibold text-hb-blue hover:underline"
             >
-                {{ $job['primary_cta_label'] ?? 'Review & apply →' }}
+                {{ $job['primary_cta_label'] ?? __('candidate.jobs.review_apply_arrow') }}
             </a>
             @if (($job['id'] ?? '') === 'gc-041')
                 <button
@@ -66,7 +66,7 @@
                     class="text-sm font-semibold text-hb-muted hover:text-hb-blue"
                     data-open-modal="candidate-apply-modal"
                 >
-                    Apply in modal
+                    {{ __('candidate.jobs.apply_in_modal') }}
                 </button>
             @endif
         @endif

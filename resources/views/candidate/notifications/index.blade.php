@@ -1,23 +1,20 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Notifications · Hirebridge')
-@section('breadcrumb', 'Notifications / My workspace / Notifications')
+@section('title', $pageTitle ?? __('candidate.notifications.page_title'))
+@section('breadcrumb', __('candidate.notifications.breadcrumb'))
 
 @section('page_header')
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">Notifications</h1>
-    <p class="mt-1 text-sm text-hb-muted">Hiring updates in one place. Frontend preview — not a live notification feed.</p>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.notifications.title') }}</h1>
+    <p class="mt-1 text-sm text-hb-muted">{{ __('candidate.notifications.intro') }}</p>
 @endsection
 
 @section('page_actions')
     <button type="button" class="hb-btn-outline" data-notifications-mark-all>
-        Mark all as read
+        {{ __('candidate.notifications.mark_all') }}
     </button>
 @endsection
 
 @section('content')
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — read/unread state is stored in this browser and does not sync to the topbar across devices.
-    </div>
 
     <div
         data-candidate-notifications
@@ -25,17 +22,17 @@
         data-default-json='@json($notifications)'
     >
         <div class="mb-4 flex flex-wrap items-center gap-3">
-            <label class="sr-only" for="notif-filter">Filter notifications</label>
+            <label class="sr-only" for="notif-filter">{{ __('candidate.notifications.filter_aria') }}</label>
             <select id="notif-filter" class="hb-input w-auto min-w-[10rem]" data-notifications-filter>
-                <option value="all">All</option>
-                <option value="unread">Unread</option>
-                <option value="interviews">Interviews</option>
-                <option value="messages">Messages</option>
-                <option value="offers">Offers</option>
-                <option value="assessments">Assessments</option>
+                <option value="all">{{ __('candidate.notifications.filter_all') }}</option>
+                <option value="unread">{{ __('candidate.notifications.filter_unread') }}</option>
+                <option value="interviews">{{ __('candidate.notifications.filter_interviews') }}</option>
+                <option value="messages">{{ __('candidate.notifications.filter_messages') }}</option>
+                <option value="offers">{{ __('candidate.notifications.filter_offers') }}</option>
+                <option value="assessments">{{ __('candidate.notifications.filter_assessments') }}</option>
             </select>
             <p class="text-sm text-hb-muted">
-                <span data-notifications-unread-count>0</span> unread
+                <span data-notifications-unread-count>0</span> <span data-notifications-unread-label>{{ __('candidate.notifications.unread_count', ['count' => 0]) }}</span>
             </p>
         </div>
 
@@ -63,7 +60,7 @@
                             <div class="flex flex-wrap gap-2">
                                 @if (! empty($item['href']))
                                     <a href="{{ $item['href'] }}" class="text-sm font-semibold text-hb-blue hover:underline" data-notification-link>
-                                        Open
+                                        {{ __('candidate.notifications.open') }}
                                     </a>
                                 @endif
                                 <button
@@ -71,7 +68,7 @@
                                     class="text-sm font-semibold text-hb-muted hover:text-hb-blue"
                                     data-notification-toggle-read
                                 >
-                                    {{ ! empty($item['unread']) ? 'Mark read' : 'Mark unread' }}
+                                    {{ ! empty($item['unread']) ? __('candidate.notifications.mark_read') : __('candidate.notifications.mark_unread') }}
                                 </button>
                             </div>
                         </div>
@@ -81,10 +78,10 @@
         </div>
 
         <div class="hb-surface mt-4 hidden px-5 py-10 text-center" data-notifications-empty role="status" hidden>
-            <p class="font-semibold text-hb-navy">You’re all caught up</p>
-            <p class="mt-2 text-sm text-hb-muted">No notifications match this filter.</p>
+            <p class="font-semibold text-hb-navy">{{ __('candidate.notifications.empty') }}</p>
+            <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.notifications.empty_filter') }}</p>
         </div>
     </div>
 
-    <p class="mt-8 text-xs text-hb-muted">Hirebridge · Private workspace · All times Central unless noted · October 20, 2026</p>
+    <p class="mt-8 text-xs text-hb-muted">{{ __('common.footer.workspace_note', ['date' => __('candidate.footer_date')]) }}</p>
 @endsection

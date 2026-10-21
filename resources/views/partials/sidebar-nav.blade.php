@@ -3,8 +3,8 @@
     $eyebrow, $workspaceLabel, $items[] with keys: label, route?, pending?, active?
 --}}
 @php
-    $eyebrow = $eyebrow ?? 'Workspace';
-    $workspaceLabel = $workspaceLabel ?? 'Personal workspace';
+    $eyebrow = $eyebrow ?? __('navigation.workspace');
+    $workspaceLabel = $workspaceLabel ?? __('navigation.candidate.workspace');
     $items = $items ?? [];
 @endphp
 
@@ -14,7 +14,7 @@
         <button
             type="button"
             class="mt-1 flex w-full items-center justify-between gap-2 rounded-md px-0 py-1 text-start text-xs text-hb-nav-muted hover:text-white"
-            aria-label="Workspace switcher (pending)"
+            aria-label="{{ __('navigation.workspace_switcher') }}"
             disabled
         >
             <span>{{ $workspaceLabel }}</span>
@@ -44,12 +44,12 @@
                 @if ($pending || ! $routeName || ! \Illuminate\Support\Facades\Route::has($routeName))
                     <span
                         class="{{ $baseClass }} cursor-not-allowed text-hb-nav-muted/70"
-                        title="Pending — route not available yet"
+                        title="{{ __('navigation.pending_route') }}"
                         aria-disabled="true"
                     >
                         <span class="w-3 shrink-0 text-center" aria-hidden="true">{{ $isActive ? '●' : '' }}</span>
                         <span class="min-w-0 flex-1">{{ $label }}</span>
-                        <span class="rounded bg-white/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-hb-nav-muted">Soon</span>
+                        <span class="rounded bg-white/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-hb-nav-muted">{{ __('common.soon') }}</span>
                     </span>
                 @else
                     <a
@@ -66,7 +66,7 @@
     </ul>
 
     <div class="mt-auto space-y-1 border-t border-white/10 px-2 pt-4 text-xs text-hb-nav-muted">
-        <p>Help &amp; support</p>
-        <p>Privacy &amp; security</p>
+        <p>{{ __('common.help_support') }}</p>
+        <p>{{ __('common.privacy_security') }}</p>
     </div>
 </nav>

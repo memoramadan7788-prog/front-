@@ -28,7 +28,7 @@ class CandidateInterviewsMessagesAssessmentsTest extends TestCase
             ->assertSee('Review the role description', false)
             ->assertSee('Previous conversation', false)
             ->assertSee('Recruiter screening', false)
-            ->assertSee('Frontend UI only', false);
+            ->assertDontSee('Frontend UI only', false);
     }
 
     public function test_interview_show_renders_detail(): void
@@ -61,8 +61,8 @@ class CandidateInterviewsMessagesAssessmentsTest extends TestCase
             ->assertSee('Send message', false)
             ->assertSee('Application context', false)
             ->assertSee('View application', false)
-            ->assertSee('Local preview only', false)
-            ->assertSee('Frontend UI only', false);
+            ->assertDontSee('Local preview only', false)
+            ->assertDontSee('Frontend UI only', false);
     }
 
     public function test_assessments_follow_workflow_stubs(): void
@@ -72,25 +72,26 @@ class CandidateInterviewsMessagesAssessmentsTest extends TestCase
             ->assertSee('Assessments', false)
             ->assertSee('Design systems practical', false)
             ->assertSee('UX research scenario', false)
-            ->assertSee('No dedicated Figma frame', false)
+            ->assertDontSee('No dedicated Figma frame', false)
             ->assertSee('Open instructions', false);
 
         $this->get(route('candidate.assessments.show', 'exam-ns204-systems'))
             ->assertOk()
             ->assertSee('Before you begin', false)
-            ->assertSee('Start assessment preview', false)
-            ->assertSee('webcam stream is started', false);
+            ->assertSee('Start assessment', false)
+            ->assertSee('Stay in a quiet space', false)
+            ->assertDontSee('webcam stream is started', false);
 
         $this->get(route('candidate.assessments.take', 'exam-ns204-systems'))
             ->assertOk()
             ->assertSee('Time left', false)
             ->assertSee('Question 1', false)
-            ->assertSee('Review &amp; submit preview', false);
+            ->assertSee('Review &amp; submit', false);
 
         $this->get(route('candidate.assessments.result', 'exam-ns204-systems'))
             ->assertOk()
-            ->assertSee('Results preview', false)
-            ->assertSee('Demonstration score only', false);
+            ->assertSee('Assessment results', false)
+            ->assertDontSee('Demonstration score only', false);
 
         $this->get(route('candidate.assessments.take', 'exam-ah312-research'))
             ->assertNotFound();

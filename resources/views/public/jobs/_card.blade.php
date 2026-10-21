@@ -34,7 +34,7 @@
         </x-badge>
     </div>
     <div class="mt-4 flex items-center justify-between gap-3 text-sm">
-        <p class="text-xs text-hb-muted">{{ $job['employment'] }} · {{ $job['posted'] }} · Salary supplied by employer</p>
-        <a href="{{ route('jobs.show', $job['id']) }}" class="shrink-0 font-semibold text-hb-blue hover:underline">View role →</a>
+        <p class="text-xs text-hb-muted">{{ $job['employment'] }} · {{ $job['posted'] }} · {{ __('public.jobs.card_salary_note') }}</p>
+        <a href="{{ route('jobs.show', $job['id']) }}" class="shrink-0 font-semibold text-hb-blue hover:underline">{{ __('public.jobs.card_view_role') }}</a>
     </div>
 </article>

@@ -5,43 +5,95 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  |--------------------------------------------------------------------------
  | Hirebridge design tokens (Figma · 51 · Shared visual system)
+ | Light mode is the Figma baseline. Dark mode is a derived semantic theme.
  | Primary Navy #142B4A · Primary Blue #2457C5 · Accent Teal #14B8A6
  |--------------------------------------------------------------------------
  */
+:root {
+    --hb-navy: #142b4a;
+    --hb-blue: #2457c5;
+    --hb-teal: #14b8a6;
+    --hb-page: #f5f7fa;
+    --hb-surface: #ffffff;
+    --hb-text: #1f2937;
+    --hb-muted: #64748b;
+    --hb-border: #e2e8f0;
+    --hb-success: #276749;
+    --hb-success-soft: #edf7f0;
+    --hb-pending: #8a5b16;
+    --hb-pending-soft: #fff7e8;
+    --hb-error: #b04040;
+    --hb-error-soft: #fdf0f0;
+    --hb-info-soft: #edf3ff;
+    --hb-sidebar: #142b4a;
+    --hb-nav-muted: #b8c6d9;
+    --hb-shadow-sm: 0 1px 2px rgb(20 43 74 / 0.06);
+    --hb-shadow-md: 0 8px 24px rgb(20 43 74 / 0.08);
+}
+
+.dark {
+    --hb-navy: #e8eef7;
+    --hb-blue: #6b9aff;
+    --hb-teal: #2dd4bf;
+    --hb-page: #0b1220;
+    --hb-surface: #121a2b;
+    --hb-text: #e5eaf2;
+    --hb-muted: #94a3b8;
+    --hb-border: #243247;
+    --hb-success: #4ade80;
+    --hb-success-soft: #12301f;
+    --hb-pending: #fbbf24;
+    --hb-pending-soft: #3a2a0f;
+    --hb-error: #f87171;
+    --hb-error-soft: #3a1515;
+    --hb-info-soft: #152238;
+    --hb-sidebar: #080e18;
+    --hb-nav-muted: #9db0c9;
+    --hb-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35);
+    --hb-shadow-md: 0 12px 28px rgb(0 0 0 / 0.45);
+}
+
 @theme {
-    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter', 'Noto Sans Arabic', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-    --color-hb-navy: #142b4a;
-    --color-hb-blue: #2457c5;
-    --color-hb-teal: #14b8a6;
-    --color-hb-page: #f5f7fa;
-    --color-hb-surface: #ffffff;
-    --color-hb-text: #1f2937;
-    --color-hb-muted: #64748b;
-    --color-hb-border: #e2e8f0;
-    --color-hb-success: #276749;
-    --color-hb-success-soft: #edf7f0;
-    --color-hb-pending: #8a5b16;
-    --color-hb-pending-soft: #fff7e8;
-    --color-hb-error: #b04040;
-    --color-hb-error-soft: #fdf0f0;
-    --color-hb-info-soft: #edf3ff;
-    --color-hb-sidebar: #142b4a;
-    --color-hb-nav-muted: #b8c6d9;
+    --color-hb-navy: var(--hb-navy);
+    --color-hb-blue: var(--hb-blue);
+    --color-hb-teal: var(--hb-teal);
+    --color-hb-page: var(--hb-page);
+    --color-hb-surface: var(--hb-surface);
+    --color-hb-text: var(--hb-text);
+    --color-hb-muted: var(--hb-muted);
+    --color-hb-border: var(--hb-border);
+    --color-hb-success: var(--hb-success);
+    --color-hb-success-soft: var(--hb-success-soft);
+    --color-hb-pending: var(--hb-pending);
+    --color-hb-pending-soft: var(--hb-pending-soft);
+    --color-hb-error: var(--hb-error);
+    --color-hb-error-soft: var(--hb-error-soft);
+    --color-hb-info-soft: var(--hb-info-soft);
+    --color-hb-sidebar: var(--hb-sidebar);
+    --color-hb-nav-muted: var(--hb-nav-muted);
 
-    --shadow-hb-sm: 0 1px 2px rgb(20 43 74 / 0.06);
-    --shadow-hb-md: 0 8px 24px rgb(20 43 74 / 0.08);
+    --shadow-hb-sm: var(--hb-shadow-sm);
+    --shadow-hb-md: var(--hb-shadow-md);
     --radius-hb: 0.75rem;
 }
 
 @layer base {
     html {
         @apply scroll-smooth antialiased;
+        color-scheme: light;
+    }
+
+    html.dark {
+        color-scheme: dark;
     }
 
     body {
@@ -49,7 +101,7 @@
     }
 
     [dir='rtl'] body {
-        font-family: 'Inter', 'Noto Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+        font-family: 'Noto Sans Arabic', 'Inter', ui-sans-serif, system-ui, sans-serif;
     }
 
     a {
@@ -58,6 +110,17 @@
 
     :focus-visible {
         @apply outline-2 outline-offset-2 outline-hb-blue;
+    }
+
+    /* Keep emails, URLs, phones, and codes readable in RTL. */
+    [dir='rtl'] .hb-ltr,
+    [dir='rtl'] a[href^='mailto:'],
+    [dir='rtl'] a[href^='http'],
+    [dir='rtl'] a[href^='tel:'],
+    [dir='rtl'] code,
+    [dir='rtl'] kbd {
+        direction: ltr;
+        unicode-bidi: isolate;
     }
 }
 

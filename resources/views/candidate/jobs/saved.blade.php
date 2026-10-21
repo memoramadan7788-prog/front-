@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'Saved jobs · Hirebridge')
-@section('breadcrumb', '15 / My workspace / Saved jobs')
+@section('title', $pageTitle ?? __('candidate.jobs.saved_page_title'))
+@section('breadcrumb', '15 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.saved_jobs'))
 
 @section('page_header')
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">Saved jobs</h1>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.jobs.saved_title') }}</h1>
     <p class="mt-1 text-sm text-hb-muted">
-        A considered shortlist. Compare the details before you take the next step.
+        {{ __('candidate.jobs.saved_intro') }}
     </p>
 @endsection
 
 @section('page_actions')
-    <a href="{{ route('candidate.jobs.index') }}" class="hb-btn-primary">Discover more roles</a>
+    <a href="{{ route('candidate.jobs.index') }}" class="hb-btn-primary">{{ __('candidate.jobs.discover_more') }}</a>
 @endsection
 
 @section('content')
@@ -20,36 +20,33 @@
         data-candidate-jobs-mode="saved"
         data-default-saved='@json($defaultSavedIds)'
     >
-        <div class="hb-mock-banner mb-6 rounded-lg text-start">
-            Frontend UI only — saved jobs are not stored on your account. Clearing browser storage resets this list.
-        </div>
 
         <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
             <label class="relative min-w-0 flex-1">
-                <span class="sr-only">Search saved roles</span>
+                <span class="sr-only">{{ __('candidate.jobs.search_saved_roles') }}</span>
                 <input
                     type="search"
                     class="hb-input"
-                    placeholder="Search saved roles"
+                    placeholder="{{ __('candidate.jobs.search_saved_placeholder') }}"
                     data-saved-q
                     autocomplete="off"
                 >
             </label>
             <label class="shrink-0">
-                <span class="sr-only">Work model</span>
-                <select class="hb-input min-w-44" data-saved-work-model aria-label="Filter by work model">
-                    <option value="all">All work models</option>
+                <span class="sr-only">{{ __('candidate.jobs.work_model') }}</span>
+                <select class="hb-input min-w-44" data-saved-work-model aria-label="{{ __('candidate.jobs.filter_work_model') }}">
+                    <option value="all">{{ __('candidate.jobs.all_work_models') }}</option>
                     <option value="Hybrid">Hybrid</option>
                     <option value="Remote">Remote</option>
                     <option value="On-site">On-site</option>
                 </select>
             </label>
             <label class="shrink-0">
-                <span class="sr-only">Sort saved roles</span>
-                <select class="hb-input min-w-40" data-saved-sort aria-label="Sort saved roles">
-                    <option value="recent">Recently saved</option>
-                    <option value="salary_desc">Salary · high to low</option>
-                    <option value="company">Company A–Z</option>
+                <span class="sr-only">{{ __('candidate.jobs.sort_saved_roles') }}</span>
+                <select class="hb-input min-w-40" data-saved-sort aria-label="{{ __('candidate.jobs.sort_saved_roles') }}">
+                    <option value="recent">{{ __('candidate.jobs.sort_recently_saved') }}</option>
+                    <option value="salary_desc">{{ __('candidate.jobs.sort_salary_desc') }}</option>
+                    <option value="company">{{ __('candidate.jobs.sort_company') }}</option>
                 </select>
             </label>
         </div>
@@ -61,16 +58,16 @@
 
         <p class="mb-3 text-sm text-hb-muted">
             <span data-saved-count>{{ count($savedJobs) }}</span>
-            <span data-saved-count-label>{{ count($savedJobs) === 1 ? 'saved role' : 'saved roles' }}</span>
+            <span data-saved-count-label>{{ count($savedJobs) === 1 ? __('candidate.jobs.saved_role') : __('candidate.jobs.saved_roles') }}</span>
         </p>
 
         <div class="hb-surface overflow-hidden" data-saved-results>
             <div class="hidden border-b border-hb-border bg-hb-page px-5 py-2 text-xs font-semibold tracking-wide text-hb-muted uppercase sm:grid sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.7fr)_minmax(0,0.7fr)_auto] sm:gap-3">
-                <span>Role</span>
-                <span>Location / model</span>
-                <span>Base salary</span>
-                <span>Saved / status</span>
-                <span class="text-end">Actions</span>
+                <span>{{ __('candidate.jobs.col_role') }}</span>
+                <span>{{ __('candidate.jobs.col_location') }}</span>
+                <span>{{ __('candidate.jobs.col_salary') }}</span>
+                <span>{{ __('candidate.jobs.col_saved_status') }}</span>
+                <span class="text-end">{{ __('candidate.jobs.col_actions') }}</span>
             </div>
 
             @foreach ($jobs as $job)
@@ -94,15 +91,15 @@
                         </div>
                         <p class="text-sm text-hb-text">{{ $job['location_short'] ?? $job['location'] }} · {{ $job['work_model'] }}</p>
                         <p class="text-sm text-hb-text">{{ $job['salary_label'] }}</p>
-                        <p class="text-sm text-hb-muted">{{ $job['saved_on'] ?? '—' }} · {{ $job['saved_status'] ?? 'Open' }}</p>
+                        <p class="text-sm text-hb-muted">{{ $job['saved_on'] ?? '—' }} · {{ $job['saved_status'] ?? __('candidate.jobs.status_open') }}</p>
                         <div class="flex flex-wrap items-center gap-3 sm:justify-end">
                             @if (($job['saved_action'] ?? '') === 'view_application')
                                 <a href="{{ route('candidate.applications.show', $job['id']) }}" class="text-sm font-semibold text-hb-blue hover:underline">
-                                    {{ $job['saved_action_label'] ?? 'View application' }}
+                                    {{ $job['saved_action_label'] ?? __('candidate.applications.view_application') }}
                                 </a>
                             @else
                                 <a href="{{ route('candidate.applications.apply', $job['id']) }}" class="text-sm font-semibold text-hb-blue hover:underline">
-                                    {{ $job['saved_action_label'] ?? 'Review role' }}
+                                    {{ $job['saved_action_label'] ?? __('candidate.jobs.review_role') }}
                                 </a>
                             @endif
                             <button
@@ -112,7 +109,7 @@
                                 data-remove-saved
                                 aria-pressed="true"
                             >
-                                Remove
+                                {{ __('candidate.jobs.remove') }}
                             </button>
                         </div>
                     </div>
@@ -121,26 +118,26 @@
         </div>
 
         <div class="hb-surface mt-4 hidden px-5 py-10 text-center" data-saved-empty role="status" hidden>
-            <p class="font-semibold text-hb-navy">No saved jobs yet</p>
+            <p class="font-semibold text-hb-navy">{{ __('candidate.jobs.empty_saved_title') }}</p>
             <p class="mt-2 text-sm text-hb-muted">
-                Save roles from Discover jobs to keep them here while you compare options.
+                {{ __('candidate.jobs.empty_saved_body') }}
             </p>
-            <a href="{{ route('candidate.jobs.index') }}" class="hb-btn-primary mt-4 inline-flex">Discover more roles</a>
+            <a href="{{ route('candidate.jobs.index') }}" class="hb-btn-primary mt-4 inline-flex">{{ __('candidate.jobs.discover_more') }}</a>
         </div>
 
         <div class="mt-6 grid gap-4 lg:grid-cols-2">
             <div class="hb-surface p-5">
-                <h2 class="text-base font-semibold text-hb-navy">Keep a shortlist that works for you</h2>
+                <h2 class="text-base font-semibold text-hb-navy">{{ __('candidate.jobs.shortlist_title') }}</h2>
                 <p class="mt-2 text-sm leading-relaxed text-hb-muted">
-                    Saved jobs are private. Removing a saved role does not withdraw an application you’ve already submitted.
+                    {{ __('candidate.jobs.shortlist_body') }}
                 </p>
-                <button type="button" class="hb-btn-outline mt-4" disabled title="Saved-search alerts — Backend Team">
-                    Manage saved-search alerts
+                <button type="button" class="hb-btn-outline mt-4" disabled title="{{ __('candidate.jobs.manage_alerts_soon') }}">
+                    {{ __('candidate.jobs.manage_alerts') }}
                 </button>
             </div>
 
             <div class="hb-surface p-5">
-                <h2 class="text-base font-semibold text-hb-navy">Your saved search</h2>
+                <h2 class="text-base font-semibold text-hb-navy">{{ __('candidate.jobs.your_saved_search') }}</h2>
                 <p class="mt-3 flex items-center gap-2 text-sm font-medium text-hb-success">
                     <span class="h-2 w-2 rounded-full bg-hb-success" aria-hidden="true"></span>
                     {{ $savedSearch['status'] }}
@@ -151,18 +148,18 @@
                     @endforeach
                 </ul>
                 <div class="mt-4 flex flex-wrap gap-4">
-                    <button type="button" class="text-sm font-semibold text-hb-blue hover:underline" disabled title="Edit search — Backend Team">
-                        Edit search
+                    <button type="button" class="text-sm font-semibold text-hb-blue hover:underline" disabled title="{{ __('candidate.jobs.edit_search_soon') }}">
+                        {{ __('candidate.jobs.edit_search') }}
                     </button>
-                    <button type="button" class="text-sm font-semibold text-hb-blue hover:underline" disabled title="Pause alerts — Backend Team">
-                        Pause alerts
+                    <button type="button" class="text-sm font-semibold text-hb-blue hover:underline" disabled title="{{ __('candidate.jobs.pause_alerts_soon') }}">
+                        {{ __('candidate.jobs.pause_alerts') }}
                     </button>
                 </div>
             </div>
         </div>
 
         <p class="mt-8 text-xs text-hb-muted">
-            Hirebridge · Private workspace · All times Central unless noted · October 20, 2026
+            {{ __('common.footer.workspace_note', ['date' => __('candidate.footer_date')]) }}
         </p>
     </div>
 @endsection

@@ -3,11 +3,513 @@
 namespace App\Support\Frontend;
 
 /**
- * Isolated mock presentation data for Company/HR frontend (Batch 5A).
+ * Isolated mock presentation data for Company/HR frontend (Batches 5A–5B).
  * Consistent with Candidate / Public Northstar Labs records — no Eloquent.
  */
 class MockCompanyData
 {
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function jobs(): array
+    {
+        $ns204 = MockPublicData::jobs()[0] ?? [];
+
+        return [
+            [
+                'id' => 'ns-204',
+                'code' => 'NS-204',
+                'title' => 'Senior Product Designer',
+                'owner' => 'Olivia Bennett',
+                'team' => 'Product & Design',
+                'department' => 'Product & Design',
+                'model' => 'Direct + agency',
+                'model_key' => 'direct_agency',
+                'pipeline' => '12 total · 3 interview',
+                'pipeline_total' => 12,
+                'pipeline_interview' => 3,
+                'status' => 'Open',
+                'status_key' => 'open',
+                'employment' => 'Full-time',
+                'work_model' => 'Hybrid · Two office days',
+                'location' => 'Austin, TX',
+                'salary_label' => '$140k–$170k USD',
+                'salary_min' => '$140,000',
+                'salary_max' => '$170,000',
+                'location_short' => 'Austin hybrid',
+                'posted_at' => 'October 9, 2026',
+                'published_label' => 'Published Oct 9',
+                'hiring_manager' => 'Daniel Brooks',
+                'description' => $ns204['description'] ?? '',
+                'responsibilities' => $ns204['responsibilities'] ?? [],
+                'requirements' => $ns204['requirements'] ?? [],
+                'benefits' => $ns204['benefits'] ?? '',
+                'process' => $ns204['process'] ?? '',
+                'summary' => $ns204['summary'] ?? 'Design tools that make complex work feel simple',
+                'stages' => [
+                    ['label' => 'Applied', 'count' => 3],
+                    ['label' => 'Screening', 'count' => 3],
+                    ['label' => 'Interview', 'count' => 3],
+                    ['label' => 'Offer', 'count' => 2],
+                    ['label' => 'Hired', 'count' => 1],
+                ],
+                'stat_cards' => [
+                    ['label' => 'Applied', 'value' => '3', 'meta' => 'New applications'],
+                    ['label' => 'Screening', 'value' => '3', 'meta' => 'Review needed'],
+                    ['label' => 'Interview', 'value' => '3', 'meta' => 'Maya · Luis · Aisha'],
+                ],
+                'offer_hired' => [
+                    'value' => '2 / 1',
+                    'meta' => '17 total candidates',
+                    'label' => 'Offer / Hired',
+                ],
+                'forward_rows' => [
+                    [
+                        'candidate' => 'Maya Chen',
+                        'stage' => 'Interview',
+                        'next' => 'Portfolio review · Oct 22, 10:00 AM',
+                    ],
+                    [
+                        'candidate' => 'Luis Romero',
+                        'stage' => 'Interview',
+                        'next' => 'Team interview · Oct 21, 11:00 AM',
+                    ],
+                    [
+                        'candidate' => 'Aisha Patel',
+                        'stage' => 'Interview',
+                        'next' => 'Portfolio review · Oct 23, 11:00 AM',
+                    ],
+                    [
+                        'candidate' => 'Ethan Cole',
+                        'stage' => 'Offer',
+                        'next' => 'Draft offer · awaiting approval',
+                    ],
+                ],
+                'hiring_team' => [
+                    ['name' => 'Olivia Bennett', 'role' => 'Requisition owner · Recruiter / HR'],
+                    ['name' => 'Daniel Brooks', 'role' => 'Hiring manager'],
+                    ['name' => 'Alex Morgan', 'role' => 'Portfolio interviewer'],
+                ],
+                'sourcing' => [
+                    [
+                        'label' => 'Direct hire',
+                        'recruiter' => 'Recruiter A',
+                        'ownership' => 'Requisition hiring team',
+                    ],
+                    [
+                        'label' => 'Agency-managed',
+                        'recruiter' => 'Recruiter B',
+                        'ownership' => 'Jamie Rivera · Hirebridge Talent',
+                    ],
+                ],
+                'publication_notes' => [
+                    'Public on Hirebridge',
+                    'Company careers link enabled',
+                    'Agency submissions require candidate consent',
+                ],
+                'stage_note' => 'Use Rejected or Withdrawn for closed outcomes. Changing stages records an activity event; candidate notifications are reviewed separately.',
+                'publish_to_search' => true,
+                'agency_submissions' => true,
+                'accommodation_info' => true,
+                'last_edited' => 'Oct 18, 2026',
+                'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+            ],
+            [
+                'id' => 'ns-205',
+                'code' => 'NS-205',
+                'title' => 'Senior Software Engineer',
+                'owner' => 'Jordan Lee',
+                'team' => 'Engineering',
+                'department' => 'Engineering',
+                'model' => 'Direct hire',
+                'model_key' => 'direct',
+                'pipeline' => '9 total · 3 interview',
+                'pipeline_total' => 9,
+                'pipeline_interview' => 3,
+                'status' => 'Open',
+                'status_key' => 'open',
+                'employment' => 'Full-time',
+                'work_model' => 'Hybrid · Two office days',
+                'location' => 'Austin, TX',
+                'salary_label' => '$160k–$190k',
+                'salary_min' => '$160,000',
+                'salary_max' => '$190,000',
+                'posted_at' => 'October 5, 2026',
+                'hiring_manager' => 'Jordan Lee',
+                'description' => 'Join Northstar Labs engineering to ship robust services for collaborative workflows.',
+                'responsibilities' => [
+                    'Design and implement backend services.',
+                    'Improve reliability and observability.',
+                    'Collaborate closely with product design.',
+                ],
+                'requirements' => [
+                    '5+ years software engineering experience.',
+                    'Comfortable with modern PHP/Laravel or equivalent stacks.',
+                ],
+                'benefits' => 'Hybrid Austin benefits with learning budget.',
+                'process' => 'Technical screen → Pairing → Team interview.',
+                'summary' => 'Build reliable collaborative software for operations teams.',
+                'stages' => [
+                    ['label' => 'Applied', 'count' => 3],
+                    ['label' => 'Screening', 'count' => 2],
+                    ['label' => 'Interview', 'count' => 3],
+                    ['label' => 'Offer', 'count' => 1],
+                    ['label' => 'Hired', 'count' => 0],
+                ],
+                'publish_to_search' => true,
+                'agency_submissions' => false,
+                'accommodation_info' => true,
+                'last_edited' => 'Oct 17, 2026',
+            ],
+            [
+                'id' => 'ns-206',
+                'code' => 'NS-206',
+                'title' => 'Product Manager',
+                'owner' => 'Daniel Brooks',
+                'team' => 'Product',
+                'department' => 'Product',
+                'model' => 'Direct hire',
+                'model_key' => 'direct',
+                'pipeline' => '7 total · 2 interview',
+                'pipeline_total' => 7,
+                'pipeline_interview' => 2,
+                'status' => 'Open',
+                'status_key' => 'open',
+                'employment' => 'Full-time',
+                'work_model' => 'Hybrid · Two office days',
+                'location' => 'Austin, TX',
+                'salary_label' => '$145k–$175k',
+                'salary_min' => '$145,000',
+                'salary_max' => '$175,000',
+                'posted_at' => 'October 4, 2026',
+                'hiring_manager' => 'Daniel Brooks',
+                'description' => 'Northstar Labs is hiring a product manager to guide roadmap decisions with design and engineering partners.',
+                'responsibilities' => [
+                    'Define outcomes and success metrics.',
+                    'Facilitate discovery with customers.',
+                    'Coordinate delivery across squads.',
+                ],
+                'requirements' => [
+                    '4+ years B2B product management.',
+                    'Evidence of shipping complex workflows.',
+                ],
+                'benefits' => 'Hybrid Austin package with flexible PTO.',
+                'process' => 'Recruiter screen → Case discussion → Leadership interview.',
+                'summary' => 'Own discovery and delivery for core workspace outcomes.',
+                'stages' => [
+                    ['label' => 'Applied', 'count' => 2],
+                    ['label' => 'Screening', 'count' => 3],
+                    ['label' => 'Interview', 'count' => 2],
+                    ['label' => 'Offer', 'count' => 0],
+                    ['label' => 'Hired', 'count' => 0],
+                ],
+                'publish_to_search' => true,
+                'agency_submissions' => false,
+                'accommodation_info' => true,
+                'last_edited' => 'Oct 16, 2026',
+            ],
+            [
+                'id' => 'ns-207',
+                'code' => 'NS-207',
+                'title' => 'Customer Success Manager',
+                'owner' => 'Olivia Bennett',
+                'team' => 'Customer Experience',
+                'department' => 'Customer Experience',
+                'model' => 'Direct hire',
+                'model_key' => 'direct',
+                'pipeline' => '0 total · Not published',
+                'pipeline_total' => 0,
+                'pipeline_interview' => 0,
+                'status' => 'Draft',
+                'status_key' => 'draft',
+                'employment' => 'Full-time',
+                'work_model' => 'Hybrid · Two office days',
+                'location' => 'Austin, TX',
+                'salary_label' => 'Missing salary range',
+                'salary_min' => '',
+                'salary_max' => '',
+                'posted_at' => null,
+                'hiring_manager' => 'Jordan Lee',
+                'description' => 'Turn operational challenges into lasting customer value with Northstar Labs.',
+                'responsibilities' => [
+                    'Own a portfolio of mid-market customer accounts.',
+                    'Partner with product on adoption feedback loops.',
+                ],
+                'requirements' => [
+                    '4+ years in B2B customer success.',
+                    'Comfortable with SaaS onboarding and renewals.',
+                ],
+                'benefits' => 'Health coverage, flexible PTO, learning budget.',
+                'process' => 'Screening → Hiring manager interview → Offer.',
+                'summary' => 'Help customers adopt collaborative operations software.',
+                'stages' => [],
+                'publish_to_search' => true,
+                'agency_submissions' => false,
+                'accommodation_info' => true,
+                'last_edited' => 'Oct 19, 2026',
+                'draft_alert' => 'Missing salary range and approval owner.',
+            ],
+            [
+                'id' => 'ns-198',
+                'code' => 'NS-198',
+                'title' => 'Design Operations Specialist',
+                'owner' => 'Olivia Bennett',
+                'team' => 'Product & Design',
+                'department' => 'Product & Design',
+                'model' => 'Direct hire',
+                'model_key' => 'direct',
+                'pipeline' => '4 total · Closed',
+                'pipeline_total' => 4,
+                'pipeline_interview' => 0,
+                'status' => 'Closed',
+                'status_key' => 'closed',
+                'employment' => 'Full-time',
+                'work_model' => 'Hybrid · Two office days',
+                'location' => 'Austin, TX',
+                'salary_label' => '$95k–$115k',
+                'salary_min' => '$95,000',
+                'salary_max' => '$115,000',
+                'posted_at' => 'August 12, 2026',
+                'hiring_manager' => 'Daniel Brooks',
+                'description' => 'Closed requisition kept for audit history.',
+                'responsibilities' => [],
+                'requirements' => [],
+                'benefits' => '',
+                'process' => '',
+                'summary' => 'Filled September 2026.',
+                'stages' => [
+                    ['label' => 'Hired', 'count' => 1],
+                ],
+                'publish_to_search' => false,
+                'agency_submissions' => false,
+                'accommodation_info' => true,
+                'last_edited' => 'Sep 30, 2026',
+                'closed_reason' => 'Role filled',
+            ],
+            [
+                'id' => 'ns-191',
+                'code' => 'NS-191',
+                'title' => 'People Operations Coordinator',
+                'owner' => 'Olivia Bennett',
+                'team' => 'People',
+                'department' => 'People',
+                'model' => 'Direct + agency',
+                'model_key' => 'direct_agency',
+                'pipeline' => '6 total · Closed',
+                'pipeline_total' => 6,
+                'pipeline_interview' => 0,
+                'status' => 'Closed',
+                'status_key' => 'closed',
+                'employment' => 'Full-time',
+                'work_model' => 'On-site',
+                'location' => 'Austin, TX',
+                'salary_label' => '$70k–$85k',
+                'salary_min' => '$70,000',
+                'salary_max' => '$85,000',
+                'posted_at' => 'July 2, 2026',
+                'hiring_manager' => 'Olivia Bennett',
+                'description' => 'Closed requisition kept for audit history.',
+                'responsibilities' => [],
+                'requirements' => [],
+                'benefits' => '',
+                'process' => '',
+                'summary' => 'Cancelled — headcount reallocated.',
+                'stages' => [],
+                'publish_to_search' => false,
+                'agency_submissions' => true,
+                'accommodation_info' => true,
+                'last_edited' => 'Aug 15, 2026',
+                'closed_reason' => 'Cancelled',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function job(string $id): ?array
+    {
+        foreach (self::jobs() as $job) {
+            if (($job['id'] ?? '') === $id || ($job['code'] ?? '') === strtoupper($id)) {
+                return self::enrichJobDetail($job);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Ensure Frame 28 detail sections exist for every requisition.
+     *
+     * @param  array<string, mixed>  $job
+     * @return array<string, mixed>
+     */
+    private static function enrichJobDetail(array $job): array
+    {
+        $stages = $job['stages'] ?? [];
+        $applied = collect($stages)->firstWhere('label', 'Applied')['count'] ?? 0;
+        $screening = collect($stages)->firstWhere('label', 'Screening')['count'] ?? 0;
+        $interview = collect($stages)->firstWhere('label', 'Interview')['count'] ?? 0;
+        $offer = collect($stages)->firstWhere('label', 'Offer')['count'] ?? 0;
+        $hired = collect($stages)->firstWhere('label', 'Hired')['count'] ?? 0;
+
+        $job['location_short'] ??= str_contains((string) ($job['work_model'] ?? ''), 'Hybrid')
+            ? 'Austin hybrid'
+            : ($job['location'] ?? '');
+        $job['published_label'] ??= ! empty($job['posted_at'])
+            ? 'Published '.preg_replace('/^October /', 'Oct ', (string) $job['posted_at'])
+            : 'Not published';
+        $job['stat_cards'] ??= [
+            ['label' => 'Applied', 'value' => (string) $applied, 'meta' => 'Applications'],
+            ['label' => 'Screening', 'value' => (string) $screening, 'meta' => 'In review'],
+            ['label' => 'Interview', 'value' => (string) $interview, 'meta' => 'Active interviews'],
+        ];
+        $job['offer_hired'] ??= [
+            'label' => 'Offer / Hired',
+            'value' => $offer.' / '.$hired,
+            'meta' => ($job['pipeline_total'] ?? 0).' total candidates',
+        ];
+        $job['forward_rows'] ??= [];
+        $job['hiring_team'] ??= [
+            ['name' => $job['owner'] ?? 'Olivia Bennett', 'role' => 'Requisition owner · Recruiter / HR'],
+            ['name' => $job['hiring_manager'] ?? 'Hiring manager', 'role' => 'Hiring manager'],
+        ];
+        $job['sourcing'] ??= [
+            [
+                'label' => $job['model'] ?? 'Direct hire',
+                'recruiter' => $job['owner'] ?? 'Olivia Bennett',
+                'ownership' => 'Requisition hiring team',
+            ],
+        ];
+        $job['publication_notes'] ??= [
+            ! empty($job['publish_to_search']) ? 'Public on Hirebridge' : 'Not listed publicly',
+            'Company careers link enabled',
+        ];
+        $job['stage_note'] ??= 'Use Rejected or Withdrawn for closed outcomes. Changing stages records an activity event; candidate notifications are reviewed separately.';
+        $job['footer'] ??= 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026';
+
+        return $job;
+    }
+
+    /**
+     * Figma Frame 26 — Jobs & requisitions listing.
+     *
+     * @return array<string, mixed>
+     */
+    public static function jobsIndex(): array
+    {
+        $jobs = self::jobs();
+        $counts = [
+            'open' => count(array_filter($jobs, fn (array $j): bool => ($j['status_key'] ?? '') === 'open')),
+            'draft' => count(array_filter($jobs, fn (array $j): bool => ($j['status_key'] ?? '') === 'draft')),
+            'closed' => count(array_filter($jobs, fn (array $j): bool => ($j['status_key'] ?? '') === 'closed')),
+            'all' => count($jobs),
+        ];
+
+        $draft = self::job('ns-207');
+
+        return [
+            'title' => 'Jobs & requisitions',
+            'intro' => 'Manage ownership, publication, and hiring progress across Northstar Labs.',
+            'tabs' => [
+                ['key' => 'open', 'label' => 'Open', 'count' => $counts['open']],
+                ['key' => 'draft', 'label' => 'Draft', 'count' => $counts['draft']],
+                ['key' => 'closed', 'label' => 'Closed', 'count' => $counts['closed']],
+                ['key' => 'all', 'label' => 'All', 'count' => $counts['all']],
+            ],
+            'default_tab' => 'open',
+            'owners' => ['Olivia Bennett', 'Jordan Lee', 'Daniel Brooks'],
+            'models' => [
+                ['key' => 'direct', 'label' => 'Direct hire'],
+                ['key' => 'direct_agency', 'label' => 'Direct + agency'],
+            ],
+            'jobs' => $jobs,
+            'draft_card' => [
+                'code' => $draft['code'] ?? 'NS-207',
+                'title' => $draft['title'] ?? 'Customer Success Manager',
+                'owner' => $draft['owner'] ?? 'Olivia Bennett',
+                'last_edited' => 'Oct 19',
+                'alert' => $draft['draft_alert'] ?? 'Missing salary range and approval owner.',
+                'edit_id' => $draft['id'] ?? 'ns-207',
+            ],
+            'permissions_card' => [
+                'title' => 'Clear publication ownership',
+                'body' => 'Company admins can publish approved roles. Hiring managers can edit assigned requisitions. Agency recruiters can submit candidates only to their assigned engagements.',
+            ],
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ];
+    }
+
+    /**
+     * Figma Frame 27 — Create a job wizard.
+     *
+     * @return array<string, mixed>
+     */
+    public static function jobWizard(): array
+    {
+        $draft = self::job('ns-207') ?? [];
+
+        return [
+            'code' => $draft['code'] ?? 'NS-207',
+            'title_default' => $draft['title'] ?? 'Customer Success Manager',
+            'draft_saved_at' => '9:40 AM',
+            'steps' => [
+                ['key' => 'role', 'label' => 'Role details'],
+                ['key' => 'description', 'label' => 'Description'],
+                ['key' => 'hiring', 'label' => 'Hiring process'],
+                ['key' => 'review', 'label' => 'Review & publish'],
+            ],
+            'departments' => [
+                'Customer Experience',
+                'Product & Design',
+                'Engineering',
+                'Product',
+                'People',
+            ],
+            'employment_types' => ['Full-time', 'Part-time', 'Contract'],
+            'work_models' => [
+                'Hybrid · Two office days',
+                'Remote',
+                'On-site',
+            ],
+            'owners' => ['Olivia Bennett', 'Jordan Lee', 'Daniel Brooks'],
+            'hiring_managers' => ['Jordan Lee', 'Daniel Brooks', 'Olivia Bennett', 'Alex Morgan'],
+            'defaults' => [
+                'title' => $draft['title'] ?? 'Customer Success Manager',
+                'department' => $draft['department'] ?? 'Customer Experience',
+                'employment' => $draft['employment'] ?? 'Full-time',
+                'location' => $draft['location'] ?? 'Austin, TX',
+                'work_model' => $draft['work_model'] ?? 'Hybrid · Two office days',
+                'salary_min' => '$110,000',
+                'salary_max' => '$135,000',
+                'about' => 'Turn operational challenges into lasting customer value. You’ll guide mid-market accounts through adoption, renewals, and product feedback loops with design and engineering partners.',
+                'requirements' => "4+ years in B2B customer success\nExperience with SaaS onboarding and renewals\nClear written and verbal communication\nComfort collaborating with product teams",
+                'benefits' => 'Health coverage, flexible PTO, learning budget, hybrid Austin rhythm.',
+                'owner' => 'Olivia Bennett',
+                'hiring_manager' => 'Jordan Lee',
+                'publish_to_search' => true,
+                'agency_submissions' => false,
+                'accommodation_info' => true,
+            ],
+            'checklist' => [
+                ['key' => 'role', 'label' => 'Role and location', 'done' => true],
+                ['key' => 'salary', 'label' => 'Salary range', 'done' => true],
+                ['key' => 'description', 'label' => 'Description and requirements', 'done' => true],
+                ['key' => 'privacy', 'label' => 'Privacy & equal-opportunity text', 'done' => true],
+                ['key' => 'hiring', 'label' => 'Hiring process', 'done' => false],
+                ['key' => 'approval', 'label' => 'Approval review', 'done' => false],
+            ],
+            'hiring_stages' => [
+                'Applied',
+                'Screening',
+                'Interview',
+                'Offer',
+                'Hired',
+            ],
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ];
+    }
+
     /**
      * Figma Frame 25 — Company workspace overview (dashboard).
      *
@@ -17,7 +519,7 @@ class MockCompanyData
     {
         return [
             'greeting' => 'Good morning, Olivia',
-            'intro' => 'Northstar Labs hiring overview · Mock cohort as of October 20, 2026.',
+            'intro' => 'Northstar Labs hiring overview · Updated October 20, 2026.',
             'date_range' => 'Last 30 days',
             'date_ranges' => [
                 'Last 7 days',
@@ -65,7 +567,7 @@ class MockCompanyData
                     ['label' => 'Offer', 'count' => 3, 'share' => 38],
                     ['label' => 'Hired', 'count' => 1, 'share' => 13, 'tone' => 'success'],
                 ],
-                'footer' => '7 direct-hire · 5 agency-managed in active NS-204 board (demo subset). Full pipeline UI arrives in Batch 5C.',
+                'footer' => '7 direct-hire · 5 agency-managed in the active NS-204 board.',
             ],
             'requisitions' => [
                 [
@@ -78,7 +580,7 @@ class MockCompanyData
                 ],
                 [
                     'code' => 'NS-205',
-                    'title' => 'Backend Engineer',
+                    'title' => 'Senior Software Engineer',
                     'owner' => 'Jordan Lee',
                     'team' => 'Engineering',
                     'status' => 'Open',
@@ -166,7 +668,7 @@ class MockCompanyData
             'design_note' => 'No dedicated Company Profile Figma frame was verified for Batch 5A. Fields reuse Company onboarding (Frame 12) and public company profile patterns.',
             'verification' => [
                 'status' => 'Verified',
-                'detail' => 'Workspace verified · Mock presentation only — not live platform verification.',
+                'detail' => 'Workspace verified for Northstar Labs.',
                 'document' => 'Northstar_Labs_Business_Registration.pdf',
                 'reviewed_at' => 'Oct 8, 2026',
             ],

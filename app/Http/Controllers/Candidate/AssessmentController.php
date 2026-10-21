@@ -17,7 +17,7 @@ class AssessmentController extends Controller
         return view('candidate.assessments.index', [
             'pageTitle' => 'Assessments · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'assessments' => MockCandidateData::assessments(),
             'frontendOnly' => true,
         ]);
@@ -32,7 +32,7 @@ class AssessmentController extends Controller
         return view('candidate.assessments.intro', [
             'pageTitle' => ($record['title'] ?? 'Assessment').' · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'assessment' => $record,
             'frontendOnly' => true,
         ]);
@@ -47,7 +47,7 @@ class AssessmentController extends Controller
         return view('candidate.assessments.take', [
             'pageTitle' => 'Taking '.$record['title'].' · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'assessment' => $record,
             'frontendOnly' => true,
         ]);
@@ -62,7 +62,7 @@ class AssessmentController extends Controller
         return view('candidate.assessments.result', [
             'pageTitle' => 'Results preview · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'assessment' => $record,
             'frontendOnly' => true,
         ]);

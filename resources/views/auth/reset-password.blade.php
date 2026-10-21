@@ -1,32 +1,27 @@
 @extends('layouts.auth')
 
-@section('title', $pageTitle ?? 'Set a new password · Hirebridge')
-@section('eyebrow', '10 / Account access')
-@section('brand_headline', 'Good work starts with the right connection.')
-@section('brand_copy', 'Find your next role, build your team, or partner with a recruiter. One clear workspace for every step.')
+@section('title', $pageTitle ?? __('auth.reset.page_title'))
+@section('eyebrow', __('auth.reset.eyebrow'))
 
 @section('content')
     @php($email = $email ?? 'maya.chen@example.com')
 
-    <div class="hb-mock-banner mb-6 rounded-lg text-start">
-        Frontend UI only — passwords are not changed. Reset processing requires Backend Team integration.
-    </div>
 
-    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">Set a new password</h1>
-    <p class="mt-2 text-sm text-hb-muted">Choose a strong password you haven’t used for this account.</p>
+    <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('auth.reset.title') }}</h1>
+    <p class="mt-2 text-sm text-hb-muted">{{ __('auth.reset.subtitle') }}</p>
 
     <div class="mt-8 space-y-5" data-auth-page="reset-password">
         <div class="rounded-lg border border-hb-border bg-hb-surface px-4 py-3 text-sm">
-            <p class="font-semibold text-hb-navy">Password reset form</p>
+            <p class="font-semibold text-hb-navy">{{ __('auth.reset.preview_title') }}</p>
             <p class="mt-1 text-hb-muted">
-                Preview for <span class="font-medium text-hb-text">{{ $email }}</span>.
-                In production, a one-time reset link from Backend Team would open this screen.
+                {{ __('auth.reset.preview_before') }} <span class="font-medium text-hb-text">{{ $email }}</span>.
+                {{ __('auth.reset.preview_after') }}
             </p>
         </div>
 
-        <form class="space-y-4" data-auth-form="reset-password" novalidate aria-label="Set a new password">
+        <form class="space-y-4" data-auth-form="reset-password" novalidate aria-label="{{ __('auth.reset.form_aria') }}">
             <div data-field="password">
-                <label for="reset-password" class="hb-label">New password</label>
+                <label for="reset-password" class="hb-label">{{ __('auth.reset.password') }}</label>
                 <div class="relative">
                     <input
                         id="reset-password"
@@ -45,7 +40,7 @@
                         type="button"
                         class="absolute end-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-hb-muted hover:bg-hb-page hover:text-hb-text"
                         data-password-toggle
-                        aria-label="Show password"
+                        aria-label="{{ __('common.show_password') }}"
                         aria-controls="reset-password"
                     >
                         <svg data-icon-show class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -56,7 +51,7 @@
             </div>
 
             <div data-field="password_confirmation">
-                <label for="reset-password-confirmation" class="hb-label">Confirm new password</label>
+                <label for="reset-password-confirmation" class="hb-label">{{ __('auth.reset.confirm') }}</label>
                 <div class="relative">
                     <input
                         id="reset-password-confirmation"
@@ -74,7 +69,7 @@
                         type="button"
                         class="absolute end-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-hb-muted hover:bg-hb-page hover:text-hb-text"
                         data-password-toggle
-                        aria-label="Show password"
+                        aria-label="{{ __('common.show_password') }}"
                         aria-controls="reset-password-confirmation"
                     >
                         <svg data-icon-show class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -86,38 +81,38 @@
             </div>
 
             <div id="reset-requirements" class="rounded-lg border border-hb-border bg-hb-page px-4 py-3" data-password-requirements>
-                <p class="text-sm font-semibold text-hb-navy">Password requirements</p>
+                <p class="text-sm font-semibold text-hb-navy">{{ __('auth.reset.requirements') }}</p>
                 <ul class="mt-2 space-y-1.5 text-sm text-hb-muted">
-                    <li data-req="length" class="flex items-center gap-2"><span data-req-icon aria-hidden="true">○</span> At least 12 characters</li>
-                    <li data-req="number" class="flex items-center gap-2"><span data-req-icon aria-hidden="true">○</span> Includes a number</li>
-                    <li data-req="symbol" class="flex items-center gap-2"><span data-req-icon aria-hidden="true">○</span> Includes a symbol</li>
-                    <li class="flex items-center gap-2 text-hb-muted/80"><span aria-hidden="true">○</span> Different from your previous password <span class="text-xs">(Backend)</span></li>
+                    <li data-req="length" class="flex items-center gap-2"><span data-req-icon aria-hidden="true">○</span> {{ __('auth.reset.req_length') }}</li>
+                    <li data-req="number" class="flex items-center gap-2"><span data-req-icon aria-hidden="true">○</span> {{ __('auth.reset.req_number') }}</li>
+                    <li data-req="symbol" class="flex items-center gap-2"><span data-req-icon aria-hidden="true">○</span> {{ __('auth.reset.req_symbol') }}</li>
+                    <li class="flex items-center gap-2 text-hb-muted/80"><span aria-hidden="true">○</span> {{ __('auth.reset.req_different') }}</li>
                 </ul>
             </div>
 
             <label class="flex items-start gap-2.5 text-sm text-hb-muted">
-                <input name="logout_others" type="checkbox" class="hb-checkbox mt-0.5" checked disabled title="Requires Backend Team session management">
-                <span>Sign out of other devices after resetting <span class="text-xs">(Backend)</span></span>
+                <input name="logout_others" type="checkbox" class="hb-checkbox mt-0.5" checked disabled title="{{ __('auth.reset.logout_others_title') }}">
+                <span>{{ __('auth.reset.sign_out_devices') }}</span>
             </label>
 
             <button type="submit" class="hb-btn-primary w-full" data-auth-submit>
-                Reset password
+                {{ __('auth.reset.submit') }}
             </button>
 
             <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status">
-                Password rules validated on the client. No credentials were changed — Backend Team reset processing is required.
+                {{ __('auth.reset.note_ready') }}
             </div>
         </form>
 
         <p class="text-xs leading-relaxed text-hb-muted">
-            After a real reset, you’ll return to sign in. Applications and workspace data won’t change.
+            {{ __('auth.reset.after_reset') }}
         </p>
 
         <p class="text-center text-sm">
-            <a href="{{ route('login') }}" class="font-semibold text-hb-blue hover:underline">Back to sign in</a>
+            <a href="{{ route('login') }}" class="font-semibold text-hb-blue hover:underline">{{ __('auth.reset.back_sign_in') }}</a>
         </p>
         <p class="text-center text-xs text-hb-muted">
-            Need help? <a href="mailto:support@hirebridge.example" class="text-hb-blue hover:underline">support@hirebridge.example</a>
+            {{ __('auth.login.need_help') }} <a href="mailto:support@hirebridge.example" class="text-hb-blue hover:underline">support@hirebridge.example</a>
         </p>
     </div>
 @endsection

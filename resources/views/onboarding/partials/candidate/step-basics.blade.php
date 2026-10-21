@@ -1,7 +1,7 @@
 <div class="space-y-5 hidden" data-onboarding-panel data-step="1" hidden>
     <div>
-        <h2 class="text-base font-semibold text-hb-navy">Basics</h2>
-        <p class="mt-1 text-sm text-hb-muted">Start with who you are. You can refine this anytime from Profile &amp; resume.</p>
+        <h2 class="text-base font-semibold text-hb-navy">{{ __('onboarding.candidate.steps.basics') }}</h2>
+        <p class="mt-1 text-sm text-hb-muted">{{ __('onboarding.candidate.basics.intro') }}</p>
     </div>
 
     <div data-field="photo" class="flex flex-wrap items-center gap-4">
@@ -13,7 +13,7 @@
             MC
         </div>
         <div class="min-w-0 flex-1">
-            <label for="candidate-photo" class="hb-label">Profile photo</label>
+            <label for="candidate-photo" class="hb-label">{{ __('onboarding.candidate.basics.profile_photo') }}</label>
             <input
                 id="candidate-photo"
                 name="photo"
@@ -23,14 +23,14 @@
                 data-file-input
                 data-file-preview="photo"
             >
-            <p class="mt-1.5 text-xs text-hb-muted">PNG, JPG, or WebP · Preview only — files are not uploaded.</p>
+            <p class="mt-1.5 text-xs text-hb-muted">{{ __('onboarding.candidate.photo_hint') }}</p>
             <p class="mt-1 text-xs font-medium text-hb-navy hidden" data-file-name></p>
         </div>
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2">
         <div data-field="headline" class="sm:col-span-2">
-            <label for="candidate-headline" class="hb-label">Professional headline <span class="text-hb-error">*</span></label>
+            <label for="candidate-headline" class="hb-label">{{ __('onboarding.candidate.basics.professional_headline') }} <span class="text-hb-error">*</span></label>
             <input
                 id="candidate-headline"
                 name="headline"
@@ -46,7 +46,7 @@
         </div>
 
         <div data-field="location">
-            <label for="candidate-location" class="hb-label">Location <span class="text-hb-error">*</span></label>
+            <label for="candidate-location" class="hb-label">{{ __('onboarding.candidate.basics.location') }} <span class="text-hb-error">*</span></label>
             <input
                 id="candidate-location"
                 name="location"
@@ -61,12 +61,12 @@
         </div>
 
         <div data-field="phone">
-            <label for="candidate-phone" class="hb-label">Phone</label>
+            <label for="candidate-phone" class="hb-label">{{ __('onboarding.candidate.basics.phone') }}</label>
             <input id="candidate-phone" name="phone" type="tel" class="hb-input" value="+1 (512) 555-0142" autocomplete="tel">
         </div>
 
         <div data-field="years_experience">
-            <label for="candidate-years" class="hb-label">Years of experience <span class="text-hb-error">*</span></label>
+            <label for="candidate-years" class="hb-label">{{ __('onboarding.candidate.basics.years_experience') }} <span class="text-hb-error">*</span></label>
             <input
                 id="candidate-years"
                 name="years_experience"
@@ -84,7 +84,7 @@
         </div>
 
         <div data-field="bio" class="sm:col-span-2">
-            <label for="candidate-bio" class="hb-label">Short bio</label>
+            <label for="candidate-bio" class="hb-label">{{ __('onboarding.candidate.basics.short_bio') }}</label>
             <textarea
                 id="candidate-bio"
                 name="bio"
@@ -94,7 +94,7 @@
                 data-char-count-input
             >Product designer focused on complex SaaS workflows, research-informed decisions, and accessible design systems.</textarea>
             <div class="mt-1.5 flex justify-between gap-3 text-xs text-hb-muted">
-                <span>Optional · Expand later on your profile.</span>
+                <span>{{ __('onboarding.candidate.basics.bio_optional') }}</span>
                 <span data-char-count>0 / 600</span>
             </div>
         </div>

@@ -32,7 +32,7 @@ class CandidateScreensTest extends TestCase
             ->assertSee('Finish profile', false)
             ->assertSee('Your next actions', false)
             ->assertSee('Review Meridian offer', false)
-            ->assertSee('Frontend UI only', false)
+            ->assertDontSee('Frontend UI only', false)
             ->assertDontSee('Offer accepted', false);
     }
 
@@ -71,7 +71,7 @@ class CandidateScreensTest extends TestCase
             ->assertSee('Allow agency recruiters to request access', false)
             ->assertSee('Show my profile in public search', false)
             ->assertSee('Save visibility', false)
-            ->assertSee('Frontend UI only', false)
+            ->assertDontSee('Frontend UI only', false)
             ->assertDontSee('Profile saved', false);
     }
 

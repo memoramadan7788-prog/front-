@@ -19,7 +19,7 @@ class InterviewController extends Controller
         return view('candidate.interviews.index', [
             'pageTitle' => 'Your interviews · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'interviews' => $interviews,
             'selected' => MockCandidateData::interview($interviews['selected_id']) ?? $interviews['upcoming'][0] ?? null,
             'frontendOnly' => true,
@@ -37,7 +37,7 @@ class InterviewController extends Controller
         return view('candidate.interviews.show', [
             'pageTitle' => ($record['title'] ?? 'Interview').' · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'interview' => $record,
             'interviews' => $catalog,
             'frontendOnly' => true,

@@ -1,62 +1,61 @@
 @include('partials.sidebar-nav', [
-    'eyebrow' => 'Candidate',
-    'workspaceLabel' => 'Personal workspace',
+    'eyebrow' => __('navigation.candidate.eyebrow'),
+    'workspaceLabel' => __('navigation.candidate.workspace'),
     'items' => [
         [
-            'label' => 'Overview',
+            'label' => __('navigation.candidate.overview'),
             'route' => 'candidate.dashboard',
             'active' => request()->routeIs('candidate.dashboard'),
         ],
         [
-            'label' => 'Discover jobs',
+            'label' => __('navigation.candidate.discover_jobs'),
             'route' => 'candidate.jobs.index',
             'active' => request()->routeIs('candidate.jobs.index'),
         ],
         [
-            'label' => 'Saved jobs',
+            'label' => __('navigation.candidate.saved_jobs'),
             'route' => 'candidate.jobs.saved',
             'active' => request()->routeIs('candidate.jobs.saved'),
         ],
         [
-            'label' => 'My applications',
+            'label' => __('navigation.candidate.applications'),
             'route' => 'candidate.applications.index',
             'active' => request()->routeIs('candidate.applications.*'),
         ],
         [
-            'label' => 'Interviews',
+            'label' => __('navigation.candidate.interviews'),
             'route' => 'candidate.interviews.index',
             'active' => request()->routeIs('candidate.interviews.*'),
         ],
         [
-            'label' => 'Messages',
+            'label' => __('navigation.candidate.messages'),
             'route' => 'candidate.messages.index',
             'active' => request()->routeIs('candidate.messages.*'),
         ],
         [
-            'label' => 'Assessments',
+            'label' => __('navigation.candidate.assessments'),
             'route' => 'candidate.assessments.index',
             'active' => request()->routeIs('candidate.assessments.*'),
         ],
         [
-            'label' => 'Profile & resume',
+            'label' => __('navigation.candidate.profile'),
             'route' => 'candidate.profile',
             'active' => request()->routeIs('candidate.profile'),
         ],
         [
-            'label' => 'Preferences & alerts',
+            'label' => __('navigation.candidate.preferences'),
             'route' => 'candidate.preferences',
             'active' => request()->routeIs('candidate.preferences'),
         ],
         [
-            'label' => 'Offers',
+            'label' => __('navigation.candidate.offers'),
             'route' => 'candidate.offers.index',
             'active' => request()->routeIs('candidate.offers.*'),
         ],
         [
-            'label' => 'Notifications',
+            'label' => __('navigation.candidate.notifications'),
             'route' => 'candidate.notifications.index',
             'active' => request()->routeIs('candidate.notifications.*'),
         ],
     ],
 ])
-

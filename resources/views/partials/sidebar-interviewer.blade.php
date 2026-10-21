@@ -1,16 +1,16 @@
 @include('partials.sidebar-nav', [
-    'eyebrow' => 'Interviewer',
-    'workspaceLabel' => 'Northstar Labs',
+    'eyebrow' => __('navigation.interviewer.eyebrow'),
+    'workspaceLabel' => __('navigation.interviewer.workspace'),
     'items' => [
         [
-            'label' => 'Overview',
+            'label' => __('navigation.interviewer.overview'),
             'route' => 'frontend.layouts.app',
             'params' => ['role' => 'interviewer'],
             'active' => ($uiRole ?? null) === 'interviewer' && request()->routeIs('frontend.layouts.app'),
         ],
-        ['label' => 'My schedule', 'pending' => true],
-        ['label' => 'Interview preparation', 'pending' => true],
-        ['label' => 'Scorecards', 'pending' => true],
-        ['label' => 'Availability', 'pending' => true],
+        ['label' => __('navigation.interviewer.schedule'), 'pending' => true],
+        ['label' => __('navigation.interviewer.preparation'), 'pending' => true],
+        ['label' => __('navigation.interviewer.scorecards'), 'pending' => true],
+        ['label' => __('navigation.interviewer.availability'), 'pending' => true],
     ],
 ])

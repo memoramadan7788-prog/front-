@@ -13,7 +13,7 @@ class CandidateApplicationsScreensTest extends TestCase
             ->assertSee('16 / My workspace / My applications', false)
             ->assertSee('Apply to Northstar Labs', false)
             ->assertSee('Senior Product Designer · NS-204', false)
-            ->assertSee('Journey-state example', false)
+            ->assertSee('You started this application on October 12, 2026', false)
             ->assertSee('Your profile', false)
             ->assertSee('Screening questions', false)
             ->assertSee('Review &amp; submit', false)
@@ -32,7 +32,7 @@ class CandidateApplicationsScreensTest extends TestCase
             ->assertSee('Role summary', false)
             ->assertSee('Olivia Bennett', false)
             ->assertSee('Before you submit', false)
-            ->assertSee('Frontend UI only', false)
+            ->assertDontSee('Frontend UI only', false)
             ->assertSee('candidate-apply-modal', false)
             ->assertDontSee('Application was received by Hirebridge', false);
     }
@@ -44,8 +44,8 @@ class CandidateApplicationsScreensTest extends TestCase
             ->assertSee('17 / My workspace / My applications', false)
             ->assertSee('Your application is on its way', false)
             ->assertSee('Submitted to Northstar Labs', false)
-            ->assertSee('Frontend confirmation preview only', false)
-            ->assertSee('No real application was received', false)
+            ->assertDontSee('Frontend confirmation preview only', false)
+            ->assertDontSee('No real application was received', false)
             ->assertSee('HB-NS204-MC-1012', false)
             ->assertSee('Senior Product Designer · NS-204', false)
             ->assertSee('What happens next', false)
@@ -78,7 +78,7 @@ class CandidateApplicationsScreensTest extends TestCase
             ->assertSee('Archived application', false)
             ->assertSee('Product Designer · Grove &amp; Co. · GC-039', false)
             ->assertSee('Withdrawn', false)
-            ->assertSee('Frontend UI only', false);
+            ->assertDontSee('Frontend UI only', false);
     }
 
     public function test_application_detail_matches_frame_nineteen_structure(): void
@@ -101,7 +101,7 @@ class CandidateApplicationsScreensTest extends TestCase
             ->assertSee('Daniel Brooks', false)
             ->assertSee('Submitted materials', false)
             ->assertSee('Withdraw application', false)
-            ->assertSee('Frontend UI only', false);
+            ->assertDontSee('Frontend UI only', false);
     }
 
     public function test_application_routes_are_get_only_and_resolvable(): void

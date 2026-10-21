@@ -4,7 +4,7 @@
 
     /**
      * Frontend-only role shell selection for layout development.
-     * Not authorization — Backend Team owns real authz.
+     * Not authorization owns real authz.
      */
     $uiRole = $uiRole ?? request()->query('role', 'candidate');
     $allowedRoles = ['candidate', 'company', 'interviewer', 'admin'];
@@ -28,16 +28,12 @@
 
     <title>@yield('title', 'Workspace · Hirebridge')</title>
 
+    @include('partials.theme-boot')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.js-i18n')
     @stack('head')
 </head>
 <body class="min-h-screen bg-hb-page text-hb-text">
-    @if(! empty($showMockBanner))
-        <div class="hb-mock-banner" role="status">
-            Frontend layout preview · UI role “{{ $uiRole }}” is mock data only — not real authorization.
-        </div>
-    @endif
-
     {{-- Mobile sidebar drawer --}}
     <div
         class="fixed inset-0 z-40 hidden bg-hb-navy/40 lg:hidden"
@@ -45,20 +41,20 @@
     ></div>
     <aside
         id="mobile-sidebar-drawer"
-        class="fixed inset-y-0 start-0 z-50 flex w-56 -translate-x-full flex-col bg-hb-sidebar text-white transition-transform duration-200 lg:hidden"
+        class="fixed inset-y-0 start-0 z-50 flex w-56 -translate-x-full flex-col bg-hb-sidebar text-white transition-transform duration-200 rtl:translate-x-full lg:hidden"
         data-mobile-sidebar
-        aria-label="Mobile workspace navigation"
+        aria-label="{{ __('navigation.workspace') }}"
     >
         <div class="flex h-[72px] items-center justify-between border-b border-white/10 px-5">
             <div class="flex items-center gap-2.5">
                 <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-hb-blue text-sm font-semibold">h</span>
-                <span class="text-base font-semibold tracking-tight">hirebridge</span>
+                <span class="text-base font-semibold tracking-tight">{{ __('common.brand') }}</span>
             </div>
             <button
                 type="button"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-hb-nav-muted hover:bg-white/10 hover:text-white"
                 data-mobile-sidebar-close
-                aria-label="Close navigation"
+                aria-label="{{ __('common.close_navigation') }}"
             >
                 &times;
             </button>
@@ -72,12 +68,12 @@
         {{-- Figma Role navigation · 224px navy rail --}}
         <aside
             class="hidden w-56 shrink-0 flex-col bg-hb-sidebar text-white lg:flex"
-            aria-label="Workspace navigation"
+            aria-label="{{ __('navigation.workspace') }}"
             data-ui-role="{{ $uiRole }}"
         >
             <div class="flex h-[72px] items-center gap-2.5 border-b border-white/10 px-5">
                 <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-hb-blue text-sm font-semibold">h</span>
-                <span class="text-base font-semibold tracking-tight">hirebridge</span>
+                <span class="text-base font-semibold tracking-tight">{{ __('common.brand') }}</span>
             </div>
 
             <div class="flex-1 overflow-y-auto py-4">

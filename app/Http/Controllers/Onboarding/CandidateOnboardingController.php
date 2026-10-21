@@ -16,7 +16,7 @@ class CandidateOnboardingController extends Controller
         return view('onboarding.candidate-profile', [
             'pageTitle' => 'Build a profile that feels like you · Hirebridge',
             'uiRole' => 'candidate',
-            'showMockBanner' => true,
+            'showMockBanner' => false,
             'frontendOnly' => true,
         ]);
     }
