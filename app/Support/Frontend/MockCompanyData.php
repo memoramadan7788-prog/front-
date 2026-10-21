@@ -1876,4 +1876,214 @@ class MockCompanyData
             'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
         ];
     }
+
+    /**
+     * Figma Frame 37 — Team & permissions.
+     *
+     * @return array<string, mixed>
+     */
+    public static function team(): array
+    {
+        $members = [
+            [
+                'id' => 'olivia-bennett',
+                'name' => 'Olivia Bennett',
+                'email' => 'olivia@northstarlabs.example',
+                'role' => 'Company Admin / HR',
+                'role_key' => 'hr',
+                'scope' => 'All Northstar requisitions',
+                'status' => 'Active · Workspace owner',
+                'status_key' => 'active',
+                'membership' => 'owner',
+                'action' => 'Manage',
+                'action_key' => 'manage',
+            ],
+            [
+                'id' => 'daniel-brooks',
+                'name' => 'Daniel Brooks',
+                'email' => 'daniel@northstarlabs.example',
+                'role' => 'Hiring manager',
+                'role_key' => 'hiring_manager',
+                'scope' => 'Product & Design jobs',
+                'status' => 'Active',
+                'status_key' => 'active',
+                'membership' => 'internal',
+                'action' => 'Edit scope',
+                'action_key' => 'edit_scope',
+            ],
+            [
+                'id' => 'alex-morgan',
+                'name' => 'Alex Morgan',
+                'email' => 'alex@northstarlabs.example',
+                'role' => 'Interviewer',
+                'role_key' => 'interviewer',
+                'scope' => 'Assigned interviews only',
+                'status' => 'Active',
+                'status_key' => 'active',
+                'membership' => 'internal',
+                'action' => 'Edit scope',
+                'action_key' => 'edit_scope',
+            ],
+            [
+                'id' => 'jordan-lee',
+                'name' => 'Jordan Lee',
+                'email' => 'jordan@northstarlabs.example',
+                'role' => 'Hiring manager',
+                'role_key' => 'hiring_manager',
+                'scope' => 'Customer Experience jobs',
+                'status' => 'Active',
+                'status_key' => 'active',
+                'membership' => 'internal',
+                'action' => 'Edit scope',
+                'action_key' => 'edit_scope',
+            ],
+            [
+                'id' => 'jamie-rivera',
+                'name' => 'Jamie Rivera',
+                'email' => 'jamie@brightpath.agency',
+                'role' => 'Agency recruiter',
+                'role_key' => 'agency',
+                'scope' => 'NS-204 / NS-205 submissions',
+                'status' => 'Active · External',
+                'status_key' => 'external',
+                'membership' => 'external',
+                'action' => 'Review access',
+                'action_key' => 'review',
+            ],
+        ];
+
+        return [
+            'members' => $members,
+            'invites' => [
+                [
+                    'id' => 'invite-taylor-reed',
+                    'name' => 'Taylor Reed',
+                    'email' => 'taylor@northstarlabs.example',
+                    'role' => 'Interviewer',
+                    'role_key' => 'interviewer',
+                    'scope' => 'Assigned interviews only',
+                    'invited' => 'Oct 19',
+                    'expires' => 'Oct 26',
+                    'status' => 'Pending',
+                    'status_key' => 'pending',
+                ],
+            ],
+            'roles' => [
+                [
+                    'key' => 'hr',
+                    'title' => 'HR and company admins',
+                    'body' => 'Manage jobs, applications, offers, and workspace membership.',
+                ],
+                [
+                    'key' => 'hiring_manager',
+                    'title' => 'Hiring managers',
+                    'body' => 'Review assigned roles and candidates. Approve decisions within their scope.',
+                ],
+                [
+                    'key' => 'interviewer_agency',
+                    'title' => 'Interviewers and agency recruiters',
+                    'body' => 'Interviewers see assigned briefs and scorecards. Agencies see assigned engagements and their own submissions, not private HR notes.',
+                ],
+            ],
+            'invite_defaults' => [
+                'email' => 'taylor@northstarlabs.example',
+                'role' => 'Interviewer',
+                'role_key' => 'interviewer',
+                'scope' => 'Assigned interviews only',
+                'send_email' => true,
+            ],
+            'role_options' => [
+                ['value' => 'hr', 'label' => 'Company Admin / HR'],
+                ['value' => 'hiring_manager', 'label' => 'Hiring manager'],
+                ['value' => 'interviewer', 'label' => 'Interviewer'],
+                ['value' => 'agency', 'label' => 'Agency recruiter'],
+            ],
+            'scope_options' => [
+                'All Northstar requisitions',
+                'Product & Design jobs',
+                'Customer Experience jobs',
+                'Assigned interviews only',
+                'NS-204 / NS-205 submissions',
+            ],
+            'audit_body' => 'Removing access ends future workspace access but preserves authored feedback and audit history. Sensitive changes require confirmation.',
+            'pending_invite_note' => 'Taylor Reed · Interviewer · Invited Oct 19 · Expires Oct 26',
+            'join_request_count' => 2,
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ];
+    }
+
+    /**
+     * Employee join requests — workflow-derived (no dedicated Figma frame verified for Batch 5F).
+     *
+     * @return array<string, mixed>
+     */
+    public static function joinRequests(): array
+    {
+        return [
+            'design_source' => 'workflow',
+            'requests' => [
+                [
+                    'id' => 'req-samira-hassan',
+                    'name' => 'Samira Hassan',
+                    'email' => 'samira.hassan@example.com',
+                    'requested_role' => 'Hiring manager',
+                    'requested_role_key' => 'hiring_manager',
+                    'department' => 'Product & Design',
+                    'requested_at' => 'October 18, 2026',
+                    'note' => 'Requested access after referral from Olivia Bennett for NS-204 hiring support.',
+                    'status' => 'Pending',
+                    'status_key' => 'pending',
+                ],
+                [
+                    'id' => 'req-chris-nguyen',
+                    'name' => 'Chris Nguyen',
+                    'email' => 'chris.nguyen@example.com',
+                    'requested_role' => 'Interviewer',
+                    'requested_role_key' => 'interviewer',
+                    'department' => 'Engineering',
+                    'requested_at' => 'October 17, 2026',
+                    'note' => 'Joined Northstar Engineering and asked to score portfolio rounds for NS-205.',
+                    'status' => 'Pending',
+                    'status_key' => 'pending',
+                ],
+                [
+                    'id' => 'req-mira-cohen',
+                    'name' => 'Mira Cohen',
+                    'email' => 'mira.cohen@example.com',
+                    'requested_role' => 'Company Admin / HR',
+                    'requested_role_key' => 'hr',
+                    'department' => 'People Operations',
+                    'requested_at' => 'October 12, 2026',
+                    'note' => 'Reviewed and declined earlier — retained for audit history in this preview.',
+                    'status' => 'Declined',
+                    'status_key' => 'declined',
+                ],
+            ],
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function employee(?string $id): ?array
+    {
+        if ($id === null || $id === '') {
+            return null;
+        }
+
+        return collect(self::team()['members'])->firstWhere('id', $id);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function joinRequest(?string $id): ?array
+    {
+        if ($id === null || $id === '') {
+            return null;
+        }
+
+        return collect(self::joinRequests()['requests'])->firstWhere('id', $id);
+    }
 }

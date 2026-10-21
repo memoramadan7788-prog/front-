@@ -36,7 +36,11 @@
             'active' => request()->routeIs('company.talent-pool.*'),
         ],
         ['label' => __('navigation.company.messages'), 'pending' => true],
-        ['label' => __('navigation.company.team'), 'pending' => true],
+        [
+            'label' => __('navigation.company.team'),
+            'route' => 'company.employees.index',
+            'active' => request()->routeIs('company.employees.*'),
+        ],
         ['label' => __('navigation.company.analytics'), 'pending' => true],
     ],
 ])

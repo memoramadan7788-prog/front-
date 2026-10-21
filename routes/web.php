@@ -17,6 +17,7 @@ use App\Http\Controllers\Candidate\PreferenceController as CandidatePreferenceCo
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
 use App\Http\Controllers\Company\ApplicantController as CompanyApplicantController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboardController;
+use App\Http\Controllers\Company\EmployeeController as CompanyEmployeeController;
 use App\Http\Controllers\Company\EvaluationController as CompanyEvaluationController;
 use App\Http\Controllers\Company\InterviewController as CompanyInterviewController;
 use App\Http\Controllers\Company\JobController as CompanyJobController;
@@ -211,6 +212,20 @@ Route::get('/company/offers/create', [CompanyOfferController::class, 'create'])
     ->name('company.offers.create');
 Route::get('/company/talent-pool', [CompanyTalentPoolController::class, 'index'])
     ->name('company.talent-pool.index');
+
+/*
+|--------------------------------------------------------------------------
+| Company team, employees & join requests UI (Batch 5F — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. Invites / approvals are client-side mock interactions.
+| Static /requests must be registered before /{employee}.
+*/
+Route::get('/company/employees', [CompanyEmployeeController::class, 'index'])
+    ->name('company.employees.index');
+Route::get('/company/employees/requests', [CompanyEmployeeController::class, 'requests'])
+    ->name('company.employees.requests');
+Route::get('/company/employees/{employee}', [CompanyEmployeeController::class, 'show'])
+    ->name('company.employees.show');
 
 /*
 |--------------------------------------------------------------------------

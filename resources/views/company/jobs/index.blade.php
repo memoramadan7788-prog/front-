@@ -156,14 +156,9 @@
                 <p class="mt-3 text-sm leading-relaxed text-hb-muted">
                     {{ $jobsPage['permissions_card']['body'] }}
                 </p>
-                <button
-                    type="button"
-                    class="mt-4 text-sm font-semibold text-hb-blue hover:underline"
-                    disabled
-                    title="{{ __('company.jobs.team_soon') }}"
-                >
+                <a href="{{ route('company.employees.index') }}" class="mt-4 inline-block text-sm font-semibold text-hb-blue hover:underline">
                     {{ __('company.jobs.review_permissions') }}
-                </button>
+                </a>
             </section>
         </div>
 
