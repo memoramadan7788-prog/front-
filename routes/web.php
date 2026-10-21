@@ -15,6 +15,7 @@ use App\Http\Controllers\Candidate\NotificationController as CandidateNotificati
 use App\Http\Controllers\Candidate\OfferController as CandidateOfferController;
 use App\Http\Controllers\Candidate\PreferenceController as CandidatePreferenceController;
 use App\Http\Controllers\Candidate\ProfileController as CandidateProfileController;
+use App\Http\Controllers\Company\ApplicantController as CompanyApplicantController;
 use App\Http\Controllers\Company\DashboardController as CompanyDashboardController;
 use App\Http\Controllers\Company\JobController as CompanyJobController;
 use App\Http\Controllers\Company\ProfileController as CompanyProfileController;
@@ -169,6 +170,17 @@ Route::get('/company/jobs/create', [CompanyJobController::class, 'create'])
     ->name('company.jobs.create');
 Route::get('/company/jobs/{job}', [CompanyJobController::class, 'show'])
     ->name('company.jobs.show');
+
+/*
+|--------------------------------------------------------------------------
+| Company applicants UI (Batch 5C — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. Stage moves / notes are client-side mock interactions.
+*/
+Route::get('/company/applicants', [CompanyApplicantController::class, 'index'])
+    ->name('company.applicants.index');
+Route::get('/company/applicants/{applicant}', [CompanyApplicantController::class, 'show'])
+    ->name('company.applicants.show');
 
 /*
 |--------------------------------------------------------------------------

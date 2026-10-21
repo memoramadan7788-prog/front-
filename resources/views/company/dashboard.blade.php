@@ -63,13 +63,12 @@
                         </h2>
                         <p class="mt-1 text-sm text-hb-muted">{{ $dashboard['pipeline']['subtitle'] }}</p>
                     </div>
-                    <span
-                        class="inline-flex cursor-not-allowed items-center rounded-lg border border-hb-border px-3 py-1.5 text-xs font-semibold text-hb-muted"
-                        title="{{ __('company.dashboard.pipeline_soon') }}"
-                        aria-disabled="true"
+                    <a
+                        href="{{ route('company.applicants.index', ['job' => 'ns-204']) }}"
+                        class="inline-flex items-center rounded-lg border border-hb-border px-3 py-1.5 text-xs font-semibold text-hb-blue hover:bg-hb-page"
                     >
                         {{ __('company.dashboard.open_board') }}
-                    </span>
+                    </a>
                 </div>
 
                 <ul class="mt-5 space-y-3" role="list">

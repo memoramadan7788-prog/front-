@@ -722,4 +722,541 @@ class MockCompanyData
             'public_slug' => 'northstar-labs',
         ];
     }
+
+    /**
+     * Hiring stages shared by company applicant pipeline boards.
+     *
+     * @return list<string>
+     */
+    public static function applicantStages(): array
+    {
+        return ['Applied', 'Screening', 'Interview', 'Offer', 'Hired'];
+    }
+
+    /**
+     * Figma Frame 30 — Applicant pipeline board (NS-204 primary).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function applicants(): array
+    {
+        return [
+            [
+                'id' => 'sofia-nguyen',
+                'name' => 'Sofia Nguyen',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Applied',
+                'stage_key' => 'applied',
+                'skills' => 'Figma · Research',
+                'source' => 'Direct hire',
+                'source_key' => 'direct',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 19',
+                'applied_on_long' => 'October 19, 2026',
+                'location' => 'Austin, TX',
+                'headline' => 'Product Designer',
+                'years_experience' => 5,
+                'email' => 'sofia.nguyen@example.com',
+                'portfolio' => null,
+            ],
+            [
+                'id' => 'marcus-reed',
+                'name' => 'Marcus Reed',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Applied',
+                'stage_key' => 'applied',
+                'skills' => 'Interaction · SaaS',
+                'source' => 'Agency-managed',
+                'source_key' => 'agency',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 18',
+                'applied_on_long' => 'October 18, 2026',
+                'location' => 'Remote US',
+                'headline' => 'Interaction Designer',
+                'years_experience' => 6,
+                'email' => 'marcus.reed@example.com',
+                'portfolio' => null,
+            ],
+            [
+                'id' => 'zoe-park',
+                'name' => 'Zoe Park',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Applied',
+                'stage_key' => 'applied',
+                'skills' => 'Systems · UI',
+                'source' => 'Direct hire',
+                'source_key' => 'direct',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 18',
+                'applied_on_long' => 'October 18, 2026',
+                'location' => 'Austin, TX',
+                'headline' => 'UI Designer',
+                'years_experience' => 4,
+                'email' => 'zoe.park@example.com',
+                'portfolio' => null,
+            ],
+            [
+                'id' => 'noah-williams',
+                'name' => 'Noah Williams',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Screening',
+                'stage_key' => 'screening',
+                'skills' => 'Research · Strategy',
+                'source' => 'Direct hire',
+                'source_key' => 'direct',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 16',
+                'applied_on_long' => 'October 16, 2026',
+                'location' => 'Austin, TX',
+                'headline' => 'UX Researcher',
+                'years_experience' => 7,
+                'email' => 'noah.williams@example.com',
+                'portfolio' => null,
+            ],
+            [
+                'id' => 'ella-davis',
+                'name' => 'Ella Davis',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Screening',
+                'stage_key' => 'screening',
+                'skills' => 'Figma · Systems',
+                'source' => 'Agency-managed',
+                'source_key' => 'agency',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 16',
+                'applied_on_long' => 'October 16, 2026',
+                'location' => 'Chicago, IL',
+                'headline' => 'Visual Designer',
+                'years_experience' => 5,
+                'email' => 'ella.davis@example.com',
+                'portfolio' => null,
+            ],
+            [
+                'id' => 'ben-carter',
+                'name' => 'Ben Carter',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Screening',
+                'stage_key' => 'screening',
+                'skills' => 'Prototyping · UI',
+                'source' => 'Direct hire',
+                'source_key' => 'direct',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 15',
+                'applied_on_long' => 'October 15, 2026',
+                'location' => 'Austin, TX',
+                'headline' => 'Product Designer',
+                'years_experience' => 6,
+                'email' => 'ben.carter@example.com',
+                'portfolio' => null,
+            ],
+            [
+                'id' => 'maya-chen',
+                'name' => 'Maya Chen',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Interview',
+                'stage_key' => 'interview',
+                'skills' => 'Systems · Research',
+                'source' => 'Direct hire',
+                'source_key' => 'direct',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 12',
+                'applied_on_long' => 'October 12, 2026',
+                'location' => 'Austin, TX',
+                'headline' => 'Senior Product Designer',
+                'years_experience' => 8,
+                'email' => 'maya.chen@example.com',
+                'portfolio' => 'https://mayachen.design',
+                'portfolio_label' => 'mayachen.design',
+                'highlighted' => true,
+                'flag' => 'Oct 22 · 10:00 AM · Portfolio interview',
+            ],
+            [
+                'id' => 'luis-romero',
+                'name' => 'Luis Romero',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Interview',
+                'stage_key' => 'interview',
+                'skills' => 'SaaS · Strategy',
+                'source' => 'Agency-managed',
+                'source_key' => 'agency',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 11',
+                'applied_on_long' => 'October 11, 2026',
+                'location' => 'Austin, TX',
+                'headline' => 'Product Designer',
+                'years_experience' => 7,
+                'email' => 'luis.romero@example.com',
+                'portfolio' => null,
+                'flag' => 'Oct 21 · 11:00 AM · Team interview',
+            ],
+            [
+                'id' => 'aisha-patel',
+                'name' => 'Aisha Patel',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Interview',
+                'stage_key' => 'interview',
+                'skills' => 'Research · Figma',
+                'source' => 'Direct hire',
+                'source_key' => 'direct',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 10',
+                'applied_on_long' => 'October 10, 2026',
+                'location' => 'Austin, TX',
+                'headline' => 'Product Designer',
+                'years_experience' => 6,
+                'email' => 'aisha.patel@example.com',
+                'portfolio' => null,
+                'flag' => 'Oct 23 · 11:00 AM · Portfolio review',
+            ],
+            [
+                'id' => 'ethan-cole',
+                'name' => 'Ethan Cole',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Offer',
+                'stage_key' => 'offer',
+                'skills' => 'Systems · SaaS',
+                'source' => 'Direct hire',
+                'source_key' => 'direct',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 05',
+                'applied_on_long' => 'October 5, 2026',
+                'location' => 'Austin, TX',
+                'headline' => 'Senior Designer',
+                'years_experience' => 9,
+                'email' => 'ethan.cole@example.com',
+                'portfolio' => null,
+                'badge' => ['variant' => 'pending', 'label' => 'Draft offer'],
+            ],
+            [
+                'id' => 'nora-kim',
+                'name' => 'Nora Kim',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Offer',
+                'stage_key' => 'offer',
+                'skills' => 'UI · Research',
+                'source' => 'Agency-managed',
+                'source_key' => 'agency',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Oct 04',
+                'applied_on_long' => 'October 4, 2026',
+                'location' => 'Remote US',
+                'headline' => 'Product Designer',
+                'years_experience' => 8,
+                'email' => 'nora.kim@example.com',
+                'portfolio' => null,
+            ],
+            [
+                'id' => 'grace-liu',
+                'name' => 'Grace Liu',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'stage' => 'Hired',
+                'stage_key' => 'hired',
+                'skills' => 'Systems · Figma',
+                'source' => 'Agency-managed',
+                'source_key' => 'agency',
+                'owner' => 'Olivia Bennett',
+                'applied_on' => 'Sep 28',
+                'applied_on_long' => 'September 28, 2026',
+                'location' => 'Austin, TX',
+                'headline' => 'Design Lead',
+                'years_experience' => 10,
+                'email' => 'grace.liu@example.com',
+                'portfolio' => null,
+                'badge' => ['variant' => 'success', 'label' => 'Hired Oct 16'],
+            ],
+        ];
+    }
+
+    /**
+     * Frame 30 pipeline page payload. Optional job filter (default NS-204).
+     *
+     * @return array<string, mixed>
+     */
+    public static function applicantsPipeline(?string $jobId = null): array
+    {
+        $jobId = $jobId ?: 'ns-204';
+        $job = self::job($jobId);
+        $applicants = array_values(array_filter(
+            self::applicants(),
+            static fn (array $row): bool => ($row['job_id'] ?? '') === $jobId
+        ));
+
+        $stages = self::applicantStages();
+        $columns = [];
+        foreach ($stages as $stage) {
+            $cards = array_values(array_filter(
+                $applicants,
+                static fn (array $row): bool => ($row['stage'] ?? '') === $stage
+            ));
+            $columns[] = [
+                'title' => $stage,
+                'key' => strtolower($stage),
+                'count' => count($cards),
+                'cards' => $cards,
+            ];
+        }
+
+        $direct = count(array_filter($applicants, static fn (array $r): bool => ($r['source_key'] ?? '') === 'direct'));
+        $agency = count(array_filter($applicants, static fn (array $r): bool => ($r['source_key'] ?? '') === 'agency'));
+
+        $owners = array_values(array_unique(array_map(
+            static fn (array $r): string => $r['owner'] ?? '',
+            $applicants
+        )));
+
+        $jobs = array_values(array_filter(
+            self::jobs(),
+            static fn (array $j): bool => ($j['status_key'] ?? '') === 'open'
+        ));
+
+        return [
+            'job_id' => $jobId,
+            'job_code' => $job['code'] ?? 'NS-204',
+            'job_title' => $job['title'] ?? 'Senior Product Designer',
+            'owner' => $job['owner'] ?? 'Olivia Bennett',
+            'candidate_count' => count($applicants),
+            'applicants' => $applicants,
+            'columns' => $columns,
+            'stages' => $stages,
+            'owners' => array_values(array_filter($owners)),
+            'jobs' => array_map(static fn (array $j): array => [
+                'id' => $j['id'],
+                'code' => $j['code'],
+                'title' => $j['title'],
+            ], $jobs),
+            'summary' => [
+                'direct' => $direct,
+                'agency' => $agency,
+                'rejected' => 0,
+                'withdrawn' => 0,
+            ],
+            'activity' => [
+                [
+                    'time' => 'Oct 20 · 4:20 PM',
+                    'body' => 'Daniel Brooks submitted hire recommendation for Ethan Cole (NS-204).',
+                ],
+                [
+                    'time' => 'Oct 20 · 2:15 PM',
+                    'body' => 'Interview brief attached for Maya Chen portfolio review.',
+                ],
+                [
+                    'time' => 'Oct 19 · 11:40 AM',
+                    'body' => 'Sofia Nguyen applied to Senior Product Designer (NS-204).',
+                ],
+                [
+                    'time' => 'Oct 16 · 9:05 AM',
+                    'body' => 'Grace Liu marked Hired for Senior Product Designer (NS-204).',
+                ],
+                [
+                    'time' => 'Oct 15 · 11:30 AM',
+                    'body' => 'Olivia Bennett completed screening with Maya Chen.',
+                ],
+            ],
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ];
+    }
+
+    /**
+     * Figma Frame 31 — Applicant profile / details.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function applicant(string $id): ?array
+    {
+        $base = collect(self::applicants())->firstWhere('id', $id);
+
+        if ($base === null) {
+            return null;
+        }
+
+        $stages = self::applicantStages();
+        $currentIndex = array_search($base['stage'], $stages, true);
+        if ($currentIndex === false) {
+            $currentIndex = 0;
+        }
+
+        $pipeline = [];
+        foreach ($stages as $index => $label) {
+            $status = 'pending';
+            if ($index < $currentIndex) {
+                $status = 'completed';
+            } elseif ($index === $currentIndex) {
+                $status = 'current';
+            }
+            $pipeline[] = ['label' => $label, 'status' => $status];
+        }
+
+        $profile = MockCandidateData::profile();
+        $isMaya = $id === 'maya-chen';
+
+        $experience = $isMaya
+            ? [
+                [
+                    'title' => 'Senior Product Designer',
+                    'company' => 'Fieldwork',
+                    'dates' => 'Mar 2022–Present',
+                    'summary' => 'SaaS workflow design, research, design systems',
+                ],
+                [
+                    'title' => 'Product Designer',
+                    'company' => 'Parcel Systems',
+                    'dates' => 'Jun 2018–Feb 2022',
+                    'summary' => 'Enterprise planning and reporting tools',
+                ],
+            ]
+            : [
+                [
+                    'title' => $base['headline'],
+                    'company' => 'Previous employer',
+                    'dates' => 'Recent',
+                    'summary' => $base['skills'],
+                ],
+            ];
+
+        $screening = $isMaya
+            ? [
+                [
+                    'when' => 'Oct 15 · Olivia Bennett',
+                    'body' => 'Evidence / next step: Confirmed Austin hybrid availability and $155k–$165k expectations.',
+                ],
+                [
+                    'when' => 'Oct 19 · Interview planned',
+                    'body' => 'Evidence / next step: Portfolio review with Alex · Oct 22, 10:00–10:45 AM Central.',
+                ],
+                [
+                    'when' => 'Oct 20 · Preparation',
+                    'body' => 'Evidence / next step: Agenda shared with Maya; portfolio projects requested.',
+                ],
+            ]
+            : [
+                [
+                    'when' => $base['applied_on_long'].' · Application',
+                    'body' => 'Evidence / next step: Application received for '.$base['job_title'].' ('.$base['job_code'].').',
+                ],
+                [
+                    'when' => 'Current · '.$base['stage'],
+                    'body' => 'Evidence / next step: '.$base['name'].' is in '.$base['stage'].' with owner '.$base['owner'].'.',
+                ],
+            ];
+
+        $interview = $isMaya
+            ? [
+                'status' => 'Confirmed',
+                'title' => 'Portfolio review',
+                'when' => 'Oct 22 · 10:00–10:45 AM',
+                'timezone' => 'Central Time · Video meeting',
+                'interviewer' => 'Alex Morgan',
+                'interviewer_meta' => 'Interviewer · Structured portfolio rubric',
+            ]
+            : (! empty($base['flag'])
+                ? [
+                    'status' => 'Scheduled',
+                    'title' => 'Upcoming conversation',
+                    'when' => $base['flag'],
+                    'timezone' => 'Central Time',
+                    'interviewer' => 'Alex Morgan',
+                    'interviewer_meta' => 'Interviewer',
+                ]
+                : null);
+
+        $interviewPlan = $isMaya
+            ? [
+                'agenda' => [
+                    'Walk through two portfolio projects (20 min)',
+                    'Systems and collaboration discussion (15 min)',
+                    'Candidate questions (10 min)',
+                ],
+                'prep_shared' => true,
+                'rubric' => 'Structured portfolio rubric · Alex Morgan',
+            ]
+            : [
+                'agenda' => [
+                    'Role fit and experience review',
+                    'Team collaboration discussion',
+                    'Candidate questions',
+                ],
+                'prep_shared' => false,
+                'rubric' => 'Standard interview guide',
+            ];
+
+        $communications = [
+            [
+                'when' => 'Oct 20 · 2:15 PM',
+                'channel' => 'Email',
+                'summary' => 'Interview agenda shared with '.$base['name'].'.',
+            ],
+            [
+                'when' => 'Oct 15 · 11:30 AM',
+                'channel' => 'Call',
+                'summary' => 'Screening conversation with '.$base['owner'].'.',
+            ],
+        ];
+
+        $notesActivity = [
+            [
+                'when' => 'Oct 20 · 2:18 PM',
+                'author' => 'Olivia Bennett',
+                'body' => 'Agenda shared; waiting on two portfolio projects from candidate.',
+            ],
+            [
+                'when' => 'Oct 15 · 11:45 AM',
+                'author' => 'Olivia Bennett',
+                'body' => 'Hybrid availability confirmed. Compensation expectations documented.',
+            ],
+        ];
+
+        return array_merge($base, [
+            'subtitle' => $base['headline'].' · '.$base['location'].' · '.$base['years_experience'].' years’ experience',
+            'pipeline' => $pipeline,
+            'experience' => $experience,
+            'skills_list' => $isMaya
+                ? array_column($profile['skills'], 'label')
+                : array_map('trim', explode('·', $base['skills'])),
+            'education' => $isMaya
+                ? 'BFA Communication Design, Texas State University'
+                : null,
+            'resume' => $isMaya
+                ? $profile['resume']
+                : [
+                    'filename' => str_replace(' ', '_', $base['name']).'_Resume.pdf',
+                    'size' => '210 KB',
+                    'updated' => $base['applied_on'],
+                ],
+            'screening' => $screening,
+            'interview' => $interview,
+            'interview_plan' => $interviewPlan,
+            'communications' => $communications,
+            'notes_activity' => $notesActivity,
+            'consent' => [
+                'processing' => 'Application-processing consent: '.$base['applied_on'],
+                'talent_pool' => $isMaya ? 'Talent pool opt-in: Not selected' : 'Talent pool opt-in: Not recorded',
+                'access' => 'Access restricted to assigned hiring team.',
+            ],
+            'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+        ]);
+    }
 }

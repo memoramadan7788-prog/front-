@@ -110,14 +110,12 @@
                                 </tbody>
                             </table>
                         </div>
-                        <button
-                            type="button"
-                            class="hb-btn-primary mt-5"
-                            disabled
-                            title="{{ __('company.jobs.pipeline_soon') }}"
+                        <a
+                            href="{{ route('company.applicants.index', ['job' => $job['id']]) }}"
+                            class="hb-btn-primary mt-5 inline-flex"
                         >
                             {{ __('company.jobs.open_pipeline') }}
-                        </button>
+                        </a>
                     </section>
 
                     <section class="hb-surface p-5 sm:p-6" aria-labelledby="sourcing-heading">
@@ -176,14 +174,12 @@
                         <h2 id="pipeline-panel-heading" class="text-lg font-semibold text-hb-navy">{{ __('company.jobs.pipeline_tab') }}</h2>
                         <p class="mt-1 text-sm text-hb-muted">{{ $job['pipeline'] }}</p>
                     </div>
-                    <button
-                        type="button"
-                        class="hb-btn-primary"
-                        disabled
-                        title="{{ __('company.jobs.pipeline_soon') }}"
+                    <a
+                        href="{{ route('company.applicants.index', ['job' => $job['id']]) }}"
+                        class="hb-btn-primary inline-flex"
                     >
                         {{ __('company.jobs.open_pipeline') }}
-                    </button>
+                    </a>
                 </div>
                 @if (! empty($job['stages']))
                     <ul class="mt-6 grid gap-3 sm:grid-cols-5">

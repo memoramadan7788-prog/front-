@@ -18,7 +18,11 @@
             'route' => 'company.jobs.index',
             'active' => request()->routeIs('company.jobs.*'),
         ],
-        ['label' => __('navigation.company.applicants'), 'pending' => true],
+        [
+            'label' => __('navigation.company.applicants'),
+            'route' => 'company.applicants.index',
+            'active' => request()->routeIs('company.applicants.*'),
+        ],
         ['label' => __('navigation.company.interviews'), 'pending' => true],
         ['label' => __('navigation.company.talent_pool'), 'pending' => true],
         ['label' => __('navigation.company.messages'), 'pending' => true],
