@@ -36,9 +36,9 @@
                 <span class="sr-only">{{ __('candidate.jobs.work_model') }}</span>
                 <select class="hb-input min-w-44" data-saved-work-model aria-label="{{ __('candidate.jobs.filter_work_model') }}">
                     <option value="all">{{ __('candidate.jobs.all_work_models') }}</option>
-                    <option value="Hybrid">Hybrid</option>
-                    <option value="Remote">Remote</option>
-                    <option value="On-site">On-site</option>
+                    <option value="Hybrid">{{ \App\Support\Frontend\MockCandidateData::workModelLabel('Hybrid') }}</option>
+                    <option value="Remote">{{ \App\Support\Frontend\MockCandidateData::workModelLabel('Remote') }}</option>
+                    <option value="On-site">{{ \App\Support\Frontend\MockCandidateData::workModelLabel('On-site') }}</option>
                 </select>
             </label>
             <label class="shrink-0">
@@ -51,10 +51,10 @@
             </label>
         </div>
 
-        <div class="mb-4 rounded-lg border border-hb-info-soft bg-hb-info-soft px-4 py-3" role="status">
-            <p class="text-sm font-semibold text-hb-navy">{{ $savedSearch['updates_title'] }}</p>
-            <p class="mt-1 text-sm text-hb-text">{{ $savedSearch['updates_body'] }}</p>
-        </div>
+        <x-alert variant="info" class="mb-4">
+            <p class="font-semibold text-hb-navy">{{ $savedSearch['updates_title'] }}</p>
+            <p class="mt-1 text-hb-text">{{ $savedSearch['updates_body'] }}</p>
+        </x-alert>
 
         <p class="mb-3 text-sm text-hb-muted">
             <span data-saved-count>{{ count($savedJobs) }}</span>
@@ -89,7 +89,7 @@
                             </p>
                             <p class="mt-0.5 text-sm text-hb-muted">{{ $job['company'] }} · {{ $job['code'] }}</p>
                         </div>
-                        <p class="text-sm text-hb-text">{{ $job['location_short'] ?? $job['location'] }} · {{ $job['work_model'] }}</p>
+                        <p class="text-sm text-hb-text">{{ $job['location_short'] ?? $job['location'] }} · {{ \App\Support\Frontend\MockCandidateData::workModelLabel($job['work_model']) }}</p>
                         <p class="text-sm text-hb-text">{{ $job['salary_label'] }}</p>
                         <p class="text-sm text-hb-muted">{{ $job['saved_on'] ?? '—' }} · {{ $job['saved_status'] ?? __('candidate.jobs.status_open') }}</p>
                         <div class="flex flex-wrap items-center gap-3 sm:justify-end">

@@ -108,6 +108,19 @@ return [
         'direct_hire' => 'Direct hire',
         'agency_managed' => 'Agency-managed',
     ],
+    'work_models' => [
+        'hybrid' => 'Hybrid',
+        'remote' => 'Remote',
+        'on_site' => 'On-site',
+        'hybrid_remote' => 'Hybrid + Remote',
+        'hybrid_only' => 'Hybrid only',
+        'remote_only' => 'Remote only',
+    ],
+    'employment' => [
+        'full_time' => 'Full-time',
+        'contract' => 'Contract',
+        'part_time' => 'Part-time',
+    ],
     'validation' => [
         'required' => 'This field is required.',
         'fix_highlighted' => 'Fix the highlighted fields before continuing.',

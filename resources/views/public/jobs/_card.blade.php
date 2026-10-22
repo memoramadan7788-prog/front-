@@ -30,7 +30,7 @@
                 · {{ $job['code'] }}
             </p>
             <p class="mt-2 text-sm text-hb-text">
-                {{ $job['work_model'] }} · {{ $job['location'] }} · {{ $job['employment'] }} · {{ $job['salary_label'] }}
+                {{ \App\Support\Frontend\MockCandidateData::workModelLabel($job['work_model']) }} · {{ $job['location'] }} · {{ \App\Support\Frontend\MockCandidateData::employmentLabel($job['employment']) }} · {{ $job['salary_label'] }}
             </p>
         </div>
         <x-badge :variant="$job['source'] === 'Direct hire' ? 'info' : 'neutral'" :dot="true">

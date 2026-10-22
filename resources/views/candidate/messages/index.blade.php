@@ -130,13 +130,16 @@
                 </div>
 
                 <div class="border-t border-hb-border px-5 py-4">
-                    <label class="hb-label" for="message-compose">{{ __('candidate.messages.reply_to', ['name' => $active['contact']]) }}</label>
+                    <label class="hb-label" for="message-compose" data-compose-label data-compose-template="{{ __('candidate.messages.reply_to', ['name' => '__NAME__']) }}">
+                        {{ __('candidate.messages.reply_to', ['name' => $active['contact']]) }}
+                    </label>
                     <textarea
                         id="message-compose"
                         class="hb-input"
                         rows="3"
                         placeholder="{{ __('candidate.messages.compose_placeholder') }}"
                         data-message-compose
+                        aria-label="{{ __('candidate.messages.reply_to', ['name' => $active['contact']]) }}"
                     ></textarea>
                     <p class="hb-field-error hidden" data-compose-error role="alert"></p>
                     <div class="mt-3 flex flex-wrap items-center gap-2">

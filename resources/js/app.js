@@ -2302,11 +2302,18 @@ function initCandidateMessages() {
         const contact = qs('[data-conversation-contact]', root);
         const meta = qs('[data-conversation-meta]', root);
         const divider = qs('[data-date-divider]', root);
-        const composeName = qs('[data-compose-name]', root);
+        const composeLabel = qs('[data-compose-label]', root);
         if (contact) contact.textContent = thread.contact;
         if (meta) meta.textContent = `${thread.company} · ${thread.role} · ${thread.code}`;
         if (divider) divider.textContent = thread.date_divider || '';
-        if (composeName) composeName.textContent = thread.contact;
+        if (composeLabel) {
+            const template = composeLabel.getAttribute('data-compose-template') || 'Reply to __NAME__';
+            const labelText = template.replace('__NAME__', thread.contact);
+            composeLabel.textContent = labelText;
+            if (compose) {
+                compose.setAttribute('aria-label', labelText);
+            }
+        }
 
         messageList.innerHTML = '';
         const date = document.createElement('p');

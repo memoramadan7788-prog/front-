@@ -1603,7 +1603,7 @@ class MockCompanyData
             'default_interviewer' => 'alex-morgan',
             'default_date' => '2026-10-22',
             'default_slot' => '2026-10-22T10:00',
-            'instructions' => 'Share preparation details before every interview. Conflicts are checked against interviewer availability in Central Time.',
+            'instructions' => __('company.interviews.instructions_body'),
             'applicants' => array_values(array_map(static fn (array $a): array => [
                 'id' => $a['id'],
                 'name' => $a['name'],

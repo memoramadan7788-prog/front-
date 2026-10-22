@@ -108,6 +108,19 @@ return [
         'direct_hire' => 'توظيف مباشر',
         'agency_managed' => 'بإدارة وكالة',
     ],
+    'work_models' => [
+        'hybrid' => 'هجين',
+        'remote' => 'عن بُعد',
+        'on_site' => 'في الموقع',
+        'hybrid_remote' => 'هجين + عن بُعد',
+        'hybrid_only' => 'هجين فقط',
+        'remote_only' => 'عن بُعد فقط',
+    ],
+    'employment' => [
+        'full_time' => 'دوام كامل',
+        'contract' => 'عقد',
+        'part_time' => 'دوام جزئي',
+    ],
     'validation' => [
         'required' => 'هذا الحقل مطلوب.',
         'fix_highlighted' => 'صحّح الحقول المميزة قبل المتابعة.',

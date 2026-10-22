@@ -1150,24 +1150,24 @@ class MockCandidateData
             'include_agency' => true,
             'willing_relocate' => false,
             'notifications' => [
-                ['name' => 'job_digest', 'label' => 'Weekly personalized job digest', 'checked' => true],
-                ['name' => 'app_status', 'label' => 'Application status updates · Email and in-app', 'checked' => true],
-                ['name' => 'interview_reminders', 'label' => 'Interview reminders · 24 hours and 1 hour before', 'checked' => true],
-                ['name' => 'hiring_messages', 'label' => 'New hiring-team messages · Email and in-app', 'checked' => true],
-                ['name' => 'marketing', 'label' => 'Product news and marketing', 'checked' => false],
+                ['name' => 'job_digest', 'label' => __('candidate.preferences.notif_job_digest'), 'checked' => true],
+                ['name' => 'app_status', 'label' => __('candidate.preferences.notif_app_status'), 'checked' => true],
+                ['name' => 'interview_reminders', 'label' => __('candidate.preferences.notif_interview_reminders'), 'checked' => true],
+                ['name' => 'hiring_messages', 'label' => __('candidate.preferences.notif_hiring_messages'), 'checked' => true],
+                ['name' => 'marketing', 'label' => __('candidate.preferences.notif_marketing'), 'checked' => false],
             ],
             'privacy' => [
-                ['name' => 'share_on_apply', 'label' => 'Share profile only when I apply or approve access', 'checked' => true],
-                ['name' => 'recruiter_requests', 'label' => 'Allow recruiter contact requests', 'checked' => true],
-                ['name' => 'salary_public', 'label' => 'Share salary preferences on public profile', 'checked' => false],
+                ['name' => 'share_on_apply', 'label' => __('candidate.preferences.privacy_share_on_apply'), 'checked' => true],
+                ['name' => 'recruiter_requests', 'label' => __('candidate.preferences.privacy_recruiter_requests'), 'checked' => true],
+                ['name' => 'salary_public', 'label' => __('candidate.preferences.privacy_salary_public'), 'checked' => false],
             ],
-            'privacy_note' => 'Your preferences are used to suggest relevant roles. Other employers cannot see where you have applied.',
+            'privacy_note' => __('candidate.preferences.privacy_note'),
             'saved_search' => [
-                'title' => 'Senior design · Austin + Remote',
-                'schedule' => 'Weekly · Mondays at 9:00 AM Central',
+                'title' => __('candidate.preferences.saved_search_title'),
+                'schedule' => __('candidate.preferences.saved_search_schedule'),
                 'email' => $profile['email'],
             ],
-            'saved_banner' => 'Preferences saved. Updated October 20 at 8:45 AM. New recommendations use these preferences.',
+            'saved_banner' => __('candidate.preferences.saved'),
             'footer' => $profile['footer'],
         ];
     }
@@ -1261,40 +1261,69 @@ class MockCandidateData
         return [
             [
                 'id' => 'n-interview',
-                'title' => 'Portfolio interview confirmed',
-                'body' => 'Northstar Labs · Oct 22, 10:00 AM',
-                'time' => '2h ago',
+                'title' => __('candidate.notifications.items.interview_title'),
+                'body' => __('candidate.notifications.items.interview_body'),
+                'time' => __('candidate.notifications.items.interview_time'),
                 'unread' => true,
                 'category' => 'interviews',
                 'href' => '/candidate/interviews',
             ],
             [
                 'id' => 'n-message',
-                'title' => 'New message from Olivia Bennett',
-                'body' => 'Interview agenda and meeting details',
-                'time' => 'Yesterday',
+                'title' => __('candidate.notifications.items.message_title'),
+                'body' => __('candidate.notifications.items.message_body'),
+                'time' => __('candidate.notifications.items.message_time'),
                 'unread' => true,
                 'category' => 'messages',
                 'href' => '/candidate/messages',
             ],
             [
                 'id' => 'n-offer',
-                'title' => 'Offer response reminder',
-                'body' => 'Meridian Studio · due Oct 28',
-                'time' => '2d ago',
+                'title' => __('candidate.notifications.items.offer_title'),
+                'body' => __('candidate.notifications.items.offer_body'),
+                'time' => __('candidate.notifications.items.offer_time'),
                 'unread' => false,
                 'category' => 'offers',
                 'href' => '/candidate/offers/offer-ms108',
             ],
             [
                 'id' => 'n-assessment',
-                'title' => 'Assessment ready',
-                'body' => 'Northstar Labs · Design systems practical',
-                'time' => '3d ago',
+                'title' => __('candidate.notifications.items.assessment_title'),
+                'body' => __('candidate.notifications.items.assessment_body'),
+                'time' => __('candidate.notifications.items.assessment_time'),
                 'unread' => false,
                 'category' => 'assessments',
                 'href' => '/candidate/assessments',
             ],
         ];
+    }
+
+    /**
+     * Localized label for a stored work-model value (values stay English for filters/storage).
+     */
+    public static function workModelLabel(string $value): string
+    {
+        return match ($value) {
+            'Hybrid' => __('common.work_models.hybrid'),
+            'Remote' => __('common.work_models.remote'),
+            'On-site' => __('common.work_models.on_site'),
+            'Hybrid + Remote' => __('common.work_models.hybrid_remote'),
+            'Hybrid only' => __('common.work_models.hybrid_only'),
+            'Remote only' => __('common.work_models.remote_only'),
+            default => $value,
+        };
+    }
+
+    /**
+     * Localized label for a stored employment-type value.
+     */
+    public static function employmentLabel(string $value): string
+    {
+        return match ($value) {
+            'Full-time' => __('common.employment.full_time'),
+            'Contract' => __('common.employment.contract'),
+            'Part-time' => __('common.employment.part_time'),
+            default => $value,
+        };
     }
 }

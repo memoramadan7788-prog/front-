@@ -63,7 +63,7 @@
                         <label class="hb-label" for="pref-employment">{{ __('candidate.preferences.employment_type') }}</label>
                         <select id="pref-employment" name="employment" class="hb-input" data-pref-field="employment">
                             @foreach ($prefs['employment_options'] as $option)
-                                <option value="{{ $option }}" @selected($option === $prefs['employment'])>{{ $option }}</option>
+                                <option value="{{ $option }}" @selected($option === $prefs['employment'])>{{ \App\Support\Frontend\MockCandidateData::employmentLabel($option) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -84,7 +84,7 @@
                         <label class="hb-label" for="pref-work-model">{{ __('candidate.preferences.work_model') }}</label>
                         <select id="pref-work-model" name="work_model" class="hb-input" data-pref-field="work_model">
                             @foreach ($prefs['work_model_options'] as $option)
-                                <option value="{{ $option }}" @selected($option === $prefs['work_model'])>{{ $option }}</option>
+                                <option value="{{ $option }}" @selected($option === $prefs['work_model'])>{{ \App\Support\Frontend\MockCandidateData::workModelLabel($option) }}</option>
                             @endforeach
                         </select>
                     </div>

@@ -72,16 +72,16 @@
                                     <p class="mt-1 text-xs text-hb-muted" data-rating-summary aria-live="polite"></p>
                                     <div class="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label="{{ $comp['label'] }}">
                                         @foreach ($scorecard['rating_options'] as $opt)
-                                            <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-hb-border px-2.5 py-1.5 text-xs font-medium text-hb-text has-[:checked]:border-hb-blue has-[:checked]:bg-hb-info-soft has-[:checked]:text-hb-blue">
+                                            <label class="relative inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-hb-border px-2.5 py-1.5 text-xs font-medium text-hb-text has-[:checked]:border-hb-blue has-[:checked]:bg-hb-info-soft has-[:checked]:text-hb-blue">
                                                 <input
                                                     type="radio"
-                                                    class="sr-only"
+                                                    class="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                                                     name="rating_{{ $comp['id'] }}"
                                                     value="{{ $opt['value'] }}"
                                                     data-score-rating="{{ $comp['id'] }}"
                                                     @checked(($comp['seed_rating'] ?? '') === $opt['value'])
                                                 >
-                                                <span>{{ $opt['value'] === 'no' ? 'N/O' : $opt['value'] }} · {{ $opt['label'] }}</span>
+                                                <span class="pointer-events-none" aria-hidden="true">{{ $opt['value'] === 'no' ? 'N/O' : $opt['value'] }} · {{ $opt['label'] }}</span>
                                             </label>
                                         @endforeach
                                     </div>

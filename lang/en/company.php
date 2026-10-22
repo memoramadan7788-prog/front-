@@ -357,6 +357,7 @@ return [
         'format_field' => 'Format',
         'format_video' => 'Video meeting',
         'instructions' => 'Instructions',
+        'instructions_body' => 'Share preparation details before every interview. Conflicts are checked against interviewer availability in Central Time.',
         'summary_heading' => 'Scheduling summary',
         'summary_empty' => 'Select a type, interviewer, and time slot to preview the invitation.',
         'confirm' => 'Confirm schedule',

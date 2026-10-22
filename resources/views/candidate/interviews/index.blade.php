@@ -51,10 +51,14 @@
             class="mt-6"
         >
             @if (count($upcoming) === 0)
-                <div class="hb-surface px-5 py-10 text-center" role="status">
-                    <p class="font-semibold text-hb-navy">{{ __('candidate.interviews.empty_upcoming_title') }}</p>
-                    <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.interviews.empty_upcoming_body') }}</p>
-                    <a href="{{ route('candidate.applications.index') }}" class="hb-btn-primary mt-4 inline-flex">{{ __('candidate.interviews.my_applications') }}</a>
+                <div class="hb-surface" role="status">
+                    <x-empty-state
+                        :title="__('candidate.interviews.empty_upcoming_title')"
+                        :action-label="__('candidate.interviews.my_applications')"
+                        :action-href="route('candidate.applications.index')"
+                    >
+                        {{ __('candidate.interviews.empty_upcoming_body') }}
+                    </x-empty-state>
                 </div>
             @else
                 <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -151,9 +155,10 @@
                         <a href="{{ route('candidate.interviews.show', $item['id']) }}" class="hb-btn-outline mt-4 inline-flex">{{ __('candidate.jobs.view_details') }}</a>
                     </article>
                 @empty
-                    <div class="hb-surface px-5 py-10 text-center" role="status">
-                        <p class="font-semibold text-hb-navy">{{ __('candidate.interviews.empty_past_title') }}</p>
-                        <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.interviews.empty_past_body') }}</p>
+                    <div class="hb-surface" role="status">
+                        <x-empty-state :title="__('candidate.interviews.empty_past_title')">
+                            {{ __('candidate.interviews.empty_past_body') }}
+                        </x-empty-state>
                     </div>
                 @endforelse
             </div>

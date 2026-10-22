@@ -71,7 +71,7 @@
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" name="work_model[]" value="{{ $model }}" class="rounded border-hb-border text-hb-blue"
                                             @checked(is_array(request('work_model')) && in_array($model, request('work_model'), true))>
-                                        {{ $model }}
+                                        {{ \App\Support\Frontend\MockCandidateData::workModelLabel($model) }}
                                     </label>
                                 @endforeach
                             </div>
@@ -84,7 +84,7 @@
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" name="employment[]" value="{{ $type }}" class="rounded border-hb-border text-hb-blue"
                                             @checked(is_array(request('employment')) && in_array($type, request('employment'), true))>
-                                        {{ $type }}
+                                        {{ \App\Support\Frontend\MockCandidateData::employmentLabel($type) }}
                                     </label>
                                 @endforeach
                             </div>

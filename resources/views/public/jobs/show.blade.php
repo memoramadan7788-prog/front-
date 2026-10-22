@@ -26,7 +26,7 @@
                             · {{ $job['code'] }} · {{ $job['discipline'] }}
                         </p>
                         <p class="mt-3 text-sm text-hb-text">
-                            {{ $job['location'] }} · {{ $job['work_model'] }} · {{ $job['employment'] }} · {{ $job['salary_label'] }} USD
+                            {{ $job['location'] }} · {{ \App\Support\Frontend\MockCandidateData::workModelLabel($job['work_model']) }} · {{ \App\Support\Frontend\MockCandidateData::employmentLabel($job['employment']) }} · {{ $job['salary_label'] }} USD
                         </p>
                         <p class="mt-4 text-lg font-medium text-hb-navy">{{ $job['summary'] }}</p>
                     </header>
@@ -76,7 +76,7 @@
                     <div class="hb-surface p-5">
                         <h2 class="text-sm font-semibold text-hb-navy">{{ __('public.jobs.sidebar_next') }}</h2>
                         <p class="mt-3 text-2xl font-semibold text-hb-navy">{{ $job['salary_label'] }}</p>
-                        <p class="mt-1 text-xs text-hb-muted">{{ __('public.jobs.salary_annual') }}<br>{{ $job['location'] }} · {{ $job['work_model'] }} · {{ $job['employment'] }}</p>
+                        <p class="mt-1 text-xs text-hb-muted">{{ __('public.jobs.salary_annual') }}<br>{{ $job['location'] }} · {{ \App\Support\Frontend\MockCandidateData::workModelLabel($job['work_model']) }} · {{ \App\Support\Frontend\MockCandidateData::employmentLabel($job['employment']) }}</p>
                         <div class="mt-5 space-y-2">
                             <a
                                 href="{{ route('candidate.applications.apply', $job['id']) }}"

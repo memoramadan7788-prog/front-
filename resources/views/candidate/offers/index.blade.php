@@ -31,9 +31,14 @@
                 </a>
             </article>
         @empty
-            <div class="hb-surface px-5 py-10 text-center" role="status">
-                <p class="font-semibold text-hb-navy">{{ __('candidate.offers.empty_title') }}</p>
-                <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.offers.empty_body') }}</p>
+            <div class="hb-surface" role="status">
+                <x-empty-state
+                    :title="__('candidate.offers.empty_title')"
+                    :action-label="__('candidate.offers.empty_browse_jobs')"
+                    :action-href="route('candidate.jobs.index')"
+                >
+                    {{ __('candidate.offers.empty_body') }}
+                </x-empty-state>
             </div>
         @endforelse
     </div>

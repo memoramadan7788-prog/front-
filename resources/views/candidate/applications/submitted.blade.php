@@ -12,14 +12,14 @@
 
 @section('content')
 
-    <div class="mb-4 rounded-lg border border-hb-blue/20 bg-hb-info-soft px-4 py-3 text-sm text-hb-blue" role="status">
+    <x-alert variant="info" class="mb-4">
         {{ $preview['journey_banner'] }}
-    </div>
+    </x-alert>
 
-    <div class="mb-6 rounded-lg border border-hb-success/30 bg-hb-success-soft px-4 py-3 text-sm text-hb-success" role="status">
+    <x-alert variant="success" class="mb-6">
         {{ __('candidate.applications.confirmation_sent', ['email' => $preview['email']]) }}
         {{ __('candidate.applications.application_reference', ['reference' => $preview['reference']]) }}
-    </div>
+    </x-alert>
 
     <section class="hb-surface p-5 sm:p-6" aria-labelledby="submitted-summary-heading">
         <div class="flex flex-wrap items-start justify-between gap-3">
