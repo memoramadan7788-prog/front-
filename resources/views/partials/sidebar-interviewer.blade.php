@@ -4,13 +4,25 @@
     'items' => [
         [
             'label' => __('navigation.interviewer.overview'),
-            'route' => 'frontend.layouts.app',
-            'params' => ['role' => 'interviewer'],
-            'active' => ($uiRole ?? null) === 'interviewer' && request()->routeIs('frontend.layouts.app'),
+            'route' => 'interviewer.dashboard',
+            'active' => request()->routeIs('interviewer.dashboard'),
         ],
-        ['label' => __('navigation.interviewer.schedule'), 'pending' => true],
-        ['label' => __('navigation.interviewer.preparation'), 'pending' => true],
-        ['label' => __('navigation.interviewer.scorecards'), 'pending' => true],
+        [
+            'label' => __('navigation.interviewer.schedule'),
+            'route' => 'interviewer.schedule.index',
+            'active' => request()->routeIs('interviewer.schedule.*'),
+        ],
+        [
+            'label' => __('navigation.interviewer.preparation'),
+            'route' => 'interviewer.interviews.prepare',
+            'params' => ['interview' => 'int-ns204-portfolio'],
+            'active' => request()->routeIs('interviewer.interviews.prepare') || request()->routeIs('interviewer.interviews.live'),
+        ],
+        [
+            'label' => __('navigation.interviewer.scorecards'),
+            'route' => 'interviewer.evaluations.index',
+            'active' => request()->routeIs('interviewer.evaluations.*'),
+        ],
         ['label' => __('navigation.interviewer.availability'), 'pending' => true],
     ],
 ])

@@ -666,7 +666,7 @@ class MockCompanyData
                     'time' => '11:00 AM',
                     'candidate' => 'Aisha Patel',
                     'role' => 'Portfolio · NS-204',
-                    'interviewer' => 'Daniel Brooks',
+                    'interviewer' => 'Alex Morgan',
                 ],
             ],
             'activity' => [
@@ -1412,7 +1412,8 @@ class MockCompanyData
                 'time_short' => '11:00 AM',
                 'duration' => '45 minutes',
                 'timezone' => 'Central Time (UTC−05:00)',
-                'interviewer' => 'Daniel Brooks',
+                // Frame 39–40 assign Alex Morgan as portfolio interviewer (Daniel Brooks remains hiring manager).
+                'interviewer' => 'Alex Morgan',
                 'organizer' => 'Olivia Bennett',
                 'format' => 'Video meeting',
                 'department' => 'Product & Design',

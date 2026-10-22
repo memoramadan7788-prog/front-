@@ -29,6 +29,10 @@ use App\Http\Controllers\Company\TalentPoolController as CompanyTalentPoolContro
 use App\Http\Controllers\Frontend\ComponentShowcaseController;
 use App\Http\Controllers\Frontend\LayoutPreviewController;
 use App\Http\Controllers\Frontend\LocaleController;
+use App\Http\Controllers\Interviewer\DashboardController as InterviewerDashboardController;
+use App\Http\Controllers\Interviewer\EvaluationController as InterviewerEvaluationController;
+use App\Http\Controllers\Interviewer\InterviewController as InterviewerInterviewController;
+use App\Http\Controllers\Interviewer\ScheduleController as InterviewerScheduleController;
 use App\Http\Controllers\Onboarding\CandidateOnboardingController;
 use App\Http\Controllers\Onboarding\CompanyOnboardingController;
 use App\Http\Controllers\Public\AboutController;
@@ -246,6 +250,25 @@ Route::get('/company/assessments/{assessment}/results', [CompanyAssessmentContro
     ->name('company.assessments.results');
 Route::get('/company/assessments/{assessment}', [CompanyAssessmentController::class, 'show'])
     ->name('company.assessments.show');
+
+/*
+|--------------------------------------------------------------------------
+| Interviewer workspace UI (Stage 6 · Batches 6A–6C — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. No evaluation POST / backend submission.
+*/
+Route::get('/interviewer/dashboard', InterviewerDashboardController::class)
+    ->name('interviewer.dashboard');
+Route::get('/interviewer/schedule', [InterviewerScheduleController::class, 'index'])
+    ->name('interviewer.schedule.index');
+Route::get('/interviewer/evaluations', [InterviewerEvaluationController::class, 'index'])
+    ->name('interviewer.evaluations.index');
+Route::get('/interviewer/evaluations/{interview}', [InterviewerEvaluationController::class, 'create'])
+    ->name('interviewer.evaluations.create');
+Route::get('/interviewer/interviews/{interview}/prepare', [InterviewerInterviewController::class, 'prepare'])
+    ->name('interviewer.interviews.prepare');
+Route::get('/interviewer/interviews/{interview}/live', [InterviewerInterviewController::class, 'live'])
+    ->name('interviewer.interviews.live');
 
 /*
 |--------------------------------------------------------------------------

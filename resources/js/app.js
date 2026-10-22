@@ -2997,6 +2997,997 @@ function initNotificationsDropdownSync() {
     });
 }
 
+function readChecklistState(key, legacyKeys = []) {
+    const tryParse = (raw) => {
+        try {
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    };
+    let state = tryParse(window.localStorage.getItem(key));
+    if (state && typeof state === 'object') {
+        return state;
+    }
+    for (const legacy of legacyKeys) {
+        const migrated = tryParse(window.localStorage.getItem(legacy));
+        if (migrated && typeof migrated === 'object') {
+            try {
+                window.localStorage.setItem(key, JSON.stringify(migrated));
+            } catch {
+                // Preview-only storage.
+            }
+            return migrated;
+        }
+    }
+    return {};
+}
+
+function bindSessionChecklist(root) {
+    if (!root) return;
+    const key = root.getAttribute('data-checklist-key') || '';
+    if (!key) return;
+    let legacyKeys = [];
+    try {
+        legacyKeys = JSON.parse(root.getAttribute('data-checklist-legacy-keys') || '[]') || [];
+    } catch {
+        legacyKeys = [];
+    }
+    let state = readChecklistState(key, legacyKeys);
+    const status = qs('[data-checklist-status]', root);
+    const savedNote = () =>
+        root.getAttribute('data-saved-note') ||
+        root.querySelector('#prep-checklist')?.getAttribute('data-saved-note') ||
+        status?.textContent ||
+        '';
+
+    const persist = () => {
+        try {
+            window.localStorage.setItem(key, JSON.stringify(state));
+        } catch {
+            // Preview-only storage.
+        }
+    };
+
+    qsa('[data-checklist-item]', root).forEach((input) => {
+        const id = input.getAttribute('data-checklist-item');
+        if (!id) return;
+        if (Object.prototype.hasOwnProperty.call(state, id)) {
+            input.checked = Boolean(state[id]);
+        } else {
+            state[id] = input.checked;
+        }
+        input.addEventListener('change', () => {
+            state[id] = input.checked;
+            persist();
+            if (status) {
+                status.textContent = savedNote();
+            }
+        });
+    });
+}
+
+function initInterviewerDashboard() {
+    const root = qs('[data-interviewer-dashboard]');
+    if (!root) return;
+    bindSessionChecklist(root);
+}
+
+function initInterviewerPrepare() {
+    const root = qs('[data-interviewer-prepare]');
+    if (!root) return;
+
+    const prefix = root.getAttribute('data-storage-prefix') || '';
+    const checklistKey = `${prefix}_role_v1`;
+    const notesKey = `${prefix}_prep_notes_v1`;
+    const i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+
+    let checklist = {};
+    try {
+        checklist = JSON.parse(window.localStorage.getItem(checklistKey) || '{}') || {};
+    } catch {
+        checklist = {};
+    }
+
+    const progressEl = qs('[data-prep-progress]', root);
+    const checklistStatus = qs('[data-prep-checklist-status]', root);
+    const notesStatus = qs('[data-prep-notes-status]', root);
+    const notesEl = qs('[data-prep-notes]', root);
+
+    const updateProgress = () => {
+        const items = qsa('[data-prep-checklist-item]', root);
+        const done = items.filter((el) => el.checked).length;
+        if (progressEl) {
+            progressEl.textContent = (i18n.progress || ':done of :total ready')
+                .replace(':done', String(done))
+                .replace(':total', String(items.length));
+        }
+    };
+
+    const persistChecklist = () => {
+        try {
+            window.localStorage.setItem(checklistKey, JSON.stringify(checklist));
+        } catch {
+            // Preview-only storage.
+        }
+        if (checklistStatus) {
+            checklistStatus.textContent = i18n.checklist_saved || '';
+        }
+        updateProgress();
+    };
+
+    qsa('[data-prep-checklist-item]', root).forEach((input) => {
+        const id = input.getAttribute('data-prep-checklist-item');
+        if (!id) return;
+        if (Object.prototype.hasOwnProperty.call(checklist, id)) {
+            input.checked = Boolean(checklist[id]);
+        } else {
+            checklist[id] = input.checked;
+        }
+        input.addEventListener('change', () => {
+            checklist[id] = input.checked;
+            persistChecklist();
+        });
+    });
+    updateProgress();
+
+    if (notesEl) {
+        try {
+            notesEl.value = window.localStorage.getItem(notesKey) || '';
+        } catch {
+            notesEl.value = '';
+        }
+        if (notesStatus) {
+            notesStatus.textContent = notesEl.value.trim()
+                ? i18n.notes_saved || ''
+                : i18n.notes_empty || '';
+        }
+        let notesTimer = null;
+        const saveNotes = () => {
+            try {
+                window.localStorage.setItem(notesKey, notesEl.value);
+            } catch {
+                // Preview-only storage.
+            }
+            if (notesStatus) {
+                notesStatus.textContent = notesEl.value.trim()
+                    ? i18n.notes_saved || ''
+                    : i18n.notes_empty || '';
+            }
+        };
+        notesEl.addEventListener('input', () => {
+            if (notesStatus) notesStatus.textContent = i18n.notes_saved || '';
+            window.clearTimeout(notesTimer);
+            notesTimer = window.setTimeout(saveNotes, 300);
+        });
+        notesEl.addEventListener('blur', saveNotes);
+    }
+
+    qsa('[data-prep-expand]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('aria-controls');
+            const panel = targetId ? document.getElementById(targetId) : null;
+            if (!panel) return;
+            const open = btn.getAttribute('aria-expanded') === 'true';
+            const next = !open;
+            btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+            panel.hidden = !next;
+            panel.classList.toggle('hidden', !next);
+            const label = qs('[data-expand-label]', btn);
+            if (btn.getAttribute('data-prep-expand') === 'background') {
+                btn.textContent = next
+                    ? i18n.hide_background || 'Hide background'
+                    : i18n.show_background || 'Show background';
+            } else if (label) {
+                label.textContent = next
+                    ? i18n.hide_question || 'Hide prompt'
+                    : i18n.show_question || 'Show prompt';
+            }
+        });
+    });
+
+    // Session readiness shares Dashboard storage for the same interview id.
+    bindSessionChecklist(qs('[data-session-checklist]', root));
+}
+
+function initInterviewerLive() {
+    const root = qs('[data-interviewer-live]');
+    if (!root) return;
+
+    const prefix = root.getAttribute('data-storage-prefix') || '';
+    const notesKey = `${prefix}_live_notes_v1`;
+    const agendaKey = `${prefix}_live_agenda_v1`;
+    const questionsKey = `${prefix}_live_q_v1`;
+    const timerKey = `${prefix}_live_timer_v1`;
+    const i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+    let seedNotes = {};
+    try {
+        seedNotes = JSON.parse(root.getAttribute('data-seed-notes') || '{}') || {};
+    } catch {
+        seedNotes = {};
+    }
+
+    const readJson = (key, fallback) => {
+        try {
+            return JSON.parse(window.localStorage.getItem(key) || 'null') ?? fallback;
+        } catch {
+            return fallback;
+        }
+    };
+    const writeJson = (key, value) => {
+        try {
+            window.localStorage.setItem(key, JSON.stringify(value));
+        } catch {
+            // Preview-only storage.
+        }
+    };
+
+    // Agenda
+    let agendaState = readJson(agendaKey, {});
+    const agendaProgress = qs('[data-live-agenda-progress]', root);
+    const updateAgendaProgress = () => {
+        const items = qsa('[data-live-agenda]', root);
+        const done = items.filter((el) => el.checked).length;
+        if (agendaProgress) {
+            agendaProgress.textContent = (i18n.agenda_progress || ':done of :total sections marked')
+                .replace(':done', String(done))
+                .replace(':total', String(items.length));
+        }
+    };
+    qsa('[data-live-agenda]', root).forEach((input) => {
+        const id = input.getAttribute('data-live-agenda');
+        if (!id) return;
+        if (Object.prototype.hasOwnProperty.call(agendaState, id)) {
+            input.checked = Boolean(agendaState[id]);
+        } else {
+            agendaState[id] = input.checked;
+        }
+        input.addEventListener('change', () => {
+            agendaState[id] = input.checked;
+            writeJson(agendaKey, agendaState);
+            updateAgendaProgress();
+        });
+    });
+    updateAgendaProgress();
+
+    // Questions covered
+    let questionState = readJson(questionsKey, {});
+    qsa('[data-live-question]', root).forEach((input) => {
+        const id = input.getAttribute('data-live-question');
+        if (!id) return;
+        if (Object.prototype.hasOwnProperty.call(questionState, id)) {
+            input.checked = Boolean(questionState[id]);
+        }
+        input.addEventListener('change', () => {
+            questionState[id] = input.checked;
+            writeJson(questionsKey, questionState);
+        });
+    });
+
+    // Expand questions
+    qsa('[data-live-expand]', root).forEach((btn) => {
+        const panelId = btn.getAttribute('aria-controls');
+        const panel = panelId ? document.getElementById(panelId) : null;
+        btn.addEventListener('click', () => {
+            if (!panel) return;
+            const open = btn.getAttribute('aria-expanded') !== 'false';
+            const next = !open;
+            btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+            panel.hidden = !next;
+            panel.classList.toggle('hidden', !next);
+            const label = qs('[data-expand-label]', btn);
+            if (label) {
+                label.textContent = next ? i18n.hide_question || 'Hide' : i18n.show_question || 'Show';
+            }
+        });
+    });
+
+    // Note tabs
+    const switchNoteTab = (tabId) => {
+        qsa('[data-live-note-tab]', root).forEach((btn) => {
+            const on = btn.getAttribute('data-live-note-tab') === tabId;
+            btn.setAttribute('aria-selected', on ? 'true' : 'false');
+            btn.classList.toggle('bg-hb-info-soft', on);
+            btn.classList.toggle('font-semibold', on);
+            btn.classList.toggle('text-hb-blue', on);
+            btn.classList.toggle('font-medium', !on);
+            btn.classList.toggle('text-hb-muted', !on);
+        });
+        qsa('[data-live-note-panel]', root).forEach((panel) => {
+            const on = panel.getAttribute('data-live-note-panel') === tabId;
+            panel.hidden = !on;
+            panel.classList.toggle('hidden', !on);
+        });
+    };
+    qsa('[data-live-note-tab]', root).forEach((btn) => {
+        btn.addEventListener('click', () => switchNoteTab(btn.getAttribute('data-live-note-tab') || ''));
+    });
+
+    // Notes
+    let notes = readJson(notesKey, null);
+    if (!notes || typeof notes !== 'object') {
+        notes = { ...seedNotes };
+    }
+    const notesStatus = qs('[data-live-notes-status]', root);
+    let dirty = false;
+    const setNotesStatus = (saved) => {
+        if (!notesStatus) return;
+        notesStatus.textContent = saved ? i18n.notes_saved || '' : i18n.notes_unsaved || '';
+    };
+    qsa('[data-live-note-field]', root).forEach((field) => {
+        const tab = field.getAttribute('data-tab');
+        const id = field.getAttribute('data-field');
+        if (!tab || !id) return;
+        field.value = notes?.[tab]?.[id] || '';
+        field.addEventListener('input', () => {
+            dirty = true;
+            setNotesStatus(false);
+        });
+    });
+    // Seed/default notes are device-local content, not unsaved edits.
+    setNotesStatus(true);
+
+    const saveNotes = () => {
+        const next = {};
+        qsa('[data-live-note-field]', root).forEach((field) => {
+            const tab = field.getAttribute('data-tab');
+            const id = field.getAttribute('data-field');
+            if (!tab || !id) return;
+            if (!next[tab]) next[tab] = {};
+            next[tab][id] = field.value;
+        });
+        notes = next;
+        writeJson(notesKey, notes);
+        dirty = false;
+        setNotesStatus(true);
+    };
+    qs('[data-live-save-notes]', root)?.addEventListener('click', saveNotes);
+
+    // Local timer (label may live in the page header outside the live root)
+    const timerEl = qs('[data-live-timer]', root);
+    const timerLabel = qs('[data-live-timer-label]', root) || qs('[data-live-timer-label]');
+    const btnStart = qs('[data-live-timer-action="start"]', root);
+    const btnPause = qs('[data-live-timer-action="pause"]', root);
+    const btnResume = qs('[data-live-timer-action="resume"]', root);
+    const btnReset = qs('[data-live-timer-action="reset"]', root);
+
+    let timerState = readJson(timerKey, { elapsed: 0, running: false, startedAt: null });
+    let tickId = null;
+
+    const formatTime = (seconds) => {
+        const s = Math.max(0, Math.floor(seconds));
+        const mm = String(Math.floor(s / 60)).padStart(2, '0');
+        const ss = String(s % 60).padStart(2, '0');
+        return `${mm}:${ss}`;
+    };
+
+    const currentElapsed = () => {
+        if (timerState.running && timerState.startedAt) {
+            return timerState.elapsed + (Date.now() - timerState.startedAt) / 1000;
+        }
+        return timerState.elapsed;
+    };
+
+    const persistTimer = () => writeJson(timerKey, {
+        elapsed: timerState.elapsed,
+        running: timerState.running,
+        startedAt: timerState.running ? timerState.startedAt : null,
+    });
+
+    const syncTimerUi = () => {
+        const elapsed = currentElapsed();
+        if (timerEl) timerEl.textContent = formatTime(elapsed);
+        if (timerLabel) {
+            timerLabel.textContent = timerState.running
+                ? i18n.timer_running || ''
+                : elapsed > 0
+                  ? i18n.timer_paused || ''
+                  : i18n.timer_idle || '';
+        }
+        if (btnStart) btnStart.disabled = timerState.running || elapsed > 0;
+        if (btnPause) btnPause.disabled = !timerState.running;
+        if (btnResume) btnResume.disabled = timerState.running || elapsed <= 0;
+    };
+
+    const startTick = () => {
+        window.clearInterval(tickId);
+        tickId = window.setInterval(() => {
+            if (!timerState.running) return;
+            syncTimerUi();
+        }, 250);
+    };
+
+    btnStart?.addEventListener('click', () => {
+        timerState.running = true;
+        timerState.startedAt = Date.now();
+        persistTimer();
+        syncTimerUi();
+        startTick();
+    });
+    btnPause?.addEventListener('click', () => {
+        if (!timerState.running) return;
+        timerState.elapsed = currentElapsed();
+        timerState.running = false;
+        timerState.startedAt = null;
+        persistTimer();
+        syncTimerUi();
+    });
+    btnResume?.addEventListener('click', () => {
+        timerState.running = true;
+        timerState.startedAt = Date.now();
+        persistTimer();
+        syncTimerUi();
+        startTick();
+    });
+    btnReset?.addEventListener('click', () => {
+        timerState = { elapsed: 0, running: false, startedAt: null };
+        persistTimer();
+        syncTimerUi();
+    });
+
+    if (timerState.running && timerState.startedAt) {
+        startTick();
+    } else if (timerState.running) {
+        timerState.running = false;
+        timerState.startedAt = null;
+    }
+    syncTimerUi();
+
+    window.addEventListener('beforeunload', () => {
+        if (timerState.running) {
+            timerState.elapsed = currentElapsed();
+            timerState.startedAt = Date.now();
+            persistTimer();
+        }
+        if (dirty) saveNotes();
+    });
+}
+
+function initInterviewerSchedule() {
+    const root = qs('[data-interviewer-schedule]');
+    if (!root) return;
+
+    const i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+    const interviews = JSON.parse(root.getAttribute('data-interviews') || '[]');
+    const upcoming = JSON.parse(root.getAttribute('data-upcoming') || '[]');
+    const past = JSON.parse(root.getAttribute('data-past') || '[]');
+    const weeks = JSON.parse(root.getAttribute('data-weeks') || '[]');
+    const currentWeekId = root.getAttribute('data-current-week-id') || '';
+    let weekIndex = Math.max(0, weeks.findIndex((week) => week.id === currentWeekId));
+    if (weekIndex < 0) weekIndex = 0;
+    let selectedId = root.getAttribute('data-selected-id') || '';
+    let activeTab = 'week';
+
+    const qInput = qs('[data-sched-q]', root);
+    const jobSelect = qs('[data-sched-job]', root);
+    const typeSelect = qs('[data-sched-type]', root);
+    const emptyEl = qs('[data-sched-empty]', root);
+    const statusEl = qs('[data-week-nav-status]', root);
+    const weekEmptyEl = qs('[data-week-empty]', root);
+    const gridEl = qs('[data-sched-grid]', root);
+    const weekHeading = qs('[data-week-heading]', root);
+    const upcomingList = qs('[data-upcoming-list]', root);
+    const pastList = qs('[data-past-list]', root);
+    const upcomingEmpty = qs('[data-upcoming-empty]', root);
+    const pastEmpty = qs('[data-past-empty]', root);
+
+    const filters = () => ({
+        q: (qInput?.value || '').trim().toLowerCase(),
+        job: jobSelect?.value || '',
+        type: typeSelect?.value || '',
+    });
+
+    const matchesFilters = (row) => {
+        const { q, job, type } = filters();
+        if (job && (row.job_id || '') !== job) return false;
+        if (type && (row.type_key || '') !== type) return false;
+        if (!q) return true;
+        const hay = `${row.applicant || ''} ${row.job_code || ''} ${row.title || ''}`.toLowerCase();
+        return hay.includes(q);
+    };
+
+    const setSelected = (id) => {
+        selectedId = id || '';
+        const row = interviews.find((item) => item.id === selectedId) || null;
+        const name = qs('[data-sel-name]', root);
+        const status = qs('[data-sel-status]', root);
+        const job = qs('[data-sel-job]', root);
+        const when = qs('[data-sel-when]', root);
+        const type = qs('[data-sel-type]', root);
+        const prep = qs('[data-sel-prep]', root);
+        if (!row) return;
+        if (name) name.textContent = row.applicant || '';
+        if (status) status.textContent = row.status || '';
+        if (job) job.textContent = `${row.job_title || ''} · ${row.job_code || ''}`;
+        if (when) when.textContent = `${row.when || ''} · ${row.time || ''}`;
+        if (type) type.textContent = row.title || '';
+        if (prep) prep.textContent = row.preparation || '';
+        const prepareLink = qs('[data-sel-prepare]', root);
+        const liveLink = qs('[data-sel-live]', root);
+        if (prepareLink && selectedId) {
+            prepareLink.setAttribute('href', `/interviewer/interviews/${encodeURIComponent(selectedId)}/prepare`);
+        }
+        if (liveLink && selectedId) {
+            liveLink.setAttribute('href', `/interviewer/interviews/${encodeURIComponent(selectedId)}/live`);
+        }
+        qsa('[data-interview-slot]', root).forEach((btn) => {
+            const active = btn.getAttribute('data-interview-id') === selectedId;
+            btn.classList.toggle('ring-2', active);
+            btn.classList.toggle('ring-hb-blue/50', active);
+            btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+    };
+
+    const renderWeek = () => {
+        const week = weeks[weekIndex];
+        if (!week || !gridEl) return;
+        if (weekHeading) weekHeading.textContent = week.label || '';
+        if (statusEl) {
+            statusEl.textContent = (i18n.week_nav_status || '').replace(':label', week.label || '');
+        }
+
+        const { q, job, type } = filters();
+        const hasFilter = Boolean(q || job || type);
+        let visibleInterviewCount = 0;
+
+        gridEl.innerHTML = (week.days || [])
+            .map((day) => {
+                const slots = (day.slots || []).filter((slot) => {
+                    if (slot.available) return !hasFilter;
+                    const interview = interviews.find((item) => item.id === slot.interview_id);
+                    if (!interview) return false;
+                    const ok = matchesFilters(interview);
+                    if (ok) visibleInterviewCount += 1;
+                    return ok;
+                });
+
+                const highlight = day.highlight
+                    ? 'bg-hb-info-soft/60 ring-1 ring-hb-blue/20'
+                    : 'bg-hb-page/40';
+
+                const slotHtml = slots.length
+                    ? slots
+                          .map((slot) => {
+                              if (slot.available) {
+                                  return `<p class="rounded-md px-2 py-1.5 text-xs text-hb-muted">${escapeHtml(slot.time)} · ${escapeHtml(i18n.available || 'Available')}</p>`;
+                              }
+                              const active = slot.interview_id === selectedId;
+                              return `<button type="button" class="w-full rounded-md px-2 py-1.5 text-start text-xs ${active ? 'bg-hb-blue text-white ring-2 ring-hb-blue/50' : 'bg-hb-surface text-hb-navy hover:bg-hb-info-soft'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40" data-interview-slot data-interview-id="${escapeHtml(slot.interview_id || '')}" aria-pressed="${active ? 'true' : 'false'}">
+                                <span class="block font-semibold">${escapeHtml(slot.time || '')}</span>
+                                <span class="block">${escapeHtml(slot.candidate || slot.label || '')}</span>
+                                <span class="block opacity-80">${escapeHtml(slot.type || '')}${slot.job_code ? ` · ${escapeHtml(slot.job_code)}` : ''}</span>
+                            </button>`;
+                          })
+                          .join('')
+                    : `<p class="text-xs text-hb-muted">${escapeHtml(i18n.empty_week || '')}</p>`;
+
+                return `<div class="min-h-[10rem] rounded-xl p-3 ${highlight}" data-day-key="${escapeHtml(day.key || '')}">
+                    <p class="text-xs font-semibold text-hb-navy">${escapeHtml(day.label || '')}</p>
+                    <div class="mt-2 space-y-2">${slotHtml}</div>
+                </div>`;
+            })
+            .join('');
+
+        if (weekEmptyEl) {
+            const show = hasFilter && visibleInterviewCount === 0;
+            weekEmptyEl.hidden = !show;
+            weekEmptyEl.classList.toggle('hidden', !show);
+            weekEmptyEl.textContent = i18n.empty_filter || '';
+        }
+
+        qsa('[data-interview-slot]', gridEl).forEach((btn) => {
+            btn.addEventListener('click', () => setSelected(btn.getAttribute('data-interview-id') || ''));
+        });
+
+        qsa('[data-detail-row]', root).forEach((row) => {
+            const id = row.getAttribute('data-interview-id');
+            const interview = interviews.find((item) => item.id === id);
+            const show = interview ? matchesFilters(interview) : true;
+            row.classList.toggle('hidden', !show);
+        });
+    };
+
+    const renderList = (listEl, emptyElNode, rows, isPast = false) => {
+        if (!listEl) return;
+        const visible = rows.filter(matchesFilters);
+        listEl.innerHTML = visible
+            .map((row) => {
+                const action = isPast
+                    ? `<a href="/interviewer/evaluations/${encodeURIComponent(row.id || '')}" class="mt-2 inline-flex text-sm font-semibold text-hb-blue hover:underline">${escapeHtml(i18n.open_scorecard || 'Open scorecard')}</a>`
+                    : `<button type="button" class="mt-2 text-sm font-semibold text-hb-blue" data-select-from-list data-interview-id="${escapeHtml(row.id || '')}">${escapeHtml(i18n.selected || 'Select')}</button>`;
+                return `<li class="py-4 first:pt-0">
+                    <p class="font-semibold text-hb-navy">${escapeHtml(row.applicant || '')}</p>
+                    <p class="mt-1 text-sm text-hb-muted">${escapeHtml(row.title || '')} · ${escapeHtml(row.job_code || '')}</p>
+                    <p class="mt-1 text-sm text-hb-text">${escapeHtml(row.when || '')} · ${escapeHtml(row.time_short || row.time || '')}</p>
+                    ${action}
+                </li>`;
+            })
+            .join('');
+        if (emptyElNode) {
+            emptyElNode.hidden = visible.length > 0;
+            emptyElNode.classList.toggle('hidden', visible.length > 0);
+        }
+        qsa('[data-select-from-list]', listEl).forEach((btn) => {
+            btn.addEventListener('click', () => {
+                setSelected(btn.getAttribute('data-interview-id') || '');
+                switchTab('week');
+            });
+        });
+    };
+
+    const switchTab = (tab) => {
+        activeTab = tab;
+        qsa('[data-sched-tab]', root).forEach((btn) => {
+            const on = btn.getAttribute('data-sched-tab') === tab;
+            btn.setAttribute('aria-selected', on ? 'true' : 'false');
+            btn.classList.toggle('border-hb-blue', on);
+            btn.classList.toggle('text-hb-blue', on);
+            btn.classList.toggle('font-semibold', on);
+            btn.classList.toggle('border-transparent', !on);
+            btn.classList.toggle('text-hb-muted', !on);
+            btn.classList.toggle('font-medium', !on);
+        });
+        qsa('[data-sched-panel]', root).forEach((panel) => {
+            const on = panel.getAttribute('data-sched-panel') === tab;
+            panel.classList.toggle('hidden', !on);
+            panel.hidden = !on;
+        });
+        if (tab === 'upcoming') renderList(upcomingList, upcomingEmpty, upcoming, false);
+        if (tab === 'past') renderList(pastList, pastEmpty, past, true);
+        if (tab === 'week') renderWeek();
+    };
+
+    const applyFilters = () => {
+        const { q, job, type } = filters();
+        const any = Boolean(q || job || type);
+        const pool = activeTab === 'past' ? past : interviews;
+        const visible = pool.filter(matchesFilters);
+        if (emptyEl) {
+            const show = any && visible.length === 0 && activeTab !== 'week';
+            emptyEl.hidden = !show;
+            emptyEl.classList.toggle('hidden', !show);
+            emptyEl.textContent = i18n.empty_filter || '';
+        }
+        if (activeTab === 'week') renderWeek();
+        if (activeTab === 'upcoming') renderList(upcomingList, upcomingEmpty, upcoming, false);
+        if (activeTab === 'past') renderList(pastList, pastEmpty, past, true);
+    };
+
+    qs('[data-week-nav="prev"]', root)?.addEventListener('click', () => {
+        weekIndex = Math.max(0, weekIndex - 1);
+        renderWeek();
+    });
+    qs('[data-week-nav="next"]', root)?.addEventListener('click', () => {
+        weekIndex = Math.min(weeks.length - 1, weekIndex + 1);
+        renderWeek();
+    });
+    qs('[data-week-today]', root)?.addEventListener('click', () => {
+        weekIndex = Math.max(0, weeks.findIndex((week) => week.id === currentWeekId));
+        if (weekIndex < 0) weekIndex = 0;
+        renderWeek();
+    });
+
+    qsa('[data-sched-tab]', root).forEach((btn) => {
+        btn.addEventListener('click', () => switchTab(btn.getAttribute('data-sched-tab') || 'week'));
+    });
+    qInput?.addEventListener('input', applyFilters);
+    jobSelect?.addEventListener('change', applyFilters);
+    typeSelect?.addEventListener('change', applyFilters);
+    qs('[data-sched-clear]', root)?.addEventListener('click', () => {
+        if (qInput) qInput.value = '';
+        if (jobSelect) jobSelect.value = '';
+        if (typeSelect) typeSelect.value = '';
+        applyFilters();
+    });
+
+    const availKey = root.getAttribute('data-availability-key') || 'hb_interviewer_availability_prefs_v1';
+    let availState = {};
+    try {
+        const raw = window.localStorage.getItem(availKey);
+        availState = raw ? JSON.parse(raw) : {};
+    } catch {
+        availState = {};
+    }
+    qsa('[data-avail-day]', root).forEach((input) => {
+        const day = input.getAttribute('data-avail-day');
+        if (!day) return;
+        if (Object.prototype.hasOwnProperty.call(availState, day)) {
+            input.checked = Boolean(availState[day]);
+        }
+        input.addEventListener('change', () => {
+            availState[day] = input.checked;
+            try {
+                window.localStorage.setItem(availKey, JSON.stringify(availState));
+            } catch {
+                // Ignore.
+            }
+            const note = qs('[data-avail-note]', root);
+            if (note) {
+                note.textContent =
+                    document.documentElement.lang === 'ar'
+                        ? 'تُحفظ النوافذ المفضّلة على هذا الجهاز فقط. لم تتم أي مزامنة.'
+                        : 'Preferred windows are kept on this device only. Nothing was synced.';
+            }
+        });
+    });
+
+    renderWeek();
+    setSelected(selectedId);
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+function initInterviewerScorecard() {
+    const root = qs('[data-interviewer-scorecard]');
+    if (!root) return;
+
+    const key = root.getAttribute('data-storage-key') || '';
+    const i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+    let seed = {};
+    try {
+        seed = JSON.parse(root.getAttribute('data-seed') || '{}') || {};
+    } catch {
+        seed = {};
+    }
+
+    const readDraft = () => {
+        try {
+            return JSON.parse(window.localStorage.getItem(key) || 'null');
+        } catch {
+            return null;
+        }
+    };
+
+    let draft = readDraft();
+    if (!draft || typeof draft !== 'object') {
+        draft = {
+            ratings: { ...(seed.ratings || {}) },
+            evidence: { ...(seed.evidence || {}) },
+            strengths: seed.strengths || '',
+            concerns: seed.concerns || '',
+            recommendation: seed.recommendation || '',
+            attested: false,
+        };
+    }
+
+    const draftStatus = qs('[data-score-draft-status]', root);
+    const progressEl = qs('[data-score-progress]', root);
+    const statusBadge = qs('[data-score-status-badge]', root);
+    const ratingLabels = {
+        1: i18n.rating_1 || 'Below',
+        2: i18n.rating_2 || 'Developing',
+        3: i18n.rating_3 || 'Meets',
+        4: i18n.rating_4 || 'Strong',
+        no: i18n.rating_no || 'Not observed',
+    };
+
+    // Prefer labels from radios' visible text when available
+    const ratingLabelFor = (compId, value) => {
+        const input = root.querySelector(`[data-score-rating="${compId}"][value="${value}"]`);
+        const text = input?.closest('label')?.textContent?.trim();
+        return text || ratingLabels[value] || value;
+    };
+
+    const setDraftStatus = (saved) => {
+        if (draftStatus) {
+            draftStatus.textContent = saved ? i18n.draft_saved || '' : i18n.draft_unsaved || '';
+        }
+    };
+
+    const updateProgress = () => {
+        const comps = qsa('[data-competency]', root);
+        let done = 0;
+        comps.forEach((li) => {
+            const id = li.getAttribute('data-competency');
+            if (draft.ratings?.[id]) done += 1;
+            const summary = qs('[data-rating-summary]', li);
+            if (summary && draft.ratings?.[id]) {
+                summary.textContent = ratingLabelFor(id, draft.ratings[id]);
+            } else if (summary) {
+                summary.textContent = '';
+            }
+        });
+        if (progressEl) {
+            progressEl.textContent = (i18n.progress || ':done of :total competencies rated')
+                .replace(':done', String(done))
+                .replace(':total', String(comps.length));
+        }
+    };
+
+    const collectFromDom = () => {
+        const ratings = {};
+        const evidence = {};
+        qsa('[data-score-rating]', root).forEach((input) => {
+            const id = input.getAttribute('data-score-rating');
+            if (input.checked && id) ratings[id] = input.value;
+        });
+        qsa('[data-score-evidence]', root).forEach((field) => {
+            const id = field.getAttribute('data-score-evidence');
+            if (id) evidence[id] = field.value;
+        });
+        draft = {
+            ratings,
+            evidence,
+            strengths: qs('[data-score-strengths]', root)?.value || '',
+            concerns: qs('[data-score-concerns]', root)?.value || '',
+            recommendation: qs('[data-score-recommendation]', root)?.value || '',
+            attested: Boolean(qs('[data-score-attest]', root)?.checked),
+        };
+        return draft;
+    };
+
+    const applyDraftToDom = () => {
+        Object.entries(draft.ratings || {}).forEach(([id, value]) => {
+            const input = root.querySelector(`[data-score-rating="${id}"][value="${value}"]`);
+            if (input) input.checked = true;
+        });
+        Object.entries(draft.evidence || {}).forEach(([id, value]) => {
+            const field = root.querySelector(`[data-score-evidence="${id}"]`);
+            if (field) field.value = value;
+        });
+        const strengths = qs('[data-score-strengths]', root);
+        const concerns = qs('[data-score-concerns]', root);
+        const recommendation = qs('[data-score-recommendation]', root);
+        const attest = qs('[data-score-attest]', root);
+        if (strengths) strengths.value = draft.strengths || '';
+        if (concerns) concerns.value = draft.concerns || '';
+        if (recommendation) recommendation.value = draft.recommendation || '';
+        if (attest) attest.checked = Boolean(draft.attested);
+        updateProgress();
+        setDraftStatus(Boolean(window.localStorage.getItem(key)));
+    };
+
+    const saveDraft = () => {
+        collectFromDom();
+        try {
+            window.localStorage.setItem(key, JSON.stringify(draft));
+        } catch {
+            // Preview-only storage.
+        }
+        setDraftStatus(true);
+        if (statusBadge) {
+            statusBadge.textContent = i18n.status_draft || statusBadge.textContent;
+        }
+        return draft;
+    };
+
+    const clearErrors = () => {
+        qsa('[data-rating-error], [data-strengths-error], [data-concerns-error], [data-recommendation-error], [data-attest-error]', root).forEach(
+            (el) => {
+                el.hidden = true;
+                el.classList.add('hidden');
+                el.textContent = '';
+            }
+        );
+    };
+
+    const showError = (el, message) => {
+        if (!el) return false;
+        el.textContent = message;
+        el.hidden = false;
+        el.classList.remove('hidden');
+        return false;
+    };
+
+    const validate = () => {
+        clearErrors();
+        collectFromDom();
+        let ok = true;
+        qsa('[data-competency]', root).forEach((li) => {
+            const id = li.getAttribute('data-competency');
+            if (!draft.ratings?.[id]) {
+                ok = showError(qs(`[data-rating-error="${id}"]`, root), i18n.err_rating || '') || ok;
+                ok = false;
+            }
+        });
+        if (!(draft.strengths || '').trim()) {
+            showError(qs('[data-strengths-error]', root), i18n.err_strengths || '');
+            ok = false;
+        }
+        if (!(draft.concerns || '').trim()) {
+            showError(qs('[data-concerns-error]', root), i18n.err_concerns || '');
+            ok = false;
+        }
+        if (!(draft.recommendation || '').trim()) {
+            showError(qs('[data-recommendation-error]', root), i18n.err_recommendation || '');
+            ok = false;
+        }
+        if (!draft.attested) {
+            showError(qs('[data-attest-error]', root), i18n.err_attest || '');
+            ok = false;
+        }
+        return ok;
+    };
+
+    const setMode = (mode) => {
+        qsa('[data-score-panel]', root).forEach((panel) => {
+            const on = panel.getAttribute('data-score-panel') === mode;
+            panel.hidden = !on;
+            panel.classList.toggle('hidden', !on);
+        });
+    };
+
+    const buildReview = () => {
+        const body = qs('[data-score-review-body]', root);
+        if (!body) return;
+        collectFromDom();
+        const recSelect = qs('[data-score-recommendation]', root);
+        const recLabel = recSelect?.selectedOptions?.[0]?.textContent?.trim() || draft.recommendation;
+        const rows = qsa('[data-competency]', root)
+            .map((li) => {
+                const id = li.getAttribute('data-competency');
+                const label = li.querySelector('legend')?.textContent?.trim() || id;
+                const rating = ratingLabelFor(id, draft.ratings?.[id] || '');
+                const evidence = draft.evidence?.[id] || '—';
+                return `<div class="rounded-lg border border-hb-border p-3"><p class="font-semibold text-hb-navy">${escapeHtml(label)}</p><p class="mt-1 text-hb-muted">${escapeHtml(rating)}</p><p class="mt-2 text-hb-text">${escapeHtml(evidence)}</p></div>`;
+            })
+            .join('');
+        body.innerHTML = `${rows}
+            <div class="rounded-lg border border-hb-border p-3"><p class="font-semibold text-hb-navy">${escapeHtml(i18n.strengths_label || 'Strengths')}</p><p class="mt-2">${escapeHtml(draft.strengths)}</p></div>
+            <div class="rounded-lg border border-hb-border p-3"><p class="font-semibold text-hb-navy">${escapeHtml(i18n.concerns_label || 'Concerns')}</p><p class="mt-2">${escapeHtml(draft.concerns)}</p></div>
+            <div class="rounded-lg border border-hb-border p-3"><p class="font-semibold text-hb-navy">${escapeHtml(i18n.overall_label || 'Recommendation')}</p><p class="mt-2">${escapeHtml(recLabel)}</p></div>
+            <p class="text-hb-muted">${escapeHtml(i18n.review_ok || '')}</p>`;
+    };
+
+    root.addEventListener('change', (event) => {
+        if (event.target.matches('[data-score-rating], [data-score-attest], [data-score-recommendation]')) {
+            collectFromDom();
+            updateProgress();
+            setDraftStatus(false);
+        }
+    });
+    root.addEventListener('input', (event) => {
+        if (event.target.matches('[data-score-evidence], [data-score-strengths], [data-score-concerns]')) {
+            setDraftStatus(false);
+        }
+    });
+
+    qsa('[data-score-save]', root).forEach((btn) => {
+        btn.addEventListener('click', () => saveDraft());
+    });
+    qs('[data-score-review]', root)?.addEventListener('click', () => {
+        if (!validate()) return;
+        saveDraft();
+        buildReview();
+        setMode('review');
+        if (statusBadge) statusBadge.textContent = i18n.status_ready || statusBadge.textContent;
+    });
+    qs('[data-score-edit]', root)?.addEventListener('click', () => setMode('edit'));
+    qs('[data-score-submit]', root)?.addEventListener('click', () => {
+        if (!validate()) return;
+        saveDraft();
+        const modal = document.getElementById('score-submit-modal');
+        if (modal && typeof openModal === 'function') {
+            openModal(modal, qs('[data-score-submit]', root));
+        } else if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            modal.setAttribute('data-hb-modal-open', 'true');
+        }
+    });
+    qs('[data-score-save-and-close]', document)?.addEventListener('click', () => {
+        saveDraft();
+        const modal = document.getElementById('score-submit-modal');
+        if (modal && typeof closeModal === 'function') {
+            closeModal(modal);
+        } else if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            modal.removeAttribute('data-hb-modal-open');
+        }
+    });
+
+    applyDraftToDom();
+    setMode('edit');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initDropdowns();
     initMobileSidebar();
@@ -3027,7 +4018,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initCandidateOffer();
     initCandidateNotificationsPage();
     initNotificationsDropdownSync();
+    initInterviewerDashboard();
+    initInterviewerSchedule();
+    initInterviewerPrepare();
+    initInterviewerLive();
+    initInterviewerScorecard();
 });
+
 
 
 

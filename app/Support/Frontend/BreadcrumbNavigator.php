@@ -76,8 +76,29 @@ class BreadcrumbNavigator
         return match ($uiRole) {
             'company' => self::companyMap(),
             'candidate' => self::candidateMap(),
+            'interviewer' => self::interviewerMap(),
             default => [],
         };
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function interviewerMap(): array
+    {
+        return [
+            'Interviewer workspace' => 'interviewer.dashboard',
+            'مساحة عمل المقابل' => 'interviewer.dashboard',
+            __('navigation.interviewer.overview') => 'interviewer.dashboard',
+            __('navigation.interviewer.schedule') => 'interviewer.schedule.index',
+            'Overview' => 'interviewer.dashboard',
+            'نظرة عامة' => 'interviewer.dashboard',
+            'My schedule' => 'interviewer.schedule.index',
+            'جدولي' => 'interviewer.schedule.index',
+            'Scorecards' => 'interviewer.evaluations.index',
+            'بطاقات التقييم' => 'interviewer.evaluations.index',
+            __('navigation.interviewer.scorecards') => 'interviewer.evaluations.index',
+        ];
     }
 
     /**

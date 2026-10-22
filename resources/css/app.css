@@ -178,19 +178,47 @@
 }
 
 /*
- | Sticky workspace (72px) and public (88px) headers intercept in-view scroll
- | targets unless scroll-padding accounts for them. Keep clickable controls clear.
+ | Sticky workspace (72px) and public (≈88px) headers steal clicks when
+ | scroll-into-view parks controls under the bar. App layout nests <header>
+ | inside a flex column (not body > header), so :has must match descendants.
  */
 html {
     scroll-padding-top: 5.5rem;
 }
 
-body:has(> header.sticky) {
-    scroll-padding-top: 7rem;
+html:has(header.sticky) {
+    scroll-padding-top: 6.5rem;
 }
 
-#main-content :is(a, button, [role='tab'], [data-select-interview], [data-save-job], [data-public-apply]) {
-    scroll-margin-top: 5.5rem;
+/*
+ | Every focusable / clickable control in main needs clearance under the sticky
+ | topbar — not only links and primary buttons (Batch 6B prep/live regressions).
+ */
+#main-content :is(
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    summary,
+    label,
+    [role='tab'],
+    [role='button'],
+    [role='checkbox'],
+    [role='radio'],
+    [data-select-interview],
+    [data-save-job],
+    [data-public-apply],
+    [data-prep-expand],
+    [data-live-expand],
+    [data-open-modal],
+    [data-checklist-item],
+    [data-prep-checklist-item],
+    [data-live-agenda],
+    [data-live-question],
+    [data-score-rating]
+) {
+    scroll-margin-top: 6.5rem;
 }
 
 /*
@@ -205,13 +233,20 @@ body:has(> header.sticky) {
     align-items: center;
 }
 
-body:has(> header.sticky) #main-content :is(a, button, [role='tab'], [data-public-apply], [data-save-job]) {
-    scroll-margin-top: 7rem;
+/*
+ | Sticky topbar must not paint an invisible hit layer beyond its box.
+ | isolate keeps stacking local; overflow clip prevents children from extending
+ | the pointer target below the 72px bar.
+ */
+header.sticky.top-0 {
+    overflow: clip;
 }
 
 /* Closed off-canvas panels must not intercept pointer/keyboard or linger in a11y. */
 [data-mobile-sidebar]:not(.is-open),
-[data-jobs-filters]:not(.is-open) {
+[data-jobs-filters]:not(.is-open),
+[data-mobile-sidebar-backdrop][hidden],
+[data-mobile-sidebar-backdrop].hidden {
     pointer-events: none;
     visibility: hidden;
 }
