@@ -65,8 +65,5 @@
         @endforeach
     </ul>
 
-    <div class="mt-auto space-y-1 border-t border-white/10 px-2 pt-4 text-xs text-hb-nav-muted">
-        <p>{{ __('common.help_support') }}</p>
-        <p>{{ __('common.privacy_security') }}</p>
-    </div>
+    {{-- Help / Privacy intentionally omitted until real destinations exist --}}
 </nav>

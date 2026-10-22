@@ -1,4 +1,4 @@
-<div class="space-y-5 hidden" data-onboarding-panel data-step="1" hidden>
+<div class="space-y-5" data-onboarding-panel data-step="1">
     <div>
         <h2 class="text-base font-semibold text-hb-navy">{{ __('onboarding.candidate.steps.basics') }}</h2>
         <p class="mt-1 text-sm text-hb-muted">{{ __('onboarding.candidate.basics.intro') }}</p>

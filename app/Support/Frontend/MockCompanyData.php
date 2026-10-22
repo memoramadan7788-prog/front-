@@ -47,16 +47,16 @@ class MockCompanyData
                 'process' => $ns204['process'] ?? '',
                 'summary' => $ns204['summary'] ?? 'Design tools that make complex work feel simple',
                 'stages' => [
-                    ['label' => 'Applied', 'count' => 3],
-                    ['label' => 'Screening', 'count' => 3],
-                    ['label' => 'Interview', 'count' => 3],
-                    ['label' => 'Offer', 'count' => 2],
-                    ['label' => 'Hired', 'count' => 1],
+                    ['label' => 'Applied', 'key' => 'Applied', 'count' => 3],
+                    ['label' => 'Screening', 'key' => 'Screening', 'count' => 3],
+                    ['label' => 'Interview', 'key' => 'Interview', 'count' => 3],
+                    ['label' => 'Offer', 'key' => 'Offer', 'count' => 2],
+                    ['label' => 'Hired', 'key' => 'Hired', 'count' => 1],
                 ],
                 'stat_cards' => [
-                    ['label' => 'Applied', 'value' => '3', 'meta' => 'New applications'],
-                    ['label' => 'Screening', 'value' => '3', 'meta' => 'Review needed'],
-                    ['label' => 'Interview', 'value' => '3', 'meta' => 'Maya · Luis · Aisha'],
+                    ['label' => 'Applied', 'value' => '3', 'meta' => 'New applications', 'stage' => 'Applied'],
+                    ['label' => 'Screening', 'value' => '3', 'meta' => 'Review needed', 'stage' => 'Screening'],
+                    ['label' => 'Interview', 'value' => '3', 'meta' => 'Maya · Luis · Aisha', 'stage' => 'Interview'],
                 ],
                 'offer_hired' => [
                     'value' => '2 / 1',
@@ -65,23 +65,31 @@ class MockCompanyData
                 ],
                 'forward_rows' => [
                     [
+                        'applicant_id' => 'maya-chen',
                         'candidate' => 'Maya Chen',
                         'stage' => 'Interview',
+                        'stage_key' => 'interview',
                         'next' => 'Portfolio review · Oct 22, 10:00 AM',
                     ],
                     [
+                        'applicant_id' => 'luis-romero',
                         'candidate' => 'Luis Romero',
                         'stage' => 'Interview',
+                        'stage_key' => 'interview',
                         'next' => 'Team interview · Oct 21, 11:00 AM',
                     ],
                     [
+                        'applicant_id' => 'aisha-patel',
                         'candidate' => 'Aisha Patel',
                         'stage' => 'Interview',
+                        'stage_key' => 'interview',
                         'next' => 'Portfolio review · Oct 23, 11:00 AM',
                     ],
                     [
+                        'applicant_id' => 'ethan-cole',
                         'candidate' => 'Ethan Cole',
                         'stage' => 'Offer',
+                        'stage_key' => 'offer',
                         'next' => 'Draft offer · awaiting approval',
                     ],
                 ],
@@ -445,13 +453,24 @@ class MockCompanyData
      *
      * @return array<string, mixed>
      */
-    public static function jobWizard(): array
+    public static function jobWizard(?string $jobId = null): array
     {
-        $draft = self::job('ns-207') ?? [];
+        $isNew = $jobId === null || $jobId === '';
+        $draft = $isNew ? [] : (self::job($jobId) ?? []);
+        if (! $isNew && $draft === []) {
+            $draft = [];
+        }
+
+        $resolvedId = $isNew ? 'new' : (string) ($draft['id'] ?? $jobId);
+        $code = $isNew ? 'Draft' : (string) ($draft['code'] ?? 'Draft');
+        $titleDefault = $isNew ? '' : (string) ($draft['title'] ?? '');
 
         return [
-            'code' => $draft['code'] ?? 'NS-207',
-            'title_default' => $draft['title'] ?? 'Customer Success Manager',
+            'job_id' => $resolvedId,
+            'is_new' => $isNew,
+            'storage_key' => 'hb_company_job_draft_'.$resolvedId,
+            'code' => $code,
+            'title_default' => $titleDefault !== '' ? $titleDefault : 'New requisition',
             'draft_saved_at' => '9:40 AM',
             'steps' => [
                 ['key' => 'role', 'label' => 'Role details'],
@@ -474,28 +493,48 @@ class MockCompanyData
             ],
             'owners' => ['Olivia Bennett', 'Jordan Lee', 'Daniel Brooks'],
             'hiring_managers' => ['Jordan Lee', 'Daniel Brooks', 'Olivia Bennett', 'Alex Morgan'],
-            'defaults' => [
-                'title' => $draft['title'] ?? 'Customer Success Manager',
-                'department' => $draft['department'] ?? 'Customer Experience',
-                'employment' => $draft['employment'] ?? 'Full-time',
-                'location' => $draft['location'] ?? 'Austin, TX',
-                'work_model' => $draft['work_model'] ?? 'Hybrid · Two office days',
-                'salary_min' => '$110,000',
-                'salary_max' => '$135,000',
-                'about' => 'Turn operational challenges into lasting customer value. You’ll guide mid-market accounts through adoption, renewals, and product feedback loops with design and engineering partners.',
-                'requirements' => "4+ years in B2B customer success\nExperience with SaaS onboarding and renewals\nClear written and verbal communication\nComfort collaborating with product teams",
-                'benefits' => 'Health coverage, flexible PTO, learning budget, hybrid Austin rhythm.',
-                'owner' => 'Olivia Bennett',
-                'hiring_manager' => 'Jordan Lee',
-                'publish_to_search' => true,
-                'agency_submissions' => false,
-                'accommodation_info' => true,
-            ],
+            'defaults' => $isNew
+                ? [
+                    'title' => '',
+                    'department' => 'Customer Experience',
+                    'employment' => 'Full-time',
+                    'location' => 'Austin, TX',
+                    'work_model' => 'Hybrid · Two office days',
+                    'salary_min' => '',
+                    'salary_max' => '',
+                    'about' => '',
+                    'requirements' => '',
+                    'benefits' => '',
+                    'owner' => 'Olivia Bennett',
+                    'hiring_manager' => 'Jordan Lee',
+                    'publish_to_search' => true,
+                    'agency_submissions' => false,
+                    'accommodation_info' => true,
+                ]
+                : [
+                    'title' => $draft['title'] ?? 'Customer Success Manager',
+                    'department' => $draft['department'] ?? 'Customer Experience',
+                    'employment' => $draft['employment'] ?? 'Full-time',
+                    'location' => $draft['location'] ?? 'Austin, TX',
+                    'work_model' => $draft['work_model'] ?? 'Hybrid · Two office days',
+                    'salary_min' => ($draft['salary_min'] ?? '') !== '' ? $draft['salary_min'] : '$110,000',
+                    'salary_max' => ($draft['salary_max'] ?? '') !== '' ? $draft['salary_max'] : '$135,000',
+                    'about' => $draft['description'] ?? 'Turn operational challenges into lasting customer value. You’ll guide mid-market accounts through adoption, renewals, and product feedback loops with design and engineering partners.',
+                    'requirements' => is_array($draft['requirements'] ?? null)
+                        ? implode("\n", $draft['requirements'])
+                        : "4+ years in B2B customer success\nExperience with SaaS onboarding and renewals\nClear written and verbal communication\nComfort collaborating with product teams",
+                    'benefits' => $draft['benefits'] ?? 'Health coverage, flexible PTO, learning budget, hybrid Austin rhythm.',
+                    'owner' => $draft['owner'] ?? 'Olivia Bennett',
+                    'hiring_manager' => $draft['hiring_manager'] ?? 'Jordan Lee',
+                    'publish_to_search' => (bool) ($draft['publish_to_search'] ?? true),
+                    'agency_submissions' => (bool) ($draft['agency_submissions'] ?? false),
+                    'accommodation_info' => (bool) ($draft['accommodation_info'] ?? true),
+                ],
             'checklist' => [
-                ['key' => 'role', 'label' => 'Role and location', 'done' => true],
-                ['key' => 'salary', 'label' => 'Salary range', 'done' => true],
-                ['key' => 'description', 'label' => 'Description and requirements', 'done' => true],
-                ['key' => 'privacy', 'label' => 'Privacy & equal-opportunity text', 'done' => true],
+                ['key' => 'role', 'label' => 'Role and location', 'done' => ! $isNew],
+                ['key' => 'salary', 'label' => 'Salary range', 'done' => ! $isNew && ($draft['salary_min'] ?? '') !== ''],
+                ['key' => 'description', 'label' => 'Description and requirements', 'done' => ! $isNew],
+                ['key' => 'privacy', 'label' => 'Privacy & equal-opportunity text', 'done' => ! $isNew],
                 ['key' => 'hiring', 'label' => 'Hiring process', 'done' => false],
                 ['key' => 'approval', 'label' => 'Approval review', 'done' => false],
             ],
@@ -534,6 +573,7 @@ class MockCompanyData
                     'meta' => '6 total including drafts',
                     'trend' => '+1 draft awaiting review',
                     'trend_tone' => 'neutral',
+                    'href' => 'company.jobs.index',
                 ],
                 [
                     'label' => 'Active candidates',
@@ -541,6 +581,8 @@ class MockCompanyData
                     'meta' => 'Across open requisitions',
                     'trend' => '+4 this week',
                     'trend_tone' => 'up',
+                    'href' => 'company.applicants.index',
+                    'href_params' => ['job' => 'ns-204'],
                 ],
                 [
                     'label' => 'Interviews scheduled',
@@ -548,6 +590,7 @@ class MockCompanyData
                     'meta' => 'Next: Oct 22 · Maya Chen',
                     'trend' => 'This week',
                     'trend_tone' => 'neutral',
+                    'href' => 'company.interviews.index',
                 ],
                 [
                     'label' => 'Hired this month',
@@ -555,6 +598,7 @@ class MockCompanyData
                     'meta' => 'Grace Liu · NS-204',
                     'trend' => 'Offer stage: 1 draft',
                     'trend_tone' => 'up',
+                    'href' => 'company.analytics.index',
                 ],
             ],
             'pipeline' => [
@@ -571,6 +615,7 @@ class MockCompanyData
             ],
             'requisitions' => [
                 [
+                    'id' => 'ns-204',
                     'code' => 'NS-204',
                     'title' => 'Senior Product Designer',
                     'owner' => 'Olivia Bennett',
@@ -579,6 +624,7 @@ class MockCompanyData
                     'pipeline' => '12 total · 3 interview',
                 ],
                 [
+                    'id' => 'ns-205',
                     'code' => 'NS-205',
                     'title' => 'Senior Software Engineer',
                     'owner' => 'Jordan Lee',
@@ -587,6 +633,7 @@ class MockCompanyData
                     'pipeline' => '9 total · 3 interview',
                 ],
                 [
+                    'id' => 'ns-206',
                     'code' => 'NS-206',
                     'title' => 'Product Manager',
                     'owner' => 'Daniel Brooks',
@@ -597,6 +644,7 @@ class MockCompanyData
             ],
             'interviews' => [
                 [
+                    'id' => 'int-ns204-luis-team',
                     'when' => 'Wed · Oct 21',
                     'time' => '11:00 AM',
                     'candidate' => 'Luis Romero',
@@ -604,6 +652,7 @@ class MockCompanyData
                     'interviewer' => 'Alex Morgan',
                 ],
                 [
+                    'id' => 'int-ns204-portfolio',
                     'when' => 'Thu · Oct 22',
                     'time' => '10:00–10:45 AM',
                     'candidate' => 'Maya Chen',
@@ -612,6 +661,7 @@ class MockCompanyData
                     'highlight' => true,
                 ],
                 [
+                    'id' => 'int-ns204-aisha-portfolio',
                     'when' => 'Fri · Oct 23',
                     'time' => '11:00 AM',
                     'candidate' => 'Aisha Patel',
@@ -1229,6 +1279,16 @@ class MockCompanyData
             ],
         ];
 
+        $relatedInterview = collect(self::interviews())->firstWhere('applicant_id', $id);
+        $relatedEvaluation = collect(self::evaluations())->firstWhere('applicant_id', $id);
+        $relatedOffer = collect([
+            self::offerDraft('of-2026-021'),
+        ])->filter()->firstWhere('applicant_id', $id);
+
+        if ($interview !== null && $relatedInterview !== null) {
+            $interview['id'] = $relatedInterview['id'];
+        }
+
         return array_merge($base, [
             'subtitle' => $base['headline'].' · '.$base['location'].' · '.$base['years_experience'].' years’ experience',
             'pipeline' => $pipeline,
@@ -1248,6 +1308,9 @@ class MockCompanyData
                 ],
             'screening' => $screening,
             'interview' => $interview,
+            'interview_id' => $relatedInterview['id'] ?? null,
+            'evaluation_id' => $relatedEvaluation['id'] ?? null,
+            'offer_id' => $relatedOffer['id'] ?? null,
             'interview_plan' => $interviewPlan,
             'communications' => $communications,
             'notes_activity' => $notesActivity,
@@ -1383,61 +1446,86 @@ class MockCompanyData
             $byDay[$interview['day_key']][] = $interview;
         }
 
-        $days = [
+        $mapInterviewSlots = static fn (array $dayInterviews): array => array_map(static fn (array $i): array => [
+            'time' => $i['time_short'],
+            'label' => $i['calendar_label'],
+            'interview_id' => $i['id'],
+            'available' => false,
+        ], $dayInterviews);
+
+        $weeks = [
             [
-                'key' => '2026-10-19',
-                'label' => 'Mon 19',
-                'slots' => [
-                    ['time' => '9:00 AM', 'label' => 'Available', 'available' => true],
-                    ['time' => '2:00 PM', 'label' => 'Available', 'available' => true],
+                'id' => '2026-10-12',
+                'label' => 'October 12–16, 2026',
+                'is_current' => false,
+                'days' => [
+                    ['key' => '2026-10-12', 'label' => 'Mon 12', 'slots' => [['time' => '10:00 AM', 'label' => 'Available', 'available' => true]]],
+                    ['key' => '2026-10-13', 'label' => 'Tue 13', 'slots' => [['time' => '2:00 PM', 'label' => 'Available', 'available' => true]]],
+                    ['key' => '2026-10-14', 'label' => 'Wed 14', 'slots' => []],
+                    ['key' => '2026-10-15', 'label' => 'Thu 15', 'slots' => [['time' => '9:00 AM', 'label' => 'Available', 'available' => true]]],
+                    ['key' => '2026-10-16', 'label' => 'Fri 16', 'slots' => []],
                 ],
             ],
             [
-                'key' => '2026-10-20',
-                'label' => 'Tue 20',
-                'slots' => [
-                    ['time' => '9:00 AM', 'label' => 'Available', 'available' => true],
-                    ['time' => '2:00 PM', 'label' => 'Available', 'available' => true],
+                'id' => '2026-10-19',
+                'label' => 'October 19–23, 2026',
+                'is_current' => true,
+                'days' => [
+                    [
+                        'key' => '2026-10-19',
+                        'label' => 'Mon 19',
+                        'slots' => [
+                            ['time' => '9:00 AM', 'label' => 'Available', 'available' => true],
+                            ['time' => '2:00 PM', 'label' => 'Available', 'available' => true],
+                        ],
+                    ],
+                    [
+                        'key' => '2026-10-20',
+                        'label' => 'Tue 20',
+                        'slots' => [
+                            ['time' => '9:00 AM', 'label' => 'Available', 'available' => true],
+                            ['time' => '2:00 PM', 'label' => 'Available', 'available' => true],
+                        ],
+                    ],
+                    [
+                        'key' => '2026-10-21',
+                        'label' => 'Wed 21',
+                        'highlight' => false,
+                        'slots' => $mapInterviewSlots($byDay['2026-10-21'] ?? []),
+                    ],
+                    [
+                        'key' => '2026-10-22',
+                        'label' => 'Thu 22',
+                        'highlight' => true,
+                        'slots' => $mapInterviewSlots($byDay['2026-10-22'] ?? []),
+                    ],
+                    [
+                        'key' => '2026-10-23',
+                        'label' => 'Fri 23',
+                        'slots' => $mapInterviewSlots($byDay['2026-10-23'] ?? []),
+                    ],
                 ],
             ],
             [
-                'key' => '2026-10-21',
-                'label' => 'Wed 21',
-                'highlight' => false,
-                'slots' => array_map(static fn (array $i): array => [
-                    'time' => $i['time_short'],
-                    'label' => $i['calendar_label'],
-                    'interview_id' => $i['id'],
-                    'available' => false,
-                ], $byDay['2026-10-21'] ?? []),
-            ],
-            [
-                'key' => '2026-10-22',
-                'label' => 'Thu 22',
-                'highlight' => true,
-                'slots' => array_map(static fn (array $i): array => [
-                    'time' => $i['time_short'],
-                    'label' => $i['calendar_label'],
-                    'interview_id' => $i['id'],
-                    'available' => false,
-                ], $byDay['2026-10-22'] ?? []),
-            ],
-            [
-                'key' => '2026-10-23',
-                'label' => 'Fri 23',
-                'slots' => array_map(static fn (array $i): array => [
-                    'time' => $i['time_short'],
-                    'label' => $i['calendar_label'],
-                    'interview_id' => $i['id'],
-                    'available' => false,
-                ], $byDay['2026-10-23'] ?? []),
+                'id' => '2026-10-26',
+                'label' => 'October 26–30, 2026',
+                'is_current' => false,
+                'days' => [
+                    ['key' => '2026-10-26', 'label' => 'Mon 26', 'slots' => [['time' => '10:00 AM', 'label' => 'Available', 'available' => true]]],
+                    ['key' => '2026-10-27', 'label' => 'Tue 27', 'slots' => [['time' => '10:00 AM', 'label' => 'Available', 'available' => true]]],
+                    ['key' => '2026-10-28', 'label' => 'Wed 28', 'slots' => [['time' => '3:00 PM', 'label' => 'Available', 'available' => true]]],
+                    ['key' => '2026-10-29', 'label' => 'Thu 29', 'slots' => []],
+                    ['key' => '2026-10-30', 'label' => 'Fri 30', 'slots' => []],
+                ],
             ],
         ];
 
+        $currentWeek = collect($weeks)->firstWhere('is_current', true) ?? $weeks[1];
         $selected = collect($interviews)->firstWhere('selected', true) ?? ($interviews[0] ?? null);
 
         return [
-            'week_label' => 'October 19–23, 2026',
+            'week_label' => $currentWeek['label'],
+            'current_week_id' => $currentWeek['id'],
             'timezone' => 'Week view · Central Time (UTC−05:00)',
             'department_filter' => 'Product & Design',
             'departments' => ['Product & Design', 'Engineering', 'Product'],
@@ -1446,9 +1534,11 @@ class MockCompanyData
                 'code' => $j['code'],
                 'title' => $j['title'],
             ], array_filter(self::jobs(), static fn (array $j): bool => ($j['status_key'] ?? '') === 'open'))),
-            'days' => $days,
+            'weeks' => $weeks,
+            'days' => $currentWeek['days'],
             'interviews' => $interviews,
             'selected' => $selected,
+            'schedule_base' => '/company/interviews/schedule',
             'availability' => [
                 ['name' => 'Alex Morgan', 'windows' => 'Thu 22 · 9:00–11:30 AM, 1:00–3:00 PM'],
                 ['name' => 'Daniel Brooks', 'windows' => 'Wed 21 · 10:00 AM–12:00 PM'],
@@ -1628,6 +1718,7 @@ class MockCompanyData
                 'code' => 'OF-2026-021',
                 'applicant_id' => 'ethan-cole',
                 'applicant' => 'Ethan Cole',
+                'evaluation_id' => 'eval-ethan-cole',
                 'job_id' => 'ns-204',
                 'job_code' => 'NS-204',
                 'job_title' => 'Senior Product Designer',
@@ -1862,14 +1953,28 @@ class MockCompanyData
             ],
         ];
 
+        $counts = [
+            'all' => count($prospects),
+            'product_design' => 0,
+            'engineering' => 0,
+            'other' => 0,
+        ];
+        foreach ($prospects as $prospect) {
+            $category = $prospect['category'] ?? 'other';
+            if (! array_key_exists($category, $counts)) {
+                $category = 'other';
+            }
+            $counts[$category]++;
+        }
+
         return [
-            'total' => 18,
+            'total' => $counts['all'],
             'page_size' => 5,
             'tabs' => [
-                ['key' => 'all', 'label' => 'All prospects', 'count' => 18],
-                ['key' => 'product_design', 'label' => 'Product & Design', 'count' => 7],
-                ['key' => 'engineering', 'label' => 'Engineering', 'count' => 8],
-                ['key' => 'other', 'label' => 'Other', 'count' => 3],
+                ['key' => 'all', 'label' => 'All prospects', 'count' => $counts['all']],
+                ['key' => 'product_design', 'label' => 'Product & Design', 'count' => $counts['product_design']],
+                ['key' => 'engineering', 'label' => 'Engineering', 'count' => $counts['engineering']],
+                ['key' => 'other', 'label' => 'Other', 'count' => $counts['other']],
             ],
             'prospects' => $prospects,
             'consent_note' => 'Maya Chen has not opted into Northstar\'s talent pool, so she is not included here. Agency introductions retain their recruiter ownership and consent record.',
@@ -2128,6 +2233,35 @@ class MockCompanyData
                     'label' => 'Hired in cohort',
                     'value' => '1',
                     'detail' => 'Grace Liu · NS-204',
+                ],
+            ],
+            'date_snapshots' => [
+                'oct-1-20' => [
+                    'subtitle' => 'Northstar Labs · Current cohort for open requisitions · As of October 20, 2026',
+                    'kpis' => [
+                        'records' => ['value' => '28', 'detail' => 'Across 3 open requisitions'],
+                        'interview_share' => ['value' => '29%', 'detail' => '8 / 28 currently at Interview'],
+                        'screening_age' => ['value' => '4 days', 'detail' => 'Current screening-stage records'],
+                        'hired' => ['value' => '1', 'detail' => 'Grace Liu · NS-204'],
+                    ],
+                ],
+                'sep-1-30' => [
+                    'subtitle' => 'Northstar Labs · Prior month cohort · September 2026 snapshot',
+                    'kpis' => [
+                        'records' => ['value' => '22', 'detail' => 'Across 3 open requisitions'],
+                        'interview_share' => ['value' => '23%', 'detail' => '5 / 22 at Interview in September'],
+                        'screening_age' => ['value' => '5 days', 'detail' => 'September screening-stage records'],
+                        'hired' => ['value' => '0', 'detail' => 'No hires closed in September'],
+                    ],
+                ],
+                'q3' => [
+                    'subtitle' => 'Northstar Labs · Q3 hiring snapshot · Jul–Sep 2026',
+                    'kpis' => [
+                        'records' => ['value' => '41', 'detail' => 'Across open and closed Q3 roles'],
+                        'interview_share' => ['value' => '27%', 'detail' => '11 / 41 reached Interview in Q3'],
+                        'screening_age' => ['value' => '6 days', 'detail' => 'Q3 screening-stage median'],
+                        'hired' => ['value' => '2', 'detail' => 'Including earlier NS-204 hire'],
+                    ],
                 ],
             ],
             'stages' => [

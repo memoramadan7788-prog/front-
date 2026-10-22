@@ -19,17 +19,24 @@
         $calendarI18n = [
             'week_nav_status' => __('company.interviews.js.week_nav_status'),
             'empty_search' => __('company.interviews.js.empty_search'),
-            'reschedule_feedback' => __('company.interviews.js.reschedule_feedback'),
+            'empty_day' => __('company.interviews.empty_day'),
+            'empty_week' => __('company.interviews.js.empty_week'),
+            'reschedule_preview' => __('company.interviews.js.reschedule_preview'),
+            'reschedule_missing' => __('company.interviews.js.reschedule_missing'),
         ];
         $selected = $calendar['selected'] ?? null;
+        $scheduleBase = route('company.interviews.schedule');
     @endphp
 
     <div
         data-company-calendar
         data-i18n="{{ json_encode($calendarI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
         data-interviews="{{ json_encode($calendar['interviews'], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
-        data-week-label="{{ $calendar['week_label'] }}"
+        data-weeks="{{ json_encode($calendar['weeks'], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
+        data-current-week-id="{{ $calendar['current_week_id'] }}"
         data-selected-id="{{ $selected['id'] ?? '' }}"
+        data-schedule-base="{{ $scheduleBase }}"
+        data-details-base="{{ url('/company/interviews') }}"
     >
         <div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center">
             <label class="relative min-w-0 flex-1">
@@ -73,45 +80,12 @@
                             <button type="button" class="hb-btn-outline px-3 py-2" data-week-nav="next" aria-label="{{ __('company.interviews.next_week') }}">›</button>
                         </div>
                     </div>
-                    <p class="mt-2 hidden text-xs text-hb-muted" data-week-nav-status role="status"></p>
+                    <p class="mt-2 text-xs text-hb-muted" data-week-nav-status role="status"></p>
 
                     <div class="mt-5 grid gap-2 sm:grid-cols-5" data-cal-grid>
-                        @foreach ($calendar['days'] as $day)
-                            <div
-                                @class([
-                                    'rounded-lg border px-2 py-3 text-sm',
-                                    'border-hb-blue bg-hb-info-soft/40' => ! empty($day['highlight']),
-                                    'border-hb-border bg-hb-surface' => empty($day['highlight']),
-                                ])
-                                data-cal-day="{{ $day['key'] }}"
-                            >
-                                <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ $day['label'] }}</p>
-                                <ul class="mt-2 space-y-2">
-                                    @forelse ($day['slots'] ?? [] as $slot)
-                                        <li>
-                                            @if (! empty($slot['interview_id']))
-                                                <button
-                                                    type="button"
-                                                    class="w-full rounded-md border border-hb-border bg-hb-page px-2 py-1.5 text-start hover:border-hb-blue"
-                                                    data-select-interview="{{ $slot['interview_id'] }}"
-                                                >
-                                                    <span class="block text-[11px] font-medium text-hb-blue">{{ $slot['time'] }}</span>
-                                                    <span class="mt-0.5 block text-xs text-hb-navy">{{ $slot['label'] }}</span>
-                                                </button>
-                                            @else
-                                                <p class="rounded-md px-2 py-1.5 text-xs text-hb-muted">
-                                                    <span class="font-medium text-hb-text">{{ $slot['time'] }}</span>
-                                                    · {{ $slot['label'] }}
-                                                </p>
-                                            @endif
-                                        </li>
-                                    @empty
-                                        <li class="text-xs text-hb-muted">{{ __('company.interviews.empty_day') }}</li>
-                                    @endforelse
-                                </ul>
-                            </div>
-                        @endforeach
+                        {{-- Rendered by week navigation script --}}
                     </div>
+                    <p class="mt-4 hidden text-sm text-hb-muted" data-week-empty role="status"></p>
                 </section>
 
                 <section class="hb-surface p-5 sm:p-6" aria-labelledby="availability-heading">
@@ -166,9 +140,13 @@
                             <a href="{{ route('company.interviews.show', $selected['id']) }}" class="hb-btn-primary text-center" data-sel-details>
                                 {{ __('company.interviews.view_details') }}
                             </a>
-                            <button type="button" class="hb-btn-outline" data-reschedule>
+                            <a
+                                href="{{ route('company.interviews.schedule', ['applicant' => $selected['applicant_id']]) }}"
+                                class="hb-btn-outline text-center"
+                                data-reschedule
+                            >
                                 {{ __('company.interviews.reschedule') }}
-                            </button>
+                            </a>
                             <p class="hidden text-xs text-hb-blue" data-reschedule-feedback role="status"></p>
                         </div>
                     @endif
@@ -186,13 +164,21 @@
                 if (!root) return;
                 const i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
                 const interviews = JSON.parse(root.getAttribute('data-interviews') || '[]');
-                const weekLabel = root.getAttribute('data-week-label') || '';
+                const weeks = JSON.parse(root.getAttribute('data-weeks') || '[]');
+                const currentWeekId = root.getAttribute('data-current-week-id') || '';
+                const scheduleBase = root.getAttribute('data-schedule-base') || '/company/interviews/schedule';
+                const detailsBase = (root.getAttribute('data-details-base') || '/company/interviews').replace(/\/$/, '');
+                let weekIndex = Math.max(0, weeks.findIndex((week) => week.id === currentWeekId));
+                if (weekIndex < 0) weekIndex = 0;
                 let selectedId = root.getAttribute('data-selected-id') || '';
                 const qInput = root.querySelector('[data-cal-q]');
                 const jobSelect = root.querySelector('[data-cal-job]');
                 const deptSelect = root.querySelector('[data-cal-dept]');
                 const emptyEl = root.querySelector('[data-cal-empty]');
                 const statusEl = root.querySelector('[data-week-nav-status]');
+                const weekEmptyEl = root.querySelector('[data-week-empty]');
+                const gridEl = root.querySelector('[data-cal-grid]');
+                const headingEl = root.querySelector('[data-week-heading]');
 
                 function replacePlaceholders(template, replacements) {
                     return Object.entries(replacements).reduce(
@@ -201,28 +187,18 @@
                     );
                 }
 
-                function applyFilters() {
-                    const q = (qInput?.value || '').trim().toLowerCase();
-                    const job = jobSelect?.value || '';
-                    const dept = deptSelect?.value || '';
-                    let visible = 0;
-                    interviews.forEach((row) => {
-                        const matchQ = !q || `${row.applicant || ''} ${row.interviewer || ''}`.toLowerCase().includes(q);
-                        const matchJob = !job || row.job_id === job;
-                        const matchDept = !dept || row.department === dept;
-                        const show = matchQ && matchJob && matchDept;
-                        root.querySelectorAll(`[data-select-interview="${row.id}"]`).forEach((btn) => {
-                            const li = btn.closest('li');
-                            if (li) {
-                                li.classList.toggle('hidden', !show);
-                                li.hidden = !show;
-                            }
-                            if (show) visible += 1;
-                        });
-                    });
-                    if (emptyEl) {
-                        emptyEl.classList.toggle('hidden', visible > 0);
-                    }
+                function escapeHtml(value) {
+                    return String(value ?? '')
+                        .replaceAll('&', '&amp;')
+                        .replaceAll('<', '&lt;')
+                        .replaceAll('>', '&gt;')
+                        .replaceAll('"', '&quot;');
+                }
+
+                function scheduleUrl(applicantId) {
+                    const url = new URL(scheduleBase, window.location.origin);
+                    if (applicantId) url.searchParams.set('applicant', applicantId);
+                    return url.pathname + url.search;
                 }
 
                 function renderSelected(id) {
@@ -240,21 +216,112 @@
                     set('[data-sel-interviewer]', row.interviewer);
                     set('[data-sel-organizer]', row.organizer);
                     const details = root.querySelector('[data-sel-details]');
-                    if (details) details.setAttribute('href', `/company/interviews/${encodeURIComponent(row.id)}`);
+                    if (details) details.setAttribute('href', `${detailsBase}/${encodeURIComponent(row.id)}`);
+                    const reschedule = root.querySelector('[data-reschedule]');
+                    if (reschedule) {
+                        reschedule.setAttribute('href', scheduleUrl(row.applicant_id));
+                        reschedule.setAttribute('data-applicant-id', row.applicant_id || '');
+                    }
                     const checklist = root.querySelector('[data-sel-checklist]');
                     if (checklist && Array.isArray(row.checklist)) {
                         checklist.innerHTML = row.checklist.map((item) => `
                             <li class="flex items-start gap-2 text-hb-muted">
                                 <span aria-hidden="true">${item.done ? '✓' : '○'}</span>
-                                <span>${item.label || ''}</span>
+                                <span>${escapeHtml(item.label || '')}</span>
                             </li>
                         `).join('');
                     }
+                    const feedback = root.querySelector('[data-reschedule-feedback]');
+                    if (feedback) {
+                        feedback.textContent = '';
+                        feedback.classList.add('hidden');
+                    }
                 }
 
-                root.querySelectorAll('[data-select-interview]').forEach((btn) => {
-                    btn.addEventListener('click', () => renderSelected(btn.getAttribute('data-select-interview')));
-                });
+                function applyFilters() {
+                    const q = (qInput?.value || '').trim().toLowerCase();
+                    const job = jobSelect?.value || '';
+                    const dept = deptSelect?.value || '';
+                    let visible = 0;
+                    let hasInterviewButtons = false;
+                    root.querySelectorAll('[data-select-interview]').forEach((btn) => {
+                        hasInterviewButtons = true;
+                        const row = interviews.find((i) => i.id === btn.getAttribute('data-select-interview'));
+                        const matchQ = !q || `${row?.applicant || ''} ${row?.interviewer || ''}`.toLowerCase().includes(q);
+                        const matchJob = !job || row?.job_id === job;
+                        const matchDept = !dept || row?.department === dept;
+                        const show = Boolean(row) && matchQ && matchJob && matchDept;
+                        const li = btn.closest('li');
+                        if (li) {
+                            li.classList.toggle('hidden', !show);
+                            li.hidden = !show;
+                        }
+                        if (show) visible += 1;
+                    });
+                    if (emptyEl) {
+                        emptyEl.classList.toggle('hidden', !hasInterviewButtons || visible > 0 || (!q && !job));
+                    }
+                }
+
+                function renderWeek() {
+                    const week = weeks[weekIndex];
+                    if (!week || !gridEl) return;
+                    if (headingEl) headingEl.textContent = week.label || '';
+                    if (statusEl) {
+                        statusEl.textContent = replacePlaceholders(i18n.week_nav_status, { label: week.label || '' });
+                    }
+                    let interviewCount = 0;
+                    gridEl.innerHTML = (week.days || []).map((day) => {
+                        const slots = Array.isArray(day.slots) ? day.slots : [];
+                        const highlight = day.highlight
+                            ? 'border-hb-blue bg-hb-info-soft/40'
+                            : 'border-hb-border bg-hb-surface';
+                        const slotHtml = slots.length
+                            ? slots.map((slot) => {
+                                if (slot.interview_id) {
+                                    interviewCount += 1;
+                                    return `
+                                        <li>
+                                            <button
+                                                type="button"
+                                                class="w-full rounded-md border border-hb-border bg-hb-page px-2 py-1.5 text-start hover:border-hb-blue"
+                                                data-select-interview="${escapeHtml(slot.interview_id)}"
+                                            >
+                                                <span class="block text-[11px] font-medium text-hb-blue">${escapeHtml(slot.time || '')}</span>
+                                                <span class="mt-0.5 block text-xs text-hb-navy">${escapeHtml(slot.label || '')}</span>
+                                            </button>
+                                        </li>
+                                    `;
+                                }
+                                return `
+                                    <li>
+                                        <p class="rounded-md px-2 py-1.5 text-xs text-hb-muted">
+                                            <span class="font-medium text-hb-text">${escapeHtml(slot.time || '')}</span>
+                                            · ${escapeHtml(slot.label || '')}
+                                        </p>
+                                    </li>
+                                `;
+                            }).join('')
+                            : `<li class="text-xs text-hb-muted">${escapeHtml(i18n.empty_day || '')}</li>`;
+                        return `
+                            <div class="rounded-lg border px-2 py-3 text-sm ${highlight}" data-cal-day="${escapeHtml(day.key || '')}">
+                                <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">${escapeHtml(day.label || '')}</p>
+                                <ul class="mt-2 space-y-2">${slotHtml}</ul>
+                            </div>
+                        `;
+                    }).join('');
+
+                    if (weekEmptyEl) {
+                        const showEmpty = interviewCount === 0;
+                        weekEmptyEl.textContent = showEmpty ? (i18n.empty_week || '') : '';
+                        weekEmptyEl.classList.toggle('hidden', !showEmpty);
+                    }
+
+                    gridEl.querySelectorAll('[data-select-interview]').forEach((btn) => {
+                        btn.addEventListener('click', () => renderSelected(btn.getAttribute('data-select-interview')));
+                    });
+                    applyFilters();
+                }
 
                 [qInput, jobSelect, deptSelect].forEach((el) => {
                     el?.addEventListener('input', applyFilters);
@@ -268,24 +335,46 @@
                     applyFilters();
                 });
 
-                root.querySelectorAll('[data-week-nav], [data-week-today]').forEach((btn) => {
-                    btn.addEventListener('click', () => {
-                        if (statusEl) {
-                            statusEl.textContent = replacePlaceholders(i18n.week_nav_status, { label: weekLabel });
-                            statusEl.classList.remove('hidden');
-                        }
-                    });
+                root.querySelector('[data-week-nav="prev"]')?.addEventListener('click', () => {
+                    if (weekIndex <= 0) return;
+                    weekIndex -= 1;
+                    renderWeek();
+                });
+                root.querySelector('[data-week-nav="next"]')?.addEventListener('click', () => {
+                    if (weekIndex >= weeks.length - 1) return;
+                    weekIndex += 1;
+                    renderWeek();
+                });
+                root.querySelector('[data-week-today]')?.addEventListener('click', () => {
+                    const idx = weeks.findIndex((week) => week.id === currentWeekId || week.is_current);
+                    weekIndex = idx >= 0 ? idx : 0;
+                    renderWeek();
                 });
 
-                root.querySelector('[data-reschedule]')?.addEventListener('click', () => {
+                root.querySelector('[data-reschedule]')?.addEventListener('click', (event) => {
+                    const link = event.currentTarget;
+                    const applicantId = link.getAttribute('data-applicant-id')
+                        || interviews.find((row) => row.id === selectedId)?.applicant_id
+                        || '';
+                    if (!applicantId) {
+                        event.preventDefault();
+                        const feedback = root.querySelector('[data-reschedule-feedback]');
+                        if (feedback) {
+                            feedback.textContent = i18n.reschedule_missing || '';
+                            feedback.classList.remove('hidden');
+                        }
+                        return;
+                    }
+                    link.setAttribute('href', scheduleUrl(applicantId));
                     const feedback = root.querySelector('[data-reschedule-feedback]');
                     if (feedback) {
-                        feedback.textContent = i18n.reschedule_feedback || '';
+                        feedback.textContent = i18n.reschedule_preview || '';
                         feedback.classList.remove('hidden');
                     }
                 });
 
-                applyFilters();
+                renderWeek();
+                if (selectedId) renderSelected(selectedId);
             })();
         </script>
     @endpush

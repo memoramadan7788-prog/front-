@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $pageTitle ?? __('candidate.offers.detail_page_title'))
-@section('breadcrumb', '24 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.applications'))
+@section('breadcrumb', __('candidate.workspace') . ' / ' . __('navigation.candidate.offers'))
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.offers.offer_from', ['company' => $offer['company']]) }}</h1>

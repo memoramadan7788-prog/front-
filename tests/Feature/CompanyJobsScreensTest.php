@@ -10,7 +10,9 @@ class CompanyJobsScreensTest extends TestCase
     {
         $this->get(route('company.jobs.index'))
             ->assertOk()
-            ->assertSee('26 / Company workspace / Jobs &amp; requisitions', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Jobs &amp; requisitions', false)
+            ->assertDontSee('26 / Company workspace', false)
             ->assertSee('Jobs &amp; requisitions', false)
             ->assertSee('Manage ownership, publication, and hiring progress across Northstar Labs.', false)
             ->assertSee('Create job', false)
@@ -33,9 +35,11 @@ class CompanyJobsScreensTest extends TestCase
 
     public function test_company_job_create_matches_frame_twenty_seven(): void
     {
-        $this->get(route('company.jobs.create'))
+        $this->get(route('company.jobs.create', ['job' => 'ns-207']))
             ->assertOk()
-            ->assertSee('27 / Company workspace / Jobs &amp; requisitions', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Jobs &amp; requisitions', false)
+            ->assertDontSee('27 / Company workspace', false)
             ->assertSee('Create a job', false)
             ->assertSee('NS-207', false)
             ->assertSee('Customer Success Manager', false)
@@ -51,15 +55,56 @@ class CompanyJobsScreensTest extends TestCase
             ->assertSee('Save draft', false)
             ->assertSee('Continue to review', false)
             ->assertSee('Publish job', false)
+            ->assertSee('hb_company_job_draft_ns-207', false)
             ->assertDontSee('Frontend UI only', false)
             ->assertDontSee('Job published successfully', false);
+    }
+
+    public function test_company_job_create_without_job_starts_new_draft(): void
+    {
+        $this->get(route('company.jobs.create'))
+            ->assertOk()
+            ->assertSee('Create a job', false)
+            ->assertSee('hb_company_job_draft_new', false)
+            ->assertSee('Role details', false)
+            ->assertDontSee('Job published successfully', false);
+    }
+
+    public function test_continue_editing_preserves_draft_job_context(): void
+    {
+        $this->get(route('company.jobs.index'))
+            ->assertOk()
+            ->assertSee(route('company.jobs.create', ['job' => 'ns-207']), false);
+
+        $this->get(route('company.jobs.show', 'ns-207'))
+            ->assertOk()
+            ->assertSee(route('company.jobs.create', ['job' => 'ns-207']), false);
+
+        $this->get(route('company.jobs.create', ['job' => 'unknown-job']))
+            ->assertNotFound();
+    }
+
+    public function test_jobs_pipeline_column_links_to_applicants(): void
+    {
+        $this->get(route('company.jobs.index'))
+            ->assertOk()
+            ->assertSee(route('company.applicants.index'), false)
+            ->assertSee('pipelineUrl', false);
+
+        $this->get(route('company.jobs.show', 'ns-204'))
+            ->assertOk()
+            ->assertSee(route('company.applicants.show', 'maya-chen'), false)
+            ->assertSee(route('company.applicants.show', 'ethan-cole'), false)
+            ->assertSee('/company/applicants?job=ns-204&amp;stage=Interview', false);
     }
 
     public function test_company_job_show_matches_frame_twenty_eight(): void
     {
         $this->get(route('company.jobs.show', 'ns-204'))
             ->assertOk()
-            ->assertSee('28 / Company workspace / Jobs &amp; requisitions', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Jobs &amp; requisitions', false)
+            ->assertDontSee('28 / Company workspace', false)
             ->assertSee('Senior Product Designer', false)
             ->assertSee('NS-204', false)
             ->assertSee('Product &amp; Design', false)

@@ -219,7 +219,7 @@
                 <p class="mt-3 text-sm font-semibold text-hb-navy" data-manage-name></p>
                 <div class="mt-5 flex flex-wrap justify-end gap-2">
                     <button type="button" class="hb-btn-outline" data-close-manage>{{ __('company.employees.modal_close') }}</button>
-                    <a href="#" class="hb-btn-outline" data-manage-details>{{ __('company.employees.view_profile') }}</a>
+                    <a href="{{ route('company.employees.index') }}" class="hb-btn-outline hidden" data-manage-details hidden>{{ __('company.employees.view_profile') }}</a>
                     <button type="button" class="hb-btn-primary" data-confirm-remove>{{ __('company.employees.remove_access') }}</button>
                 </div>
             </div>
@@ -390,7 +390,15 @@
                         const nameEl = root.querySelector('[data-manage-name]');
                         if (nameEl) nameEl.textContent = name;
                         const details = root.querySelector('[data-manage-details]');
-                        if (details) details.setAttribute('href', `${showBase}/${id}`);
+                        if (details && id) {
+                            details.setAttribute('href', `${showBase}/${encodeURIComponent(id)}`);
+                            details.classList.remove('hidden');
+                            details.hidden = false;
+                        } else if (details) {
+                            details.removeAttribute('href');
+                            details.classList.add('hidden');
+                            details.hidden = true;
+                        }
                         openModal(manageModal);
                         return;
                     }

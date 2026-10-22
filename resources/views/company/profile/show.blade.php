@@ -326,6 +326,28 @@
 @push('scripts')
     <script>
         (() => {
+            const storageKey = 'hb_company_profile_draft_v1';
+            try {
+                const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+                if (saved && typeof saved === 'object') {
+                    Object.entries(saved).forEach(([formKey, values]) => {
+                        const form = document.querySelector(`[data-company-profile-form="${formKey}"]`);
+                        if (!form || !values) return;
+                        Object.entries(values).forEach(([name, value]) => {
+                            const field = form.elements.namedItem(name);
+                            if (!field || !('value' in field) || field.type === 'file') return;
+                            if (field.type === 'checkbox') {
+                                field.checked = value === '1' || value === true;
+                            } else {
+                                field.value = value;
+                            }
+                        });
+                    });
+                }
+            } catch (e) {
+                // Ignore private-mode failures.
+            }
+
             document.querySelectorAll('[data-company-profile-save]').forEach((button) => {
                 button.addEventListener('click', () => {
                     const key = button.getAttribute('data-company-profile-save');
@@ -333,6 +355,20 @@
                     const note = document.querySelector(`[data-company-profile-note="${key}"]`);
                     if (form && typeof form.reportValidity === 'function' && !form.reportValidity()) {
                         return;
+                    }
+                    if (form) {
+                        const values = {};
+                        [...form.elements].forEach((field) => {
+                            if (!field.name || field.type === 'file') return;
+                            values[field.name] = field.type === 'checkbox' ? (field.checked ? '1' : '0') : field.value;
+                        });
+                        try {
+                            const existing = JSON.parse(localStorage.getItem(storageKey) || '{}') || {};
+                            existing[key] = values;
+                            localStorage.setItem(storageKey, JSON.stringify(existing));
+                        } catch (e) {
+                            // Ignore.
+                        }
                     }
                     if (note) {
                         note.classList.remove('hidden');

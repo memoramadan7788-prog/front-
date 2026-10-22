@@ -34,16 +34,24 @@
     @stack('head')
 </head>
 <body class="min-h-screen bg-hb-page text-hb-text">
-    {{-- Mobile sidebar drawer --}}
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-hb-blue focus:px-3 focus:py-2 focus:text-white">
+        {{ __('common.skip_to_content') }}
+    </a>
+
+    {{-- Mobile sidebar drawer (closed: inert + aria-hidden via JS; pointer-events none in CSS) --}}
     <div
         class="fixed inset-0 z-40 hidden bg-hb-navy/40 lg:hidden"
         data-mobile-sidebar-backdrop
+        hidden
+        aria-hidden="true"
     ></div>
     <aside
         id="mobile-sidebar-drawer"
         class="fixed inset-y-0 start-0 z-50 flex w-56 -translate-x-full flex-col bg-hb-sidebar text-white transition-transform duration-200 rtl:translate-x-full lg:hidden"
         data-mobile-sidebar
         aria-label="{{ __('navigation.workspace') }}"
+        aria-hidden="true"
+        inert
     >
         <div class="flex h-[72px] items-center justify-between border-b border-white/10 px-5">
             <div class="flex items-center gap-2.5">
@@ -84,12 +92,13 @@
         <div class="flex min-w-0 flex-1 flex-col">
             @include('partials.topbar')
 
-            <main id="main-content" class="flex-1">
+            <main id="main-content" class="flex-1" tabindex="-1">
                 <div class="px-4 py-6 sm:px-6 lg:px-8">
                     @hasSection('breadcrumb')
-                        <p class="mb-2 text-xs font-medium tracking-wide text-hb-muted uppercase">
-                            @yield('breadcrumb')
-                        </p>
+                        @include('partials.breadcrumb', [
+                            'breadcrumb' => trim($__env->yieldContent('breadcrumb')),
+                            'uiRole' => $uiRole,
+                        ])
                     @endif
 
                     @hasSection('page_header')

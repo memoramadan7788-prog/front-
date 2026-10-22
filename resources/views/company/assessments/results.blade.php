@@ -42,7 +42,15 @@
                     <tbody class="divide-y divide-hb-border">
                         @foreach ($assessment['results'] as $row)
                             <tr>
-                                <th scope="row" class="px-5 py-3 text-start font-semibold text-hb-navy">{{ $row['candidate'] }}</th>
+                                <th scope="row" class="px-5 py-3 text-start font-semibold text-hb-navy">
+                                    @if (! empty($row['candidate_id']))
+                                        <a href="{{ route('company.applicants.show', $row['candidate_id']) }}" class="text-hb-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">
+                                            {{ $row['candidate'] }}
+                                        </a>
+                                    @else
+                                        {{ $row['candidate'] }}
+                                    @endif
+                                </th>
                                 <td class="px-5 py-3 text-hb-text" dir="ltr">{{ $row['score'] }}%</td>
                                 <td class="px-5 py-3 text-hb-text" dir="ltr">{{ $row['attempt'] }}</td>
                                 <td class="px-5 py-3 text-hb-text">{{ $row['completed_at'] }}</td>

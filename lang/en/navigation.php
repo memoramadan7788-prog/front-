@@ -58,4 +58,5 @@ return [
     ],
     'pending_route' => 'Pending — route not available yet',
     'workspace_switcher' => 'Workspace switcher (pending)',
+    'breadcrumb' => 'Breadcrumb',
 ];

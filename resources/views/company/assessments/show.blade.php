@@ -72,7 +72,13 @@
                     <ul class="divide-y divide-hb-border">
                         @foreach ($assessment['assignees'] as $assignee)
                             <li class="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
-                                <span class="font-semibold text-hb-navy">{{ $assignee['name'] }}</span>
+                                @if (! empty($assignee['id']))
+                                    <a href="{{ route('company.applicants.show', $assignee['id']) }}" class="font-semibold text-hb-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">
+                                        {{ $assignee['name'] }}
+                                    </a>
+                                @else
+                                    <span class="font-semibold text-hb-navy">{{ $assignee['name'] }}</span>
+                                @endif
                                 <span class="text-hb-muted">
                                     {{ $assignee['status'] }}
                                     @if ($assignee['score'] !== null)

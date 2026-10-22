@@ -30,13 +30,13 @@
             <a href="{{ route('jobs.show', $job['id']) }}" class="hb-btn-primary" target="_blank" rel="noopener noreferrer">
                 {{ __('company.jobs.view_public_job') }}
             </a>
-            <a href="{{ route('company.jobs.create') }}" class="hb-btn-outline">{{ __('company.jobs.edit_job') }}</a>
+            <a href="{{ route('company.jobs.create', ['job' => $job['id']]) }}" class="hb-btn-outline">{{ __('company.jobs.edit_job') }}</a>
         @elseif (($job['status_key'] ?? '') === 'draft')
-            <a href="{{ route('company.jobs.create') }}" class="hb-btn-primary">{{ __('company.jobs.continue_editing') }}</a>
+            <a href="{{ route('company.jobs.create', ['job' => $job['id']]) }}" class="hb-btn-primary">{{ __('company.jobs.continue_editing') }}</a>
             <a href="{{ route('company.jobs.index') }}" class="hb-btn-outline">{{ __('company.jobs.all_jobs') }}</a>
         @else
             <a href="{{ route('company.jobs.index') }}" class="hb-btn-outline">{{ __('company.jobs.all_jobs') }}</a>
-            <a href="{{ route('company.jobs.create') }}" class="hb-btn-outline">{{ __('company.jobs.edit_job') }}</a>
+            <a href="{{ route('company.jobs.create', ['job' => $job['id']]) }}" class="hb-btn-outline">{{ __('company.jobs.edit_job') }}</a>
         @endif
     </div>
 @endsection
@@ -69,11 +69,16 @@
             @if (! empty($job['stat_cards']))
                 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     @foreach ($job['stat_cards'] as $card)
-                        <div class="hb-surface p-5">
+                        @php
+                            $stageHref = ! empty($card['stage'])
+                                ? route('company.applicants.index', ['job' => $job['id'], 'stage' => $card['stage']])
+                                : route('company.applicants.index', ['job' => $job['id']]);
+                        @endphp
+                        <a href="{{ $stageHref }}" class="hb-surface block p-5 transition hover:border-hb-blue/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">
                             <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ $card['label'] }}</p>
                             <p class="mt-2 text-3xl font-semibold tracking-tight text-hb-navy">{{ $card['value'] }}</p>
                             <p class="mt-2 text-sm text-hb-muted">{{ $card['meta'] }}</p>
-                        </div>
+                        </a>
                     @endforeach
                     @if (! empty($job['offer_hired']))
                         <div class="hb-surface p-5">
@@ -102,8 +107,24 @@
                                 <tbody class="divide-y divide-hb-border">
                                     @foreach ($job['forward_rows'] ?? [] as $row)
                                         <tr>
-                                            <td class="py-3 pe-4 font-semibold text-hb-navy">{{ $row['candidate'] }}</td>
-                                            <td class="py-3 pe-4 text-hb-muted">{{ $row['stage'] }}</td>
+                                            <td class="py-3 pe-4 font-semibold text-hb-navy">
+                                                @if (! empty($row['applicant_id']))
+                                                    <a href="{{ route('company.applicants.show', $row['applicant_id']) }}" class="text-hb-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">
+                                                        {{ $row['candidate'] }}
+                                                    </a>
+                                                @else
+                                                    {{ $row['candidate'] }}
+                                                @endif
+                                            </td>
+                                            <td class="py-3 pe-4 text-hb-muted">
+                                                @if (! empty($row['stage']))
+                                                    <a href="{{ route('company.applicants.index', ['job' => $job['id'], 'stage' => $row['stage']]) }}" class="hover:text-hb-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">
+                                                        {{ $row['stage'] }}
+                                                    </a>
+                                                @else
+                                                    {{ $row['stage'] }}
+                                                @endif
+                                            </td>
                                             <td class="py-3 text-hb-text">{{ $row['next'] }}</td>
                                         </tr>
                                     @endforeach
@@ -184,9 +205,14 @@
                 @if (! empty($job['stages']))
                     <ul class="mt-6 grid gap-3 sm:grid-cols-5">
                         @foreach ($job['stages'] as $stage)
-                            <li class="rounded-lg border border-hb-border bg-hb-page px-3 py-4 text-center">
-                                <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ $stage['label'] }}</p>
-                                <p class="mt-1 text-2xl font-semibold text-hb-navy">{{ $stage['count'] }}</p>
+                            <li>
+                                <a
+                                    href="{{ route('company.applicants.index', ['job' => $job['id'], 'stage' => $stage['key'] ?? $stage['label']]) }}"
+                                    class="block rounded-lg border border-hb-border bg-hb-page px-3 py-4 text-center transition hover:border-hb-blue/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40"
+                                >
+                                    <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ $stage['label'] }}</p>
+                                    <p class="mt-1 text-2xl font-semibold text-hb-navy">{{ $stage['count'] }}</p>
+                                </a>
                             </li>
                         @endforeach
                     </ul>

@@ -30,10 +30,10 @@
                 {{ __('auth.forgot.submit') }}
             </button>
 
-            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status">
+            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status" tabindex="-1">
                 <p>{{ __('auth.forgot.note') }}</p>
                 <p class="mt-2">
-                    <a href="{{ route('password.reset', ['email' => 'maya.chen@example.com']) }}" class="font-semibold text-hb-blue hover:underline">
+                    <a href="{{ route('password.reset', ['email' => 'maya.chen@example.com']) }}" class="font-semibold text-hb-blue hover:underline" data-forgot-continue>
                         {{ __('auth.forgot.continue_reset') }}
                     </a>
                 </p>

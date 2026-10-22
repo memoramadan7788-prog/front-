@@ -176,3 +176,66 @@
         @apply mt-1.5 text-xs font-medium text-hb-error;
     }
 }
+
+/*
+ | Sticky workspace (72px) and public (88px) headers intercept in-view scroll
+ | targets unless scroll-padding accounts for them. Keep clickable controls clear.
+ */
+html {
+    scroll-padding-top: 5.5rem;
+}
+
+body:has(> header.sticky) {
+    scroll-padding-top: 7rem;
+}
+
+#main-content :is(a, button, [role='tab'], [data-select-interview], [data-save-job], [data-public-apply]) {
+    scroll-margin-top: 5.5rem;
+}
+
+/*
+ | Inline anchors inside padded table cells report a tall line-box that is larger
+ | than the painted text; center clicks miss the <a> and hit the <td>. Prefer
+ | .hb-link-hit on critical table/action links for a reliable flex hit box.
+ */
+.hb-link-hit {
+    display: inline-flex;
+    max-width: 100%;
+    min-height: 2.5rem;
+    align-items: center;
+}
+
+body:has(> header.sticky) #main-content :is(a, button, [role='tab'], [data-public-apply], [data-save-job]) {
+    scroll-margin-top: 7rem;
+}
+
+/* Closed off-canvas panels must not intercept pointer/keyboard or linger in a11y. */
+[data-mobile-sidebar]:not(.is-open),
+[data-jobs-filters]:not(.is-open) {
+    pointer-events: none;
+    visibility: hidden;
+}
+
+[data-mobile-sidebar].is-open,
+[data-jobs-filters].is-open {
+    visibility: visible;
+}
+
+@media (min-width: 1024px) {
+    /* Desktop filter rail is always visible — restore interaction. */
+    [data-jobs-filters] {
+        pointer-events: auto;
+        visibility: visible;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

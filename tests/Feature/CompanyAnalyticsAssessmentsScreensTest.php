@@ -11,7 +11,9 @@ class CompanyAnalyticsAssessmentsScreensTest extends TestCase
     {
         $this->get(route('company.analytics.index'))
             ->assertOk()
-            ->assertSee('38 / Company workspace / Hiring analytics', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Hiring analytics', false)
+            ->assertDontSee('38 / Company workspace', false)
             ->assertSee('Hiring analytics', false)
             ->assertSee('Northstar Labs · Current cohort for open requisitions', false)
             ->assertSee('Export report', false)
@@ -56,12 +58,15 @@ class CompanyAnalyticsAssessmentsScreensTest extends TestCase
             ->assertOk()
             ->assertSee('Design systems practical', false)
             ->assertSee('Maya Chen', false)
-            ->assertSee('Ethan Cole', false);
+            ->assertSee('Ethan Cole', false)
+            ->assertSee(route('company.applicants.show', 'maya-chen'), false)
+            ->assertSee(route('company.applicants.show', 'ethan-cole'), false);
 
         $this->get(route('company.assessments.results', 'exam-ns204-systems'))
             ->assertOk()
             ->assertSee('Ethan Cole', false)
-            ->assertSee('82%', false);
+            ->assertSee('82%', false)
+            ->assertSee(route('company.applicants.show', 'ethan-cole'), false);
 
         $this->get(route('company.assessments.show', 'missing-assessment'))
             ->assertNotFound();

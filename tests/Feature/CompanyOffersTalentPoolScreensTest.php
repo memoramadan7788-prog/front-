@@ -11,7 +11,9 @@ class CompanyOffersTalentPoolScreensTest extends TestCase
     {
         $this->get(route('company.offers.create'))
             ->assertOk()
-            ->assertSee('35 / Company workspace / Applicants', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Applicants', false)
+            ->assertDontSee('35 / Company workspace', false)
             ->assertSee('Create offer · Ethan Cole', false)
             ->assertSee('OF-2026-021', false)
             ->assertSee('NS-204', false)
@@ -51,13 +53,16 @@ class CompanyOffersTalentPoolScreensTest extends TestCase
     {
         $this->get(route('company.talent-pool.index'))
             ->assertOk()
-            ->assertSee('36 / Company workspace / Talent pool', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Talent pool', false)
+            ->assertDontSee('36 / Company workspace', false)
             ->assertSee('Talent pool', false)
             ->assertSee('Only consented prospects appear here', false)
             ->assertSee('Add prospect', false)
-            ->assertSee('All prospects (18)', false)
-            ->assertSee('Product &amp; Design (7)', false)
-            ->assertSee('Engineering (8)', false)
+            ->assertSee('All prospects (10)', false)
+            ->assertSee('Product &amp; Design (4)', false)
+            ->assertSee('Engineering (4)', false)
+            ->assertSee('Other (2)', false)
             ->assertSee('Search name, skill, or tag', false)
             ->assertSee('All relationships', false)
             ->assertSee('All sources', false)
@@ -95,7 +100,19 @@ class CompanyOffersTalentPoolScreensTest extends TestCase
 
         $this->get(route('company.applicants.show', 'ethan-cole'))
             ->assertOk()
-            ->assertSee(route('company.offers.create', ['applicant' => 'ethan-cole']), false);
+            ->assertSee(route('company.offers.create', ['offer' => 'of-2026-021']), false)
+            ->assertSee(route('company.evaluations.show', 'eval-ethan-cole'), false);
+
+        $this->get(route('company.offers.create', ['offer' => 'of-2026-021']))
+            ->assertOk()
+            ->assertSee(route('company.evaluations.show', 'eval-ethan-cole'), false)
+            ->assertSee(route('company.applicants.show', 'ethan-cole'), false);
+
+        $this->get(route('company.applicants.show', 'maya-chen'))
+            ->assertOk()
+            ->assertDontSee(route('company.evaluations.show', 'eval-ethan-cole'), false)
+            ->assertDontSee(route('company.offers.create', ['offer' => 'of-2026-021']), false)
+            ->assertSee(route('company.interviews.show', 'int-ns204-portfolio'), false);
     }
 
     public function test_arabic_offer_and_talent_pool_render(): void

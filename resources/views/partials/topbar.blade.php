@@ -14,9 +14,14 @@
         },
     ];
     $profilePanelId = 'profile-menu-panel';
+    $profileRoute = match ($uiRole ?? 'candidate') {
+        'company' => Route::has('company.profile') ? 'company.profile' : null,
+        'candidate' => Route::has('candidate.profile') ? 'candidate.profile' : null,
+        default => null,
+    };
 @endphp
 
-<header class="sticky top-0 z-30 flex h-[72px] items-center justify-between gap-4 border-b border-hb-border bg-hb-surface px-4 sm:px-6 lg:px-8">
+<header class="sticky top-0 z-30 flex h-[72px] items-center justify-between gap-4 border-b border-hb-border bg-hb-surface px-4 sm:px-6 lg:px-8 isolate">
     <div class="flex min-w-0 flex-1 items-center gap-3">
         <button
             type="button"
@@ -40,20 +45,17 @@
                 type="search"
                 name="q"
                 placeholder="{{ __('common.search_placeholder') }}"
-                class="w-full rounded-lg border border-hb-border bg-hb-page py-2.5 ps-9 pe-14 text-sm text-hb-text placeholder:text-hb-muted focus:border-hb-blue focus:bg-hb-surface"
+                class="w-full rounded-lg border border-hb-border bg-hb-page py-2.5 ps-9 pe-3 text-sm text-hb-text placeholder:text-hb-muted focus:border-hb-blue focus:bg-hb-surface"
                 autocomplete="off"
                 aria-describedby="search-contract-note"
+                readonly
+                title="{{ __('common.search_preview_note') }}"
             >
-            <kbd class="pointer-events-none absolute inset-y-0 end-3 my-auto hidden h-6 items-center rounded border border-hb-border bg-hb-surface px-1.5 text-[10px] font-medium text-hb-muted sm:inline-flex">⌘ K</kbd>
         </label>
-        <p id="search-contract-note" class="sr-only">{{ __('common.search_label') }}</p>
+        <p id="search-contract-note" class="sr-only">{{ __('common.search_preview_note') }}</p>
     </div>
 
     <div class="flex items-center gap-1 sm:gap-2">
-        <a href="#" class="hidden rounded-lg px-2 py-2 text-sm font-medium text-hb-muted hover:bg-hb-page hover:text-hb-text md:inline-flex" onclick="return false;">
-            {{ __('common.help') }}
-        </a>
-
         @include('partials.theme-switch')
         @include('partials.language-switch')
         @include('partials.notifications-dropdown')
@@ -61,7 +63,7 @@
         <div class="relative">
             <button
                 type="button"
-                class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-hb-page"
+                class="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-hb-page focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40"
                 data-dropdown-trigger
                 aria-haspopup="true"
                 aria-expanded="false"
@@ -88,12 +90,27 @@
                 </div>
                 <ul class="py-1 text-sm">
                     <li>
-                        <span class="block cursor-not-allowed px-4 py-2 text-hb-muted" role="menuitem" aria-disabled="true">
-                            {{ __('common.profile_settings') }} <span class="text-[10px] uppercase">{{ __('common.soon') }}</span>
-                        </span>
+                        @if ($profileRoute)
+                            <a
+                                href="{{ route($profileRoute) }}"
+                                class="block px-4 py-2 text-hb-text hover:bg-hb-page focus-visible:bg-hb-page focus-visible:outline-none"
+                                role="menuitem"
+                            >
+                                {{ __('common.profile_settings') }}
+                            </a>
+                        @else
+                            <span class="block cursor-not-allowed px-4 py-2 text-hb-muted" role="menuitem" aria-disabled="true">
+                                {{ __('common.profile_settings') }} <span class="text-[10px] uppercase">{{ __('common.soon') }}</span>
+                            </span>
+                        @endif
                     </li>
                     <li>
-                        <span class="block cursor-not-allowed px-4 py-2 text-hb-muted" role="menuitem" aria-disabled="true">
+                        <span
+                            class="block cursor-not-allowed px-4 py-2 text-hb-muted"
+                            role="menuitem"
+                            aria-disabled="true"
+                            title="{{ __('common.sign_out_unavailable') }}"
+                        >
                             {{ __('common.sign_out') }} <span class="text-[10px] uppercase">{{ __('common.soon') }}</span>
                         </span>
                     </li>

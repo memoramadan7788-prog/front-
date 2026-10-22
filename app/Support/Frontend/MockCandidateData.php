@@ -95,19 +95,24 @@ class MockCandidateData
                     'label' => 'Active applications',
                     'value' => '4',
                     'meta' => '1 offer · 1 interview · 1 screening · 1 applied',
+                    'href' => 'candidate.applications.index',
                 ],
                 [
                     'label' => 'Saved roles',
                     'value' => '3',
                     'meta' => '2 new updates this week',
+                    'href' => 'candidate.jobs.saved',
+                    'count_attr' => 'data-saved-count',
                 ],
                 [
                     'label' => 'Profile strength',
                     'value' => $profile['strength'].'%',
                     'meta' => 'Add a case study to finish your profile',
+                    'href' => 'candidate.profile',
                 ],
             ],
             'interview' => [
+                'id' => 'int-ns204-portfolio',
                 'title' => 'Portfolio interview',
                 'company' => 'Northstar Labs',
                 'role' => 'Senior Product Designer',
@@ -437,6 +442,8 @@ class MockCandidateData
             [
                 'id' => 'hb-ns204-mc-1012',
                 'job_id' => 'ns-204',
+                'message_thread_id' => 'msg-olivia-ns204',
+                'interview_id' => 'int-ns204-portfolio',
                 'reference' => 'HB-NS204-MC-1012',
                 'title' => 'Senior Product Designer',
                 'company' => 'Northstar Labs',
@@ -489,6 +496,8 @@ class MockCandidateData
             [
                 'id' => 'hb-ms108-mc-1019',
                 'job_id' => 'ms-108',
+                'message_thread_id' => 'msg-jamie-ms108',
+                'offer_id' => 'offer-ms108',
                 'reference' => 'HB-MS108-MC-1019',
                 'title' => 'Lead Product Designer',
                 'company' => 'Meridian Studio',
@@ -531,6 +540,7 @@ class MockCandidateData
             [
                 'id' => 'hb-ah312-mc-1018',
                 'job_id' => 'ah-312',
+                'message_thread_id' => 'msg-sam-ah312',
                 'reference' => 'HB-AH312-MC-1018',
                 'title' => 'Senior UX Designer',
                 'company' => 'Atlas Health',
@@ -679,7 +689,21 @@ class MockCandidateData
     {
         $profile = self::profile();
         $jobId = $jobId ?: 'ns-204';
-        $job = self::job($jobId) ?? self::job('ns-204');
+        $job = self::job($jobId);
+
+        if ($job === null) {
+            $public = MockPublicData::job($jobId);
+            if (is_array($public)) {
+                $location = (string) ($public['location'] ?? '');
+                $job = array_merge($public, [
+                    'location_short' => trim(explode(',', $location)[0] ?: $location),
+                ]);
+            }
+        }
+
+        $job = $job ?? self::job('ns-204');
+        $company = $job['company'] ?? 'Northstar Labs';
+        $locationShort = $job['location_short'] ?? 'Austin';
 
         return [
             'job' => $job,
@@ -691,7 +715,7 @@ class MockCandidateData
                 'headline' => $profile['headline'],
                 'location_short' => $profile['location_short'],
             ],
-            'journey_banner' => 'You started this application on October 12, 2026. Complete the steps below to finish applying to Northstar Labs.',
+            'journey_banner' => 'Complete the steps below to finish applying to '.$company.'. This is a presentation preview — nothing is submitted yet.',
             'steps' => [
                 ['label' => 'Your profile'],
                 ['label' => 'Screening questions'],
@@ -706,7 +730,7 @@ class MockCandidateData
             ],
             'defaults' => [
                 'hybrid' => 'Yes · Two office days per week',
-                'interest' => 'I’m drawn to operational tools and SaaS products where design systems and discovery shape complex workflows. Northstar’s product focus and hybrid Austin setup match how I like to collaborate.',
+                'interest' => 'I’m drawn to operational tools and SaaS products where design systems and discovery shape complex workflows. '.$company.'’s product focus and hybrid setup match how I like to collaborate.',
                 'salary' => '$155,000 – $165,000',
                 'consent' => true,
                 'talent_pool' => false,
@@ -714,14 +738,14 @@ class MockCandidateData
             'role_summary' => [
                 'source' => $job['source'] ?? 'Direct hire',
                 'title' => $job['title'] ?? 'Senior Product Designer',
-                'company' => $job['company'] ?? 'Northstar Labs',
+                'company' => $company,
                 'code' => $job['code'] ?? 'NS-204',
-                'meta' => ($job['location_short'] ?? 'Austin').' '.strtolower($job['work_model'] ?? 'hybrid').' · '.($job['employment'] ?? 'Full-time'),
+                'meta' => $locationShort.' '.strtolower($job['work_model'] ?? 'hybrid').' · '.($job['employment'] ?? 'Full-time'),
                 'salary' => ($job['salary_label'] ?? '$140k–$170k').' USD',
-                'hiring_contact' => 'Olivia Bennett',
+                'hiring_contact' => $job['hiring_contact'] ?? 'Olivia Bennett',
                 'team' => $job['discipline'] ?? 'Product & Design',
             ],
-            'before_submit' => 'Your resume and portfolio will be shared with the authorized Northstar hiring team for this role. Other applications and private preferences stay confidential.',
+            'before_submit' => 'Your resume and portfolio will be shared with the authorized '.$company.' hiring team for this role. Other applications and private preferences stay confidential.',
             'footer' => $profile['footer'],
         ];
     }

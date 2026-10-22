@@ -10,7 +10,9 @@ class CandidateJobsScreensTest extends TestCase
     {
         $this->get(route('candidate.jobs.index'))
             ->assertOk()
-            ->assertSee('14 / My workspace / Discover jobs', false)
+            ->assertSee('My workspace', false)
+            ->assertSee('Discover jobs', false)
+            ->assertDontSee('14 / My workspace', false)
             ->assertSee('Work that fits your next chapter', false)
             ->assertSee('Recommendations based on your design experience', false)
             ->assertSee('Edit preferences', false)
@@ -45,7 +47,9 @@ class CandidateJobsScreensTest extends TestCase
     {
         $this->get(route('candidate.jobs.saved'))
             ->assertOk()
-            ->assertSee('15 / My workspace / Saved jobs', false)
+            ->assertSee('My workspace', false)
+            ->assertSee('Saved jobs', false)
+            ->assertDontSee('15 / My workspace', false)
             ->assertSee('A considered shortlist', false)
             ->assertSee('Discover more roles', false)
             ->assertSee('Search saved roles', false)

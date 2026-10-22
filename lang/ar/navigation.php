@@ -58,4 +58,5 @@ return [
     ],
     'pending_route' => 'قريبًا — المسار غير متاح بعد',
     'workspace_switcher' => 'تبديل مساحة العمل (قريبًا)',
+    'breadcrumb' => 'مسار التنقل',
 ];

@@ -3,8 +3,7 @@
 @section('title', $pageTitle ?? __('public.jobs.index_page_title'))
 
 @section('content')
-    {{-- Figma 02 · All Jobs (8:31300) --}}
-    <section class="bg-hb-page" data-jobs-directory>
+    <section class="bg-hb-page" data-jobs-directory data-page-size="5">
         <div class="hb-container py-10 lg:py-14">
             <p class="text-xs font-semibold tracking-[0.12em] text-hb-muted uppercase">{{ __('public.jobs.index_eyebrow') }}</p>
             <div class="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -14,35 +13,63 @@
                         {{ __('public.jobs.index_intro') }}
                     </p>
                 </div>
-                <span class="rounded-full bg-hb-pending-soft px-3 py-1 text-[10px] font-semibold tracking-wide text-hb-pending uppercase">
-                    {{ __('public.jobs.open_roles_badge') }}
-                </span>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        class="hb-btn-outline lg:hidden"
+                        data-jobs-filters-open
+                        aria-controls="jobs-filters-panel"
+                        aria-expanded="false"
+                    >
+                        {{ __('public.jobs.filters_open') }}
+                    </button>
+                    <span class="rounded-full bg-hb-pending-soft px-3 py-1 text-[10px] font-semibold tracking-wide text-hb-pending uppercase">
+                        {{ __('public.jobs.open_roles_badge') }}
+                    </span>
+                </div>
             </div>
 
-            <div class="mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
-                <aside class="hb-surface h-fit p-5" aria-label="{{ __('public.jobs.refine_aria') }}">
-                    <h2 class="text-sm font-semibold text-hb-navy">{{ __('public.jobs.refine_title') }}</h2>
+            <div
+                class="fixed inset-0 z-40 hidden bg-hb-navy/40 lg:hidden"
+                data-jobs-filters-backdrop
+                hidden
+            ></div>
 
-                    <form id="jobs-filter-form" class="mt-5 space-y-6" onsubmit="return false;">
+            <div class="mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+                <aside
+                    id="jobs-filters-panel"
+                    class="hb-surface fixed inset-y-0 start-0 z-50 h-full w-[min(100%,20rem)] -translate-x-full overflow-y-auto p-5 transition-transform duration-200 ease-out rtl:translate-x-full lg:static lg:z-auto lg:h-fit lg:w-auto lg:translate-x-0 lg:overflow-visible lg:rtl:translate-x-0"
+                    data-jobs-filters
+                    aria-label="{{ __('public.jobs.refine_aria') }}"
+                    aria-hidden="true"
+                    inert
+                >
+                    <div class="mb-4 flex items-center justify-between gap-3 lg:mb-0 lg:block">
+                        <h2 class="text-sm font-semibold text-hb-navy">{{ __('public.jobs.refine_title') }}</h2>
+                        <button type="button" class="hb-btn-ghost lg:hidden" data-jobs-filters-close>
+                            {{ __('public.jobs.filters_close') }}
+                        </button>
+                    </div>
+
+                    <form id="jobs-filter-form" class="mt-5 space-y-6" onsubmit="return false;" data-jobs-filter-form>
                         <div>
                             <label for="filter-q" class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.keyword') }}</label>
                             <input id="filter-q" name="q" type="search" value="{{ request('q') }}" placeholder="Product designer"
-                                   class="mt-2 w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2.5 text-sm">
+                                   class="mt-2 w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2.5 text-sm text-hb-text">
                         </div>
 
                         <div>
                             <label for="filter-location" class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.location') }}</label>
                             <input id="filter-location" name="location" type="text" value="{{ request('location') }}" placeholder="Austin, TX"
-                                   class="mt-2 w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2.5 text-sm">
+                                   class="mt-2 w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2.5 text-sm text-hb-text">
                         </div>
 
                         <fieldset>
                             <legend class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.work_model') }}</legend>
-                            <div class="mt-2 space-y-2 text-sm">
+                            <div class="mt-2 space-y-2 text-sm text-hb-text">
                                 @foreach (['Hybrid', 'Remote', 'On-site'] as $model)
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" name="work_model[]" value="{{ $model }}" class="rounded border-hb-border text-hb-blue"
-                                            @checked(in_array($model, ['Hybrid', 'Remote'], true) && ! request()->has('work_model'))
                                             @checked(is_array(request('work_model')) && in_array($model, request('work_model'), true))>
                                         {{ $model }}
                                     </label>
@@ -52,11 +79,10 @@
 
                         <fieldset>
                             <legend class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.employment') }}</legend>
-                            <div class="mt-2 space-y-2 text-sm">
+                            <div class="mt-2 space-y-2 text-sm text-hb-text">
                                 @foreach (['Full-time', 'Contract'] as $type)
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" name="employment[]" value="{{ $type }}" class="rounded border-hb-border text-hb-blue"
-                                            @checked($type === 'Full-time' && ! request()->has('employment'))
                                             @checked(is_array(request('employment')) && in_array($type, request('employment'), true))>
                                         {{ $type }}
                                     </label>
@@ -67,20 +93,19 @@
                         <div>
                             <label class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.salary_usd') }}</label>
                             <div class="mt-2 grid grid-cols-2 gap-2">
-                                <input id="filter-salary-min" type="number" name="salary_min" value="130000" min="0" step="5000"
-                                       class="w-full rounded-lg border border-hb-border px-3 py-2 text-sm" aria-label="{{ __('public.jobs.salary_min_aria') }}">
-                                <input id="filter-salary-max" type="number" name="salary_max" value="180000" min="0" step="5000"
-                                       class="w-full rounded-lg border border-hb-border px-3 py-2 text-sm" aria-label="{{ __('public.jobs.salary_max_aria') }}">
+                                <input id="filter-salary-min" type="number" name="salary_min" value="{{ request('salary_min') }}" min="0" step="5000"
+                                       class="w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2 text-sm text-hb-text" aria-label="{{ __('public.jobs.salary_min_aria') }}" placeholder="Min">
+                                <input id="filter-salary-max" type="number" name="salary_max" value="{{ request('salary_max') }}" min="0" step="5000"
+                                       class="w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2 text-sm text-hb-text" aria-label="{{ __('public.jobs.salary_max_aria') }}" placeholder="Max">
                             </div>
                         </div>
 
                         <fieldset>
                             <legend class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('public.jobs.discipline') }}</legend>
-                            <div class="mt-2 space-y-2 text-sm">
+                            <div class="mt-2 space-y-2 text-sm text-hb-text">
                                 @foreach (['Product & Design', 'Engineering & Data', 'Marketing & Growth', 'People & Operations'] as $discipline)
                                     <label class="flex items-center gap-2">
                                         <input type="checkbox" name="discipline[]" value="{{ $discipline }}" class="rounded border-hb-border text-hb-blue"
-                                            @checked($discipline === 'Product & Design' && ! request()->filled('discipline'))
                                             @checked(request('discipline') === $discipline || (is_array(request('discipline')) && in_array($discipline, request('discipline'), true)))>
                                         {{ $discipline }}
                                     </label>
@@ -88,26 +113,32 @@
                             </div>
                         </fieldset>
 
-                        <x-button type="button" variant="secondary" class="w-full" data-clear-filters>{{ __('public.jobs.clear_filters') }}</x-button>
+                        <div class="flex flex-col gap-2">
+                            <x-button type="button" variant="secondary" class="w-full" data-clear-filters>{{ __('public.jobs.clear_filters') }}</x-button>
+                            <x-button type="button" variant="primary" class="w-full lg:hidden" data-jobs-filters-apply>{{ __('public.jobs.filters_apply') }}</x-button>
+                        </div>
                     </form>
                 </aside>
 
                 <div>
                     <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <p class="text-sm text-hb-muted">
+                        <p class="text-sm text-hb-muted" aria-live="polite">
                             <span data-jobs-count>{{ count($jobs) }}</span> {{ __('public.jobs.match_count_suffix') }}
                         </p>
                         <label class="text-sm text-hb-muted">
-                            <span class="sr-only">{{ __('common.sort') }}</span>
-                            <select class="rounded-lg border border-hb-border bg-hb-surface px-3 py-2 text-sm text-hb-text" disabled>
-                                <option>{{ __('public.jobs.sort_newest') }}</option>
+                            <span class="sr-only">{{ __('public.jobs.sort_label') }}</span>
+                            <select class="rounded-lg border border-hb-border bg-hb-surface px-3 py-2 text-sm text-hb-text" data-jobs-sort aria-label="{{ __('public.jobs.sort_label') }}">
+                                <option value="relevance">{{ __('public.jobs.sort_relevance') }}</option>
+                                <option value="newest" selected>{{ __('public.jobs.sort_newest') }}</option>
+                                <option value="salary">{{ __('public.jobs.sort_salary') }}</option>
+                                <option value="company">{{ __('public.jobs.sort_company') }}</option>
                             </select>
                         </label>
                     </div>
 
                     <div class="space-y-4" data-jobs-results>
-                        @foreach ($jobs as $job)
-                            @include('public.jobs._card', ['job' => $job])
+                        @foreach ($jobs as $index => $job)
+                            @include('public.jobs._card', ['job' => $job, 'postedRank' => count($jobs) - $index])
                         @endforeach
                     </div>
 
@@ -115,6 +146,20 @@
                         <p class="font-semibold text-hb-navy">{{ __('public.jobs.empty_title') }}</p>
                         <p class="mt-2 text-sm text-hb-muted">{{ __('public.jobs.empty_body') }}</p>
                         <x-button class="mt-4" variant="secondary" data-clear-filters>{{ __('public.jobs.clear_filters') }}</x-button>
+                    </div>
+
+                    <div
+                        class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                        data-jobs-pagination
+                        data-status-template="{{ __('public.jobs.pagination_status') }}"
+                        hidden
+                    >
+                        <p class="text-sm text-hb-muted" data-jobs-page-status aria-live="polite"></p>
+                        <nav class="flex flex-wrap items-center gap-2" aria-label="{{ __('public.jobs.pagination_aria') }}">
+                            <button type="button" class="hb-btn-outline" data-jobs-page-prev>{{ __('public.jobs.pagination_prev') }}</button>
+                            <div class="flex flex-wrap items-center gap-1" data-jobs-page-numbers></div>
+                            <button type="button" class="hb-btn-outline" data-jobs-page-next>{{ __('public.jobs.pagination_next') }}</button>
+                        </nav>
                     </div>
 
                     <div class="mt-8 hb-surface flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -129,84 +174,3 @@
         </div>
     </section>
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const root = document.querySelector('[data-jobs-directory]');
-        if (!root) return;
-
-        const form = root.querySelector('#jobs-filter-form');
-        const cards = () => Array.from(root.querySelectorAll('[data-job-card]'));
-        const countEl = root.querySelector('[data-jobs-count]');
-        const emptyEl = root.querySelector('[data-jobs-empty]');
-        const resultsEl = root.querySelector('[data-jobs-results]');
-
-        const checked = (name) => Array.from(form.querySelectorAll(`input[name="${name}[]"]:checked`)).map((el) => el.value);
-
-        const applyFilters = () => {
-            const q = (form.q.value || '').trim().toLowerCase();
-            const location = (form.location.value || '').trim().toLowerCase();
-            const models = checked('work_model');
-            const employment = checked('employment');
-            const disciplines = checked('discipline');
-            const salaryMin = Number(form.salary_min.value || 0);
-            const salaryMax = Number(form.salary_max.value || Number.MAX_SAFE_INTEGER);
-
-            let visible = 0;
-            cards().forEach((card) => {
-                const hay = card.dataset.title || '';
-                const loc = card.dataset.location || '';
-                const model = card.dataset.workModel || '';
-                const emp = card.dataset.employment || '';
-                const discipline = card.dataset.discipline || '';
-                const min = Number(card.dataset.salaryMin || 0);
-                const max = Number(card.dataset.salaryMax || 0);
-
-                const matchQ = !q || hay.includes(q);
-                const matchLoc = !location || loc.includes(location) || hay.includes(location);
-                const matchModel = models.length === 0 || models.includes(model);
-                const matchEmp = employment.length === 0 || employment.includes(emp);
-                const matchDisc = disciplines.length === 0 || disciplines.includes(discipline);
-                const matchSalary = max >= salaryMin && min <= salaryMax;
-
-                const show = matchQ && matchLoc && matchModel && matchEmp && matchDisc && matchSalary;
-                card.classList.toggle('hidden', !show);
-                if (show) visible += 1;
-            });
-
-            if (countEl) countEl.textContent = String(visible);
-            if (emptyEl) emptyEl.classList.toggle('hidden', visible !== 0);
-            if (resultsEl) resultsEl.classList.toggle('hidden', visible === 0);
-        };
-
-        form.addEventListener('input', applyFilters);
-        form.addEventListener('change', applyFilters);
-        root.querySelectorAll('[data-clear-filters]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                form.reset();
-                // Restore Figma-like defaults after clear.
-                form.querySelectorAll('input[name="work_model[]"]').forEach((el) => {
-                    el.checked = ['Hybrid', 'Remote'].includes(el.value);
-                });
-                form.querySelectorAll('input[name="employment[]"]').forEach((el) => {
-                    el.checked = el.value === 'Full-time';
-                });
-                form.querySelectorAll('input[name="discipline[]"]').forEach((el) => {
-                    el.checked = el.value === 'Product & Design';
-                });
-                form.salary_min.value = 130000;
-                form.salary_max.value = 180000;
-                applyFilters();
-            });
-        });
-
-        // Honor query params from landing hero / discipline links.
-        if (form.q.value || form.location.value || {{ request()->filled('discipline') ? 'true' : 'false' }}) {
-            applyFilters();
-        } else {
-            applyFilters();
-        }
-    });
-</script>
-@endpush

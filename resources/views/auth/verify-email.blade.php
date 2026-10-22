@@ -51,8 +51,11 @@
                 {{ __('auth.verify.submit') }}
             </button>
 
-            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status">
-                {{ __('auth.verify.note_ready') }}
+            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status" tabindex="-1">
+                <p>{{ __('auth.verify.note_ready') }}</p>
+                <p class="mt-2">
+                    <a href="{{ route('onboarding.candidate') }}" class="font-semibold text-hb-blue hover:underline">{{ __('auth.verify.continue_onboarding') }}</a>
+                </p>
             </div>
         </form>
 

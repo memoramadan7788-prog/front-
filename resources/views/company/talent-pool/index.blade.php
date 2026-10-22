@@ -31,11 +31,11 @@
             'previous' => __('company.talent_pool.previous'),
             'next' => __('company.talent_pool.next'),
         ];
-        $tabCounts = [
-            'all' => $pool['total'],
-            'product_design' => 7,
-            'engineering' => 8,
-            'other' => 3,
+        $tabLabels = [
+            'all' => 'company.talent_pool.tab_all',
+            'product_design' => 'company.talent_pool.tab_product',
+            'engineering' => 'company.talent_pool.tab_engineering',
+            'other' => 'company.talent_pool.tab_other',
         ];
     @endphp
 
@@ -48,20 +48,18 @@
         data-shortlist-key="hb_talent_shortlist"
     >
         <div class="mb-6 flex flex-wrap gap-4 border-b border-hb-border text-sm font-semibold" role="tablist" aria-label="{{ __('company.talent_pool.tabs_aria') }}">
-            @foreach ([
-                ['all', __('company.talent_pool.tab_all', ['count' => $tabCounts['all']])],
-                ['product_design', __('company.talent_pool.tab_product', ['count' => $tabCounts['product_design']])],
-                ['engineering', __('company.talent_pool.tab_engineering', ['count' => $tabCounts['engineering']])],
-                ['other', __('company.talent_pool.tab_other', ['count' => $tabCounts['other']])],
-            ] as [$key, $label])
+            @foreach ($pool['tabs'] as $tab)
+                @php
+                    $labelKey = $tabLabels[$tab['key']] ?? 'company.talent_pool.tab_all';
+                @endphp
                 <button
                     type="button"
                     role="tab"
-                    data-pool-tab="{{ $key }}"
-                    aria-selected="{{ $key === 'all' ? 'true' : 'false' }}"
-                    class="border-b-2 px-1 pb-3 {{ $key === 'all' ? 'border-hb-blue text-hb-blue' : 'border-transparent text-hb-muted hover:text-hb-navy' }}"
+                    data-pool-tab="{{ $tab['key'] }}"
+                    aria-selected="{{ $tab['key'] === 'all' ? 'true' : 'false' }}"
+                    class="border-b-2 px-1 pb-3 {{ $tab['key'] === 'all' ? 'border-hb-blue text-hb-blue' : 'border-transparent text-hb-muted hover:text-hb-navy' }}"
                 >
-                    {{ $label }}
+                    {{ __($labelKey, ['count' => $tab['count']]) }}
                 </button>
             @endforeach
         </div>
@@ -270,7 +268,7 @@
                             ? replacePlaceholders(i18n.showing, {
                                 start: start + 1,
                                 end: start + slice.length,
-                                total: tab === 'all' ? catalogTotal : rows.length,
+                                total: rows.length,
                             })
                             : (i18n.showing_zero || '');
                     }

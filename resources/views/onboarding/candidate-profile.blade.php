@@ -7,16 +7,16 @@
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('onboarding.candidate.title') }}</h1>
     <p class="mt-1 text-sm text-hb-muted">
         {{ __('onboarding.candidate.eyebrow') }} ·
-        <span data-onboarding-step-label>{{ __('onboarding.candidate.step_labels.3') }}</span>
+        <span data-onboarding-step-label>{{ __('onboarding.candidate.step_labels.1') }}</span>
     </p>
 @endsection
 
 @section('content')
 
-    <div data-onboarding="candidate" data-onboarding-total="4" data-onboarding-start="3">
+    <div data-onboarding="candidate" data-onboarding-total="4" data-onboarding-start="1" data-onboarding-storage="hb_onboarding_candidate_v1">
         <x-stepper
             variant="underline"
-            :current="3"
+            :current="1"
             :steps="[
                 ['label' => __('onboarding.candidate.stepper.basics')],
                 ['label' => __('onboarding.candidate.stepper.resume')],
@@ -39,7 +39,7 @@
                     </button>
                     <div class="flex flex-wrap items-center gap-2">
                         <button type="button" class="hb-btn-primary" data-onboarding-next>
-                            {{ __('onboarding.candidate.continue_review') }}
+                            {{ __('common.actions.continue') }}
                         </button>
                         <button type="submit" class="hb-btn-primary hidden" data-onboarding-finish>
                             {{ __('onboarding.candidate.finish_setup') }}
@@ -51,8 +51,13 @@
                     {{ __('onboarding.candidate.saved_hint') }}
                 </p>
 
-                <div class="mt-4 hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-onboarding-frontend-note role="status">
-                    {{ __('onboarding.candidate.ready_review') }}
+                <div class="mt-4 hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-onboarding-frontend-note role="status" tabindex="-1">
+                    <p>{{ __('onboarding.candidate.ready_review') }}</p>
+                    <p class="mt-2">
+                        <a href="{{ route('candidate.dashboard') }}" class="font-semibold text-hb-blue hover:underline">
+                            {{ __('onboarding.candidate.explore_workspace') }}
+                        </a>
+                    </p>
                 </div>
             </form>
 
@@ -61,7 +66,7 @@
                     <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('onboarding.candidate.profile_so_far') }}</p>
                     <p class="mt-3 text-sm font-medium text-hb-blue">
                         <span aria-hidden="true">●</span>
-                        <span data-profile-progress>{{ __('onboarding.candidate.percent_complete', ['percent' => 75]) }}</span>
+                        <span data-profile-progress>{{ __('onboarding.candidate.percent_complete', ['percent' => 25]) }}</span>
                     </p>
                     <p class="mt-2 text-base font-semibold text-hb-navy">Maya Chen</p>
                     <p class="mt-1 text-sm text-hb-muted">

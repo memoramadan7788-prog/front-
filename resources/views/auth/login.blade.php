@@ -81,8 +81,12 @@
                 {{ __('auth.login.submit') }}
             </button>
 
-            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status">
-                {{ __('auth.login.note_ready') }}
+            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status" tabindex="-1">
+                <p>{{ __('auth.login.note_ready') }}</p>
+                <p class="mt-2 space-y-1">
+                    <a href="{{ route('candidate.dashboard') }}" class="block font-semibold text-hb-blue hover:underline">{{ __('auth.login.continue_candidate') }}</a>
+                    <a href="{{ route('company.dashboard') }}" class="block font-semibold text-hb-blue hover:underline">{{ __('auth.login.continue_company') }}</a>
+                </p>
             </div>
         </form>
 

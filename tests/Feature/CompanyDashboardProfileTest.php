@@ -10,7 +10,9 @@ class CompanyDashboardProfileTest extends TestCase
     {
         $this->get(route('company.dashboard'))
             ->assertOk()
-            ->assertSee('25 / Company workspace / Overview', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Overview', false)
+            ->assertDontSee('25 / Company workspace', false)
             ->assertSee('Good morning, Olivia', false)
             ->assertSee('Northstar Labs hiring overview', false)
             ->assertSee('Open requisitions', false)
@@ -43,7 +45,8 @@ class CompanyDashboardProfileTest extends TestCase
     {
         $this->get(route('company.profile'))
             ->assertOk()
-            ->assertSee('Company workspace / Company profile', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Company profile', false)
             ->assertSee('Company profile', false)
             ->assertSee('Northstar Labs', false)
             ->assertSee('Company identity', false)

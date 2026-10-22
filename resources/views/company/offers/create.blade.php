@@ -19,9 +19,11 @@
 
 @section('page_actions')
     <div class="flex flex-wrap gap-2">
-        <a href="{{ route('company.evaluations.show', 'eval-ethan-cole') }}" class="hb-btn-outline">
-            {{ __('company.offers.back_to_evaluation') }}
-        </a>
+        @if (! empty($offer['evaluation_id']))
+            <a href="{{ route('company.evaluations.show', $offer['evaluation_id']) }}" class="hb-btn-outline">
+                {{ __('company.offers.back_to_evaluation') }}
+            </a>
+        @endif
         <a href="{{ route('company.applicants.show', $offer['applicant_id']) }}" class="hb-btn-outline">
             {{ __('company.offers.back_to_applicant') }}
         </a>

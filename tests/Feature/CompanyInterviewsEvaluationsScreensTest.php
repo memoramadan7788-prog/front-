@@ -11,7 +11,9 @@ class CompanyInterviewsEvaluationsScreensTest extends TestCase
     {
         $this->get(route('company.interviews.index'))
             ->assertOk()
-            ->assertSee('33 / Company workspace / Interviews', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Interviews', false)
+            ->assertDontSee('33 / Company workspace', false)
             ->assertSee('Team interview calendar', false)
             ->assertSee('Coordinate interviews without losing availability context', false)
             ->assertSee('Schedule interview', false)
@@ -32,7 +34,9 @@ class CompanyInterviewsEvaluationsScreensTest extends TestCase
     {
         $this->get(route('company.interviews.schedule', ['applicant' => 'maya-chen']))
             ->assertOk()
-            ->assertSee('32 / Company workspace / Interviews', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Interviews', false)
+            ->assertDontSee('32 / Company workspace', false)
             ->assertSee('Schedule interview', false)
             ->assertSee('Maya Chen', false)
             ->assertSee('NS-204', false)
@@ -66,7 +70,9 @@ class CompanyInterviewsEvaluationsScreensTest extends TestCase
     {
         $this->get(route('company.evaluations.show', 'eval-ethan-cole'))
             ->assertOk()
-            ->assertSee('34 / Company workspace / Applicants', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Applicants', false)
+            ->assertDontSee('34 / Company workspace', false)
             ->assertSee('Evaluation review · Ethan Cole', false)
             ->assertSee('Final interviews completed October 16', false)
             ->assertSee('Offer stage', false)
@@ -116,11 +122,19 @@ class CompanyInterviewsEvaluationsScreensTest extends TestCase
         $this->get(route('company.applicants.show', 'maya-chen'))
             ->assertOk()
             ->assertSee(route('company.interviews.schedule', ['applicant' => 'maya-chen']), false)
-            ->assertSee(route('company.interviews.show', 'int-ns204-portfolio'), false);
+            ->assertSee(route('company.interviews.show', 'int-ns204-portfolio'), false)
+            ->assertDontSee(route('company.evaluations.show', 'eval-ethan-cole'), false);
 
         $this->get(route('company.applicants.show', 'ethan-cole'))
             ->assertOk()
-            ->assertSee(route('company.evaluations.show', 'eval-ethan-cole'), false);
+            ->assertSee(route('company.evaluations.show', 'eval-ethan-cole'), false)
+            ->assertDontSee(route('company.interviews.show', 'int-ns204-portfolio'), false);
+
+        $this->get(route('company.interviews.index'))
+            ->assertOk()
+            ->assertSee(route('company.interviews.schedule', ['applicant' => 'maya-chen']), false)
+            ->assertSee('October 19–23, 2026', false)
+            ->assertSee('data-weeks=', false);
     }
 
     public function test_arabic_interview_and_evaluation_screens_render(): void

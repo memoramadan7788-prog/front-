@@ -99,8 +99,11 @@
                 {{ __('auth.reset.submit') }}
             </button>
 
-            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status">
-                {{ __('auth.reset.note_ready') }}
+            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status" tabindex="-1">
+                <p>{{ __('auth.reset.note_ready') }}</p>
+                <p class="mt-2">
+                    <a href="{{ route('login') }}" class="font-semibold text-hb-blue hover:underline">{{ __('auth.reset.continue_sign_in') }}</a>
+                </p>
             </div>
         </form>
 

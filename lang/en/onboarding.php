@@ -3,7 +3,7 @@
 return [
     'candidate' => [
         'page_title' => 'Build a profile that feels like you · Hirebridge',
-        'breadcrumb' => '11 / My workspace / Profile & resume',
+        'breadcrumb' => 'My workspace / Profile & resume',
         'title' => 'Build a profile that feels like you',
         'eyebrow' => 'Candidate onboarding',
         'steps' => [
@@ -34,8 +34,9 @@ return [
         'years_experience_suffix' => 'years’ experience',
         'in_control' => 'You’re in control',
         'salary_privacy' => 'Salary preferences aren’t shown publicly. Recruiters only see your profile according to the visibility settings you choose.',
-        'ready_review' => 'Your profile details are ready to review.',
-        'saved_hint' => 'Saved just now · You can update these preferences at any time.',
+        'ready_review' => 'Your profile details are ready to review on this device. Nothing was saved to Hirebridge yet.',
+        'explore_workspace' => 'Explore candidate workspace →',
+        'saved_hint' => 'Draft saved on this device · You can update these preferences at any time.',
         'photo_hint' => 'PNG, JPG, or WebP · Square photo preferred.',
         'finish' => 'Finish profile',
         'finish_setup' => 'Finish profile setup',
@@ -104,7 +105,7 @@ return [
     ],
     'company' => [
         'page_title' => 'Set up your hiring workspace · Hirebridge',
-        'breadcrumb' => '12 / Company workspace / Overview',
+        'breadcrumb' => 'Company workspace / Overview',
         'title' => 'Set up your hiring workspace',
         'eyebrow' => 'Company onboarding',
         'steps' => [
@@ -136,7 +137,7 @@ return [
         'up_next_hiring' => 'Choose direct hiring, agency support, or both.',
         'save_continue' => 'Save & continue',
         'finish' => 'Finish setup',
-        'ready_review' => 'Your workspace details are ready to review.',
+        'ready_review' => 'Your workspace details are ready to review on this device. Nothing was submitted for approval yet.',
         'view_status' => 'View review status →',
         'publish_after_review' => 'Job publishing becomes available after company review. You can save draft roles now.',
         'publish_after_review_short' => 'Job publishing becomes available after company review.',
@@ -221,7 +222,7 @@ return [
     ],
     'company_status' => [
         'page_title' => 'Company review status · Hirebridge',
-        'breadcrumb' => '12 / Company workspace / Overview',
+        'breadcrumb' => 'Company workspace / Overview',
         'title' => 'Review in progress',
         'intro' => 'Your company workspace is waiting on document review before hiring tools unlock.',
         'pending' => 'Pending review',

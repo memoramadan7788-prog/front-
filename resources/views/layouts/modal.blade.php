@@ -6,16 +6,15 @@
             'modalId' => 'apply-modal',
             'modalTitle' => 'Apply to role',
             'modalSize' => 'md', // sm|md|lg|xl
+            'modalDismissible' => true, // false = Escape / backdrop do not close
         ])
-        ... put body via $modalBody HTML string, or nest with @section in a dedicated preview.
-
-    Full interactive components land in Stage 2. This file defines the structural chrome only.
 --}}
 @php
     $modalId = $modalId ?? 'hb-modal';
     $modalTitle = $modalTitle ?? 'Dialog';
     $modalSize = $modalSize ?? 'md';
     $modalOpen = $modalOpen ?? false;
+    $modalDismissible = $modalDismissible ?? true;
     $sizeClass = match ($modalSize) {
         'sm' => 'max-w-md',
         'lg' => 'max-w-3xl',
@@ -31,22 +30,31 @@
     aria-modal="true"
     aria-labelledby="{{ $modalId }}-title"
     data-hb-modal
+    data-hb-modal-focus-trap
+    @if (! $modalDismissible) data-hb-modal-static @endif
 >
-    <div class="absolute inset-0 bg-hb-navy/50" data-hb-modal-overlay tabindex="-1"></div>
+    <div
+        class="absolute inset-0 bg-hb-navy/50"
+        data-hb-modal-overlay
+        tabindex="-1"
+        @if (! $modalDismissible) data-hb-modal-static-overlay @endif
+    ></div>
 
     <div class="relative z-10 flex w-full {{ $sizeClass }} flex-col rounded-hb border border-hb-border bg-hb-surface shadow-hb-md">
         <div class="flex items-start justify-between gap-4 border-b border-hb-border px-5 py-4">
             <h2 id="{{ $modalId }}-title" class="text-base font-semibold text-hb-navy">
                 {{ $modalTitle }}
             </h2>
-            <button
-                type="button"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-hb-muted hover:bg-hb-page hover:text-hb-text"
-                data-hb-modal-close
-                aria-label="Close dialog"
-            >
-                <span aria-hidden="true">&times;</span>
-            </button>
+            @if ($modalDismissible)
+                <button
+                    type="button"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-hb-muted hover:bg-hb-page hover:text-hb-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40"
+                    data-hb-modal-close
+                    aria-label="{{ __('common.close_dialog') }}"
+                >
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            @endif
         </div>
 
         <div class="px-5 py-4 text-sm text-hb-text">

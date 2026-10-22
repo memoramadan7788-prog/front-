@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $pageTitle ?? __('candidate.applications.confirmation_page_title'))
-@section('breadcrumb', '17 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.applications'))
+@section('breadcrumb', __('candidate.workspace') . ' / ' . __('navigation.candidate.applications'))
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.applications.confirmation_title') }}</h1>

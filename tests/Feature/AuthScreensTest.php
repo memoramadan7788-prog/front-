@@ -15,7 +15,9 @@ class AuthScreensTest extends TestCase
             ->assertSee('Forgot password?', false)
             ->assertSee('Create an account', false)
             ->assertDontSee('Frontend UI only', false)
-            ->assertDontSee('signed in successfully', false);
+            ->assertDontSee('signed in successfully', false)
+            ->assertDontSee('07 /', false)
+            ->assertSee('Sign-in is not connected yet', false);
     }
 
     public function test_register_screen_renders_account_type_options(): void

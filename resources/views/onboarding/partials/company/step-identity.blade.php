@@ -45,13 +45,14 @@
                 class="block w-full text-sm text-hb-muted file:me-3 file:rounded-lg file:border-0 file:bg-hb-surface file:px-3 file:py-2 file:text-sm file:font-semibold file:text-hb-navy file:shadow-hb-sm"
                 data-file-input
                 data-file-preview="document"
+                data-document-filename="Northstar_Labs_Registration.pdf"
                 required
                 aria-describedby="company-document-hint company-document-error"
             >
             <p id="company-document-hint" class="mt-2 text-xs text-hb-muted">{{ __('onboarding.company.identity.document_hint') }}</p>
-            <div class="mt-3 hidden rounded-lg border border-hb-border bg-hb-surface px-3 py-2 text-sm" data-file-chip>
-                <p class="font-medium text-hb-navy" data-file-name></p>
-                <p class="text-xs text-hb-muted" data-file-meta></p>
+            <div class="mt-3 rounded-lg border border-hb-border bg-hb-surface px-3 py-2 text-sm" data-file-chip>
+                <p class="font-medium text-hb-navy" data-file-name>Northstar_Labs_Registration.pdf</p>
+                <p class="text-xs text-hb-muted" data-file-meta>{{ __('onboarding.candidate.resume.selected_file') }}</p>
             </div>
         </div>
         <p id="company-document-error" class="hb-field-error hidden" role="alert"></p>

@@ -5,7 +5,7 @@
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy sm:text-3xl">{{ __('company.analytics.title') }}</h1>
-    <p class="mt-1 text-sm text-hb-muted">{{ $analytics['subtitle'] }}</p>
+    <p class="mt-1 text-sm text-hb-muted" data-analytics-subtitle>{{ $analytics['subtitle'] }}</p>
 @endsection
 
 @section('page_actions')
@@ -34,7 +34,9 @@
         data-company-analytics
         data-i18n="{{ json_encode($analyticsI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
         data-analytics="{{ json_encode($analytics, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
+        data-date-snapshots="{{ json_encode($analytics['date_snapshots'] ?? [], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
     >
+        <p class="mb-4 hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-analytics-range-note role="status"></p>
         <div class="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center">
             <label class="min-w-0 flex-1">
                 <span class="sr-only">{{ __('company.analytics.date_range') }}</span>
@@ -186,10 +188,40 @@
                 if (!root) return;
                 const reqSelect = root.querySelector('[data-analytics-req]');
                 const sourceSelect = root.querySelector('[data-analytics-source]');
+                const dateSelect = root.querySelector('[data-analytics-date]');
+                const rangeNote = root.querySelector('[data-analytics-range-note]');
+                const subtitleEl = document.querySelector('[data-analytics-subtitle]');
                 const rows = [...root.querySelectorAll('[data-req-body] tr')];
                 const sourceCards = [...root.querySelectorAll('[data-source-key]')];
                 const emptyEl = root.querySelector('[data-analytics-empty]');
-                const table = root.querySelector('table');
+                const table = root.querySelector('[data-req-body]')?.closest('table');
+                let snapshots = {};
+                try {
+                    snapshots = JSON.parse(root.getAttribute('data-date-snapshots') || '{}') || {};
+                } catch (e) {
+                    snapshots = {};
+                }
+
+                function applyDateSnapshot() {
+                    const key = dateSelect?.value || 'oct-1-20';
+                    const snapshot = snapshots[key];
+                    if (!snapshot) return;
+                    if (subtitleEl && snapshot.subtitle) {
+                        subtitleEl.textContent = snapshot.subtitle;
+                    }
+                    Object.entries(snapshot.kpis || {}).forEach(([kpiKey, values]) => {
+                        const card = root.querySelector(`[data-kpi="${kpiKey}"]`);
+                        if (!card) return;
+                        const valueEl = card.querySelector('[dir="ltr"]') || card.querySelector('.text-3xl');
+                        const detailEl = card.querySelectorAll('p')[2];
+                        if (valueEl && values.value) valueEl.textContent = values.value;
+                        if (detailEl && values.detail) detailEl.textContent = values.detail;
+                    });
+                    if (rangeNote) {
+                        rangeNote.textContent = snapshot.subtitle || '';
+                        rangeNote.classList.toggle('hidden', key === 'oct-1-20');
+                    }
+                }
 
                 function applyFilters() {
                     const req = reqSelect?.value || '';
@@ -218,12 +250,13 @@
                 }
 
                 [reqSelect, sourceSelect].forEach((el) => el?.addEventListener('change', applyFilters));
+                dateSelect?.addEventListener('change', applyDateSnapshot);
                 root.querySelector('[data-analytics-clear]')?.addEventListener('click', () => {
                     if (reqSelect) reqSelect.value = '';
                     if (sourceSelect) sourceSelect.value = '';
-                    const date = root.querySelector('[data-analytics-date]');
-                    if (date) date.value = 'oct-1-20';
+                    if (dateSelect) dateSelect.value = 'oct-1-20';
                     applyFilters();
+                    applyDateSnapshot();
                 });
             })();
         </script>

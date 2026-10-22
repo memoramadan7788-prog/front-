@@ -144,7 +144,7 @@
                     {{ __('company.jobs.owner_last_edited', ['owner' => $jobsPage['draft_card']['owner'], 'date' => $jobsPage['draft_card']['last_edited']]) }}
                 </p>
                 <p class="mt-2 text-sm text-hb-pending">{{ $jobsPage['draft_card']['alert'] }}</p>
-                <a href="{{ route('company.jobs.create') }}" class="hb-btn-outline mt-4 inline-flex">
+                <a href="{{ route('company.jobs.create', ['job' => $jobsPage['draft_card']['edit_id'] ?? 'ns-207']) }}" class="hb-btn-outline mt-4 inline-flex">
                     {{ __('company.jobs.continue_editing') }}
                 </a>
             </section>
@@ -190,6 +190,11 @@
             let page = 1;
 
             const showUrl = (id) => @json(url('/company/jobs')).replace(/\/$/, '') + '/' + encodeURIComponent(id);
+            const pipelineUrl = (id) => {
+                const url = new URL(@json(route('company.applicants.index')), window.location.origin);
+                url.searchParams.set('job', id);
+                return url.pathname + url.search;
+            };
 
             function replacePlaceholders(template, replacements) {
                 return Object.entries(replacements).reduce(
@@ -239,15 +244,19 @@
                     tbody.innerHTML = slice.map((job) => `
                         <tr data-job-row>
                             <td class="px-5 py-4 align-top">
-                                <p class="font-semibold text-hb-navy">${escapeHtml(job.code)}</p>
-                                <p class="mt-0.5 text-hb-muted">${escapeHtml(job.title)}</p>
+                                <a href="${showUrl(job.id)}" class="font-semibold text-hb-navy hover:text-hb-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">${escapeHtml(job.code)}</a>
+                                <a href="${showUrl(job.id)}" class="mt-0.5 block text-hb-muted hover:text-hb-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">${escapeHtml(job.title)}</a>
                             </td>
                             <td class="px-4 py-4 align-top">
                                 <p class="text-hb-text">${escapeHtml(job.owner)}</p>
                                 <p class="mt-0.5 text-hb-muted">${escapeHtml(job.team)}</p>
                             </td>
                             <td class="px-4 py-4 align-top text-hb-muted">${escapeHtml(job.model)}</td>
-                            <td class="px-4 py-4 align-top text-hb-muted">${escapeHtml(job.pipeline)}</td>
+                            <td class="px-4 py-4 align-top">
+                                ${(job.pipeline_total || 0) > 0
+                                    ? `<a href="${pipelineUrl(job.id)}" class="hb-link-hit font-medium text-hb-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">${escapeHtml(job.pipeline)}</a>`
+                                    : `<span class="text-hb-muted">${escapeHtml(job.pipeline)}</span>`}
+                            </td>
                             <td class="px-5 py-4 align-top">
                                 <p class="text-hb-navy">${escapeHtml(job.status)}</p>
                                 <a href="${showUrl(job.id)}" class="mt-1 inline-block text-sm font-semibold text-hb-blue hover:underline">${escapeHtml(i18n.view_workspace)}</a>

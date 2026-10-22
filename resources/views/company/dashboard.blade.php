@@ -39,16 +39,35 @@
     {{-- KPI cards --}}
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         @foreach ($dashboard['stats'] as $stat)
-            <div class="hb-surface p-5">
-                <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ $stat['label'] }}</p>
-                <p class="mt-2 text-3xl font-semibold tracking-tight text-hb-navy">{{ $stat['value'] }}</p>
-                <p class="mt-2 text-sm text-hb-muted">{{ $stat['meta'] }}</p>
-                @if (! empty($stat['trend']))
-                    <p class="mt-2 text-xs font-medium {{ ($stat['trend_tone'] ?? '') === 'up' ? 'text-hb-success' : 'text-hb-muted' }}">
-                        {{ $stat['trend'] }}
-                    </p>
-                @endif
-            </div>
+            @php
+                $statHref = null;
+                if (! empty($stat['href']) && \Illuminate\Support\Facades\Route::has($stat['href'])) {
+                    $statHref = route($stat['href'], $stat['href_params'] ?? []);
+                }
+            @endphp
+            @if ($statHref)
+                <a href="{{ $statHref }}" class="hb-surface block p-5 transition hover:border-hb-blue/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">
+                    <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ $stat['label'] }}</p>
+                    <p class="mt-2 text-3xl font-semibold tracking-tight text-hb-navy">{{ $stat['value'] }}</p>
+                    <p class="mt-2 text-sm text-hb-muted">{{ $stat['meta'] }}</p>
+                    @if (! empty($stat['trend']))
+                        <p class="mt-2 text-xs font-medium {{ ($stat['trend_tone'] ?? '') === 'up' ? 'text-hb-success' : 'text-hb-muted' }}">
+                            {{ $stat['trend'] }}
+                        </p>
+                    @endif
+                </a>
+            @else
+                <div class="hb-surface p-5">
+                    <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ $stat['label'] }}</p>
+                    <p class="mt-2 text-3xl font-semibold tracking-tight text-hb-navy">{{ $stat['value'] }}</p>
+                    <p class="mt-2 text-sm text-hb-muted">{{ $stat['meta'] }}</p>
+                    @if (! empty($stat['trend']))
+                        <p class="mt-2 text-xs font-medium {{ ($stat['trend_tone'] ?? '') === 'up' ? 'text-hb-success' : 'text-hb-muted' }}">
+                            {{ $stat['trend'] }}
+                        </p>
+                    @endif
+                </div>
+            @endif
         @endforeach
     </div>
 
@@ -124,14 +143,28 @@
                             @foreach ($dashboard['requisitions'] as $req)
                                 <tr>
                                     <td class="py-3 pe-4 align-top">
-                                        <p class="font-semibold text-hb-navy">{{ $req['code'] }}</p>
+                                        @if (! empty($req['id']))
+                                            <a href="{{ route('company.jobs.show', $req['id']) }}" class="font-semibold text-hb-navy hover:text-hb-blue hover:underline">
+                                                {{ $req['code'] }}
+                                            </a>
+                                        @else
+                                            <p class="font-semibold text-hb-navy">{{ $req['code'] }}</p>
+                                        @endif
                                         <p class="mt-0.5 text-hb-muted">{{ $req['title'] }}</p>
                                     </td>
                                     <td class="py-3 pe-4 align-top">
                                         <p class="text-hb-text">{{ $req['owner'] }}</p>
                                         <p class="mt-0.5 text-hb-muted">{{ $req['team'] }}</p>
                                     </td>
-                                    <td class="py-3 pe-4 align-top text-hb-muted">{{ $req['pipeline'] }}</td>
+                                    <td class="py-3 pe-4 align-top">
+                                        @if (! empty($req['id']))
+                                            <a href="{{ route('company.applicants.index', ['job' => $req['id']]) }}" class="text-hb-muted hover:text-hb-blue hover:underline">
+                                                {{ $req['pipeline'] }}
+                                            </a>
+                                        @else
+                                            <span class="text-hb-muted">{{ $req['pipeline'] }}</span>
+                                        @endif
+                                    </td>
                                     <td class="py-3 align-top">
                                         <x-badge variant="success" :dot="true">{{ $req['status'] }}</x-badge>
                                     </td>
@@ -173,12 +206,23 @@
                 <ul class="mt-4 space-y-3">
                     @foreach ($dashboard['interviews'] as $interview)
                         <li class="rounded-lg border {{ ! empty($interview['highlight']) ? 'border-hb-blue bg-hb-info-soft/40' : 'border-hb-border bg-hb-page' }} p-3">
-                            <p class="text-xs font-semibold text-hb-muted">
-                                {{ $interview['when'] }} · {{ $interview['time'] }}
-                            </p>
-                            <p class="mt-1 font-semibold text-hb-navy">{{ $interview['candidate'] }}</p>
-                            <p class="mt-0.5 text-sm text-hb-muted">{{ $interview['role'] }}</p>
-                            <p class="mt-2 text-xs text-hb-text">{{ $interview['interviewer'] }}</p>
+                            @if (! empty($interview['id']))
+                                <a href="{{ route('company.interviews.show', $interview['id']) }}" class="block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/40">
+                                    <p class="text-xs font-semibold text-hb-muted">
+                                        {{ $interview['when'] }} · {{ $interview['time'] }}
+                                    </p>
+                                    <p class="mt-1 font-semibold text-hb-navy hover:text-hb-blue">{{ $interview['candidate'] }}</p>
+                                    <p class="mt-0.5 text-sm text-hb-muted">{{ $interview['role'] }}</p>
+                                    <p class="mt-2 text-xs text-hb-text">{{ $interview['interviewer'] }}</p>
+                                </a>
+                            @else
+                                <p class="text-xs font-semibold text-hb-muted">
+                                    {{ $interview['when'] }} · {{ $interview['time'] }}
+                                </p>
+                                <p class="mt-1 font-semibold text-hb-navy">{{ $interview['candidate'] }}</p>
+                                <p class="mt-0.5 text-sm text-hb-muted">{{ $interview['role'] }}</p>
+                                <p class="mt-2 text-xs text-hb-text">{{ $interview['interviewer'] }}</p>
+                            @endif
                         </li>
                     @endforeach
                 </ul>

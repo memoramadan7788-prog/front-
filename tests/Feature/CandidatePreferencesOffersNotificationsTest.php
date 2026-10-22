@@ -10,7 +10,9 @@ class CandidatePreferencesOffersNotificationsTest extends TestCase
     {
         $this->get(route('candidate.preferences'))
             ->assertOk()
-            ->assertSee('23 / My workspace / Preferences &amp; alerts', false)
+            ->assertSee('My workspace', false)
+            ->assertSee('Preferences &amp; alerts', false)
+            ->assertDontSee('23 / My workspace', false)
             ->assertSee('Job preferences &amp; alerts', false)
             ->assertSee('Shape your recommendations. Choose what reaches your inbox.', false)
             ->assertSee('Your next role', false)
@@ -36,7 +38,9 @@ class CandidatePreferencesOffersNotificationsTest extends TestCase
     {
         $this->get(route('candidate.offers.show', 'offer-ms108'))
             ->assertOk()
-            ->assertSee('24 / My workspace / My applications', false)
+            ->assertSee('My workspace', false)
+            ->assertSee('Offers', false)
+            ->assertDontSee('24 / My workspace', false)
             ->assertSee('Your offer from Meridian Studio', false)
             ->assertSee('Lead Product Designer · MS-108', false)
             ->assertSee('Offer received October 19, 2026', false)
@@ -103,12 +107,13 @@ class CandidatePreferencesOffersNotificationsTest extends TestCase
     {
         $this->get(route('candidate.applications.index'))
             ->assertOk()
-            ->assertSee(route('candidate.offers.show', 'hb-ms108-mc-1019'), false)
+            ->assertSee(route('candidate.offers.show', 'offer-ms108'), false)
             ->assertSee('Review offer', false);
 
         $this->get(route('candidate.applications.show', 'hb-ms108-mc-1019'))
             ->assertOk()
-            ->assertSee(route('candidate.offers.show', 'hb-ms108-mc-1019'), false);
+            ->assertSee(route('candidate.offers.show', 'offer-ms108'), false)
+            ->assertSee(route('candidate.messages.index', ['thread' => 'msg-jamie-ms108']), false);
 
         $this->get(route('candidate.dashboard'))
             ->assertOk()

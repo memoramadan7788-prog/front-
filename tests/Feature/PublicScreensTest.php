@@ -29,7 +29,31 @@ class PublicScreensTest extends TestCase
             ->assertOk()
             ->assertSee('Senior Product Designer', false)
             ->assertSee('Apply for this role', false)
+            ->assertSee(route('candidate.applications.apply', 'ns-204'), false)
+            ->assertSee('data-public-apply', false)
+            ->assertDontSee('Applications require authentication', false)
+            ->assertDontSee('03 /', false)
             ->assertDontSee('Mock job', false);
+    }
+
+    public function test_public_apply_preserves_job_context_on_candidate_apply_route(): void
+    {
+        $this->get(route('candidate.applications.apply', 'ms-108'))
+            ->assertOk()
+            ->assertSee('Meridian Studio', false)
+            ->assertSee('Lead Product Designer', false)
+            ->assertSee('MS-108', false);
+    }
+
+    public function test_public_jobs_index_has_working_filter_controls(): void
+    {
+        $this->get(route('jobs.index'))
+            ->assertOk()
+            ->assertSee('data-jobs-directory', false)
+            ->assertSee('data-jobs-sort', false)
+            ->assertSee('data-clear-filters', false)
+            ->assertSee('data-jobs-pagination', false)
+            ->assertDontSee('02 /', false);
     }
 
     public function test_unknown_demo_job_returns_not_found(): void

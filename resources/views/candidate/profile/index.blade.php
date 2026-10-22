@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $pageTitle ?? __('candidate.profile.page_title'))
-@section('breadcrumb', '22 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.profile'))
+@section('breadcrumb', __('candidate.workspace') . ' / ' . __('navigation.candidate.profile'))
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.profile.title') }}</h1>
@@ -11,20 +11,21 @@
 @endsection
 
 @section('page_actions')
-    <button type="button" class="hb-btn-primary" disabled title="{{ __('candidate.profile.preview_soon') }}">
+    <button type="button" class="hb-btn-primary" data-open-modal="candidate-profile-preview" data-profile-preview>
         {{ __('candidate.profile.preview_profile') }}
     </button>
 @endsection
 
 @section('content')
+    <div class="sr-only" aria-live="polite" data-profile-live></div>
 
-    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]" data-candidate-profile>
         <div class="space-y-6">
             {{-- Profile basics --}}
             <section class="hb-surface p-5 sm:p-6" aria-labelledby="profile-basics-heading">
                 <div class="mb-5">
-                    <h2 id="profile-basics-heading" class="text-lg font-semibold text-hb-navy">{{ $profile['name'] }}</h2>
-                    <p class="mt-1 text-sm text-hb-muted">
+                    <h2 id="profile-basics-heading" class="text-lg font-semibold text-hb-navy" data-profile-display-name>{{ $profile['name'] }}</h2>
+                    <p class="mt-1 text-sm text-hb-muted" data-profile-display-headline>
                         {{ $profile['headline'] }} · {{ $profile['location_short'] }}
                     </p>
                 </div>
@@ -219,18 +220,11 @@
     </div>
 
     <p class="mt-8 text-xs text-hb-muted">{{ $profile['footer'] }}</p>
-@endsection
 
-@push('scripts')
-    <script>
-        document.querySelectorAll('[data-profile-save]').forEach((button) => {
-            button.addEventListener('click', () => {
-                const key = button.getAttribute('data-profile-save');
-                const note = document.querySelector(`[data-profile-frontend-note="${key}"]`);
-                if (note) {
-                    note.classList.remove('hidden');
-                }
-            });
-        });
-    </script>
-@endpush
+    @include('layouts.modal', [
+        'modalId' => 'candidate-profile-preview',
+        'modalTitle' => __('candidate.profile.preview_profile'),
+        'modalBody' => view('candidate.profile._preview-modal-body', ['profile' => $profile])->render(),
+        'modalFooter' => '<button type="button" class="hb-btn-outline" data-hb-modal-close>'.e(__('common.actions.close')).'</button>',
+    ])
+@endsection

@@ -11,7 +11,9 @@ class CompanyApplicantsScreensTest extends TestCase
     {
         $this->get(route('company.applicants.index'))
             ->assertOk()
-            ->assertSee('30 / Company workspace / Applicants', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Applicants', false)
+            ->assertDontSee('30 / Company workspace', false)
             ->assertSee('Applicant pipeline', false)
             ->assertSee('NS-204', false)
             ->assertSee('Senior Product Designer', false)
@@ -41,7 +43,9 @@ class CompanyApplicantsScreensTest extends TestCase
     {
         $this->get(route('company.applicants.show', 'maya-chen'))
             ->assertOk()
-            ->assertSee('31 / Company workspace / Applicants', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Applicants', false)
+            ->assertDontSee('31 / Company workspace', false)
             ->assertSee('Maya Chen', false)
             ->assertSee('Senior Product Designer · Austin, TX · 8 years', false)
             ->assertSee('Interview', false)

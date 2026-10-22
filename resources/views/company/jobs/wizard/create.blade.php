@@ -30,7 +30,8 @@
     @endphp
     <div
         data-job-wizard
-        data-storage-key="hb_company_job_draft_ns207"
+        data-job-id="{{ $wizard['job_id'] ?? 'new' }}"
+        data-storage-key="{{ $wizard['storage_key'] ?? 'hb_company_job_draft_new' }}"
         data-defaults="{{ json_encode($wizard['defaults'], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
         data-i18n="{{ json_encode($wizardI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
     >

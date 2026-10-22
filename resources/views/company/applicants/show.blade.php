@@ -21,21 +21,29 @@
 
 @section('page_actions')
     <div class="flex flex-wrap gap-2">
-        <button type="button" class="hb-btn-primary" disabled title="{{ __('company.applicants.message_soon') }}">
+        <button
+            type="button"
+            class="hb-btn-primary cursor-not-allowed opacity-60"
+            disabled
+            aria-disabled="true"
+            title="{{ __('company.applicants.message_unavailable') }}"
+        >
             {{ __('company.applicants.message_applicant', ['name' => explode(' ', $applicant['name'])[0]]) }}
         </button>
         <a href="{{ route('company.interviews.schedule', ['applicant' => $applicant['id']]) }}" class="hb-btn-outline">
             {{ __('company.interviews.schedule_for_applicant') }}
         </a>
-        @if (($applicant['id'] ?? '') === 'ethan-cole')
-            <a href="{{ route('company.evaluations.show', 'eval-ethan-cole') }}" class="hb-btn-outline">
+        @if (! empty($applicant['evaluation_id']))
+            <a href="{{ route('company.evaluations.show', $applicant['evaluation_id']) }}" class="hb-btn-outline">
                 {{ __('company.interviews.open_evaluation') }}
             </a>
-            <a href="{{ route('company.offers.create', ['applicant' => 'ethan-cole']) }}" class="hb-btn-outline">
+        @endif
+        @if (! empty($applicant['offer_id']))
+            <a href="{{ route('company.offers.create', ['offer' => $applicant['offer_id']]) }}" class="hb-btn-outline">
                 {{ __('company.evaluations.open_draft_offer') }}
             </a>
         @endif
-        <button type="button" class="hb-btn-outline" data-open-move-stage>
+        <button type="button" class="hb-btn-outline" data-open-modal="applicant-move-stage-modal">
             {{ __('company.applicants.move_stage') }}
             <span class="ms-1" aria-hidden="true">▾</span>
         </button>
@@ -103,7 +111,7 @@
                             @endforeach
                         </ul>
                         <div class="mt-5 flex flex-wrap gap-2">
-                            <button type="button" class="hb-btn-outline" data-open-resume>
+                            <button type="button" class="hb-btn-outline" data-open-modal="applicant-resume-modal">
                                 {{ __('company.applicants.view_resume') }}
                             </button>
                             @if (! empty($applicant['portfolio']))
@@ -259,10 +267,12 @@
                             <button type="button" class="hb-btn-primary w-full" data-jump-interview-tab>
                                 {{ __('company.applicants.view_interview_plan') }}
                             </button>
-                            @if (($applicant['id'] ?? '') === 'maya-chen')
-                                <a href="{{ route('company.interviews.show', 'int-ns204-portfolio') }}" class="hb-btn-outline w-full text-center">
+                            @if (! empty($applicant['interview_id']))
+                                <a href="{{ route('company.interviews.show', $applicant['interview_id']) }}" class="hb-btn-outline w-full text-center">
                                     {{ __('company.interviews.view_details') }}
                                 </a>
+                            @else
+                                <p class="text-xs text-hb-muted">{{ __('company.applicants.no_interview_record') }}</p>
                             @endif
                         </div>
                     </section>
@@ -287,47 +297,23 @@
 
         <p class="mt-8 text-center text-xs text-hb-muted">{{ $applicant['footer'] }}</p>
 
-        {{-- Move stage modal --}}
-        <div data-move-modal class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4" hidden role="dialog" aria-modal="true" aria-labelledby="move-stage-title">
-            <div class="w-full max-w-md rounded-hb border border-hb-border bg-hb-surface p-5 shadow-hb-lg">
-                <h2 id="move-stage-title" class="text-lg font-semibold text-hb-navy">{{ __('company.applicants.move_stage_title') }}</h2>
-                <p class="mt-2 text-sm text-hb-muted">
-                    {{ __('company.applicants.move_stage_body', ['name' => $applicant['name']]) }}
-                </p>
-                <label class="mt-4 block">
-                    <span class="hb-label">{{ __('company.applicants.col_stage') }}</span>
-                    <select class="hb-input mt-1 w-full" data-move-stage-select>
-                        @foreach ($applicant['pipeline'] as $step)
-                            <option value="{{ $step['label'] }}" @selected($step['status'] === 'current')>{{ $step['label'] }}</option>
-                        @endforeach
-                    </select>
-                </label>
-                <p class="mt-3 hidden text-sm text-hb-blue" data-move-feedback role="status"></p>
-                <div class="mt-5 flex flex-wrap justify-end gap-2">
-                    <button type="button" class="hb-btn-outline" data-close-move>{{ __('company.applicants.add_cancel') }}</button>
-                    <button type="button" class="hb-btn-primary" data-confirm-move>{{ __('company.applicants.move_stage_confirm') }}</button>
-                </div>
-            </div>
-        </div>
-
-        {{-- Resume preview modal --}}
-        <div data-resume-modal class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4" hidden role="dialog" aria-modal="true" aria-labelledby="resume-preview-title">
-            <div class="w-full max-w-md rounded-hb border border-hb-border bg-hb-surface p-5 shadow-hb-lg">
-                <h2 id="resume-preview-title" class="text-lg font-semibold text-hb-navy">{{ __('company.applicants.resume_preview_title') }}</h2>
-                <p class="mt-3 text-sm text-hb-text" dir="ltr">
-                    {{ __('company.applicants.resume_preview_body', [
-                        'filename' => $applicant['resume']['filename'] ?? '',
-                        'size' => $applicant['resume']['size'] ?? '',
-                        'updated' => $applicant['resume']['updated'] ?? '',
-                    ]) }}
-                </p>
-                <p class="mt-2 text-xs text-hb-muted">{{ __('company.applicants.resume_preview_note') }}</p>
-                <div class="mt-5 flex justify-end">
-                    <button type="button" class="hb-btn-outline" data-close-resume>{{ __('company.applicants.modal_close') }}</button>
-                </div>
-            </div>
-        </div>
     </div>
+
+    @include('layouts.modal', [
+        'modalId' => 'applicant-move-stage-modal',
+        'modalTitle' => __('company.applicants.move_stage_title'),
+        'modalSize' => 'md',
+        'modalBody' => view('company.applicants._move-stage-modal-body', ['applicant' => $applicant])->render(),
+        'modalFooter' => '<button type="button" class="hb-btn-outline" data-hb-modal-close>'.e(__('company.applicants.add_cancel')).'</button><button type="button" class="hb-btn-primary" data-confirm-move>'.e(__('company.applicants.move_stage_confirm')).'</button>',
+    ])
+
+    @include('layouts.modal', [
+        'modalId' => 'applicant-resume-modal',
+        'modalTitle' => __('company.applicants.resume_preview_title'),
+        'modalSize' => 'md',
+        'modalBody' => view('company.applicants._resume-modal-body', ['applicant' => $applicant])->render(),
+        'modalFooter' => '<button type="button" class="hb-btn-outline" data-hb-modal-close>'.e(__('company.applicants.modal_close')).'</button>',
+    ])
 
     @push('scripts')
         <script>
@@ -405,47 +391,12 @@
                     }
                 });
 
-                function openModal(modal) {
-                    if (!modal) return;
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                    modal.hidden = false;
-                    modal.querySelector('button, select, input')?.focus();
-                }
-
-                function closeModal(modal) {
-                    if (!modal) return;
-                    modal.classList.add('hidden');
-                    modal.classList.remove('flex');
-                    modal.hidden = true;
-                }
-
-                const moveModal = root.querySelector('[data-move-modal]');
-                const resumeModal = root.querySelector('[data-resume-modal]');
-
-                root.querySelector('[data-open-move-stage]')?.addEventListener('click', () => openModal(moveModal));
-                root.querySelector('[data-close-move]')?.addEventListener('click', () => closeModal(moveModal));
-                root.querySelector('[data-open-resume]')?.addEventListener('click', () => openModal(resumeModal));
-                root.querySelector('[data-close-resume]')?.addEventListener('click', () => closeModal(resumeModal));
-
-                root.querySelector('[data-confirm-move]')?.addEventListener('click', () => {
-                    const feedback = root.querySelector('[data-move-feedback]');
+                document.querySelector('[data-confirm-move]')?.addEventListener('click', () => {
+                    const feedback = document.querySelector('[data-move-feedback]');
                     if (feedback) {
                         feedback.textContent = replacePlaceholders(i18n.move_feedback, { name: applicantName });
                         feedback.classList.remove('hidden');
                     }
-                });
-
-                [moveModal, resumeModal].forEach((modal) => {
-                    modal?.addEventListener('click', (event) => {
-                        if (event.target === modal) closeModal(modal);
-                    });
-                });
-
-                document.addEventListener('keydown', (event) => {
-                    if (event.key !== 'Escape') return;
-                    closeModal(moveModal);
-                    closeModal(resumeModal);
                 });
             })();
         </script>

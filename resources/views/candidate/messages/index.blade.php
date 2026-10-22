@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $pageTitle ?? __('candidate.messages.page_title'))
-@section('breadcrumb', '21 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.messages'))
+@section('breadcrumb', __('candidate.workspace') . ' / ' . __('navigation.candidate.messages'))
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.messages.title') }}</h1>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Company;
 use App\Http\Controllers\Controller;
 use App\Support\Frontend\MockCompanyData;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
@@ -24,13 +25,22 @@ class JobController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View|Response
     {
+        $jobId = $request->query('job');
+        $jobId = is_string($jobId) && $jobId !== '' ? $jobId : null;
+
+        if ($jobId !== null && MockCompanyData::job($jobId) === null) {
+            abort(404);
+        }
+
+        $wizard = MockCompanyData::jobWizard($jobId);
+
         return view('company.jobs.wizard.create', [
             'pageTitle' => 'Create a job · Hirebridge',
             'uiRole' => 'company',
             'showMockBanner' => false,
-            'wizard' => MockCompanyData::jobWizard(),
+            'wizard' => $wizard,
             'frontendOnly' => true,
         ]);
     }

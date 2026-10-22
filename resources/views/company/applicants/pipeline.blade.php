@@ -302,6 +302,12 @@
                 const viewButtons = [...root.querySelectorAll('[data-pipeline-view]')];
                 const panels = [...root.querySelectorAll('[data-pipeline-panel]')];
 
+                const stageParam = new URLSearchParams(window.location.search).get('stage');
+                if (stageParam && stageSelect) {
+                    const match = [...stageSelect.options].find((opt) => opt.value === stageParam || opt.value.toLowerCase() === stageParam.toLowerCase());
+                    if (match) stageSelect.value = match.value;
+                }
+
                 function replacePlaceholders(template, replacements) {
                     return Object.entries(replacements).reduce(
                         (text, [key, value]) => text.replaceAll(`:${key}`, String(value)),

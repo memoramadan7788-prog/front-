@@ -38,6 +38,7 @@ return [
         'intro' => 'Your experience, in your own words. Keep it current and control who sees it.',
         'preview_profile' => 'Preview profile',
         'preview_soon' => 'Profile preview coming soon',
+        'preview_local_note' => 'Preview only — changes stay on this device until accounts are connected.',
         'basics' => 'Basics',
         'experience' => 'Experience',
         'visibility' => 'Visibility',
@@ -385,10 +386,10 @@ return [
         'pass_below' => 'Your score is below the passing threshold.',
         'no_attempt' => 'No completed attempt found. Finish the assessment first.',
         'back' => 'Back to assessments',
-        'breadcrumb_instructions' => 'Assessments / My workspace / Instructions',
-        'breadcrumb_in_progress' => 'Assessments / My workspace / In progress',
-        'breadcrumb_results' => 'Assessments / My workspace / Results',
-        'breadcrumb_index' => 'Assessments / My workspace / Assessments',
+        'breadcrumb_instructions' => 'My workspace / Assessments / Instructions',
+        'breadcrumb_in_progress' => 'My workspace / Assessments / In progress',
+        'breadcrumb_results' => 'My workspace / Assessments / Results',
+        'breadcrumb_index' => 'My workspace / Assessments',
     ],
 
     'preferences' => [
@@ -470,6 +471,6 @@ return [
         'view_all' => 'View all notifications',
         'empty' => 'You’re all caught up.',
         'empty_filter' => 'No notifications match this filter.',
-        'breadcrumb' => 'Notifications / My workspace / Notifications',
+        'breadcrumb' => 'My workspace / Notifications',
     ],
 ];

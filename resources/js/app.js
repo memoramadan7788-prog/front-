@@ -65,10 +65,33 @@ function initDropdowns() {
 
     document.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
-        qsa('[data-dropdown-panel]').forEach((panel) => closeDropdown(panel));
-        closeMobileSidebar();
-        qsa('[data-hb-modal].flex').forEach((modal) => closeModal(modal));
+        // Do not close modals here — modal Escape is handled by the active modal trap.
+        const openDropdowns = qsa('[data-dropdown-panel]').filter((panel) => !panel.classList.contains('hidden'));
+        if (openDropdowns.length) {
+            openDropdowns.forEach((panel) => closeDropdown(panel));
+            return;
+        }
+        const drawer = qs('[data-mobile-sidebar]');
+        if (drawer && drawer.classList.contains('is-open')) {
+            closeMobileSidebar();
+            return;
+        }
+        const filters = qs('[data-jobs-filters].is-open');
+        if (filters) {
+            qs('[data-jobs-filters-close]')?.click();
+        }
     });
+}
+
+function setDrawerInert(drawer, inert) {
+    if (!drawer) return;
+    if (inert) {
+        drawer.setAttribute('inert', '');
+        drawer.setAttribute('aria-hidden', 'true');
+    } else {
+        drawer.removeAttribute('inert');
+        drawer.setAttribute('aria-hidden', 'false');
+    }
 }
 
 function openMobileSidebar() {
@@ -76,12 +99,16 @@ function openMobileSidebar() {
     const backdrop = qs('[data-mobile-sidebar-backdrop]');
     if (!drawer || !backdrop) return;
     drawer.classList.remove('-translate-x-full', 'rtl:translate-x-full');
-    drawer.classList.add('translate-x-0');
-    drawer.classList.add('is-open');
+    drawer.classList.add('translate-x-0', 'is-open');
+    setDrawerInert(drawer, false);
     backdrop.classList.remove('hidden');
+    backdrop.hidden = false;
+    backdrop.setAttribute('aria-hidden', 'false');
     document.body.classList.add('overflow-hidden');
     const toggle = qs('[data-mobile-sidebar-toggle]');
     if (toggle) toggle.setAttribute('aria-expanded', 'true');
+    const closeBtn = qs('[data-mobile-sidebar-close]');
+    (closeBtn || getFocusable(drawer)[0])?.focus();
 }
 
 function closeMobileSidebar() {
@@ -90,16 +117,26 @@ function closeMobileSidebar() {
     if (!drawer || !backdrop) return;
     drawer.classList.add('-translate-x-full', 'rtl:translate-x-full');
     drawer.classList.remove('translate-x-0', 'is-open');
+    setDrawerInert(drawer, true);
     backdrop.classList.add('hidden');
+    backdrop.hidden = true;
+    backdrop.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('overflow-hidden');
     const toggle = qs('[data-mobile-sidebar-toggle]');
-    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    if (toggle) {
+        toggle.setAttribute('aria-expanded', 'false');
+        if (document.activeElement && drawer.contains(document.activeElement)) {
+            toggle.focus();
+        }
+    }
 }
 
 function initMobileSidebar() {
+    const drawer = qs('[data-mobile-sidebar]');
     const toggle = qs('[data-mobile-sidebar-toggle]');
     const backdrop = qs('[data-mobile-sidebar-backdrop]');
     const closeBtn = qs('[data-mobile-sidebar-close]');
+    if (drawer) setDrawerInert(drawer, !drawer.classList.contains('is-open'));
     if (toggle) toggle.addEventListener('click', openMobileSidebar);
     if (backdrop) backdrop.addEventListener('click', closeMobileSidebar);
     if (closeBtn) closeBtn.addEventListener('click', closeMobileSidebar);
@@ -116,27 +153,62 @@ function getFocusable(container) {
     ).filter((el) => !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true');
 }
 
+function isModalDismissible(modal) {
+    return modal && !modal.hasAttribute('data-hb-modal-static');
+}
+
+function setBackgroundInert(inert) {
+    // Do not inert #main-content: shared modals are often rendered inside the page content.
+    const shells = [document.querySelector('header'), ...qsa('aside')].filter(Boolean);
+    shells.forEach((el) => {
+        if (inert) {
+            el.setAttribute('inert', '');
+            el.setAttribute('aria-hidden', 'true');
+        } else {
+            el.removeAttribute('inert');
+            el.removeAttribute('aria-hidden');
+        }
+    });
+}
+
 function openModal(modal, trigger = null) {
+    if (!modal) return;
     modalTrigger = trigger;
     activeModal = modal;
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    modal.hidden = false;
     modal.setAttribute('data-hb-modal-open', 'true');
     document.body.classList.add('overflow-hidden');
+    setBackgroundInert(true);
 
-    const focusables = getFocusable(modal);
-    const focusTarget = focusables[0] || modal;
-    window.setTimeout(() => focusTarget.focus(), 0);
+    const panel = modal.querySelector('[role="document"]') || modal.querySelector('.relative.z-10') || modal;
+    const focusables = getFocusable(modal).filter((el) => el.getAttribute('data-hb-modal-overlay') == null);
+    const focusTarget = focusables[0] || panel;
+    if (focusTarget && typeof focusTarget.focus === 'function') {
+        window.setTimeout(() => focusTarget.focus(), 0);
+    }
+
+    if (modalKeyHandler) {
+        document.removeEventListener('keydown', modalKeyHandler);
+    }
 
     modalKeyHandler = (event) => {
-        if (!activeModal) return;
+        if (!activeModal || activeModal !== modal) return;
         if (event.key === 'Escape') {
+            if (!isModalDismissible(activeModal)) {
+                event.preventDefault();
+                return;
+            }
             event.preventDefault();
+            event.stopPropagation();
             closeModal(activeModal);
             return;
         }
-        if (event.key !== 'Tab' || !activeModal.hasAttribute('data-hb-modal-focus-trap')) return;
-        const items = getFocusable(activeModal);
+        if (event.key !== 'Tab') return;
+        // Focus trap is on by default for shared modals; opt out with data-hb-modal-no-trap.
+        if (activeModal.hasAttribute('data-hb-modal-no-trap')) return;
+        const items = getFocusable(activeModal).filter((el) => el.getAttribute('data-hb-modal-overlay') == null);
         if (items.length === 0) return;
         const first = items[0];
         const last = items[items.length - 1];
@@ -152,12 +224,15 @@ function openModal(modal, trigger = null) {
 }
 
 function closeModal(modal) {
+    if (!modal) return;
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    modal.hidden = true;
     modal.removeAttribute('data-hb-modal-open');
     if (activeModal === modal) {
         activeModal = null;
         document.body.classList.remove('overflow-hidden');
+        setBackgroundInert(false);
         if (modalKeyHandler) {
             document.removeEventListener('keydown', modalKeyHandler);
             modalKeyHandler = null;
@@ -178,8 +253,16 @@ function initModals() {
     });
 
     qsa('[data-hb-modal]').forEach((modal) => {
-        modal.querySelectorAll('[data-hb-modal-close], [data-hb-modal-overlay]').forEach((el) => {
+        modal.querySelectorAll('[data-hb-modal-close]').forEach((el) => {
             el.addEventListener('click', () => closeModal(modal));
+        });
+        modal.querySelectorAll('[data-hb-modal-overlay]').forEach((el) => {
+            el.addEventListener('click', () => {
+                if (!isModalDismissible(modal) || el.hasAttribute('data-hb-modal-static-overlay')) {
+                    return;
+                }
+                closeModal(modal);
+            });
         });
     });
 }
@@ -238,6 +321,7 @@ function initTabs() {
 
 function initSlotPicker() {
     qsa('[data-slot-picker]').forEach((root) => {
+        const status = qs('[data-slot-status]', root);
         qsa('[data-slot-option]', root).forEach((option) => {
             if (option.hasAttribute('disabled') || option.getAttribute('aria-disabled') === 'true') {
                 return;
@@ -254,7 +338,23 @@ function initSlotPicker() {
                     input.value = option.getAttribute('data-slot-value') || '';
                     input.dispatchEvent(new Event('change', { bubbles: true }));
                 }
+                if (status) {
+                    status.textContent = '';
+                    status.classList.add('hidden');
+                }
             });
+        });
+
+        const form = root.closest('form');
+        form?.addEventListener('submit', (event) => {
+            const input = qs('input[data-slot-value]', root);
+            if (input && !input.value) {
+                event.preventDefault();
+                if (status) {
+                    status.textContent = t('validation.select_slot');
+                    status.classList.remove('hidden');
+                }
+            }
         });
     });
 }
@@ -357,9 +457,9 @@ function passwordRules(value) {
 function passwordStrengthLabel(rules) {
     const score = Object.values(rules).filter(Boolean).length;
     if (!score) return '';
-    if (score === 3) return '● Strong password';
-    if (score === 2) return '● Almost there';
-    return '● Needs more strength';
+    if (score === 3) return t('validation.password_strong');
+    if (score === 2) return t('validation.password_almost');
+    return t('validation.password_weak');
 }
 
 function initPasswordToggles() {
@@ -373,7 +473,7 @@ function initPasswordToggles() {
         btn.addEventListener('click', () => {
             const showing = input.type === 'text';
             input.type = showing ? 'password' : 'text';
-            btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+            btn.setAttribute('aria-label', showing ? t('validation.show_password') : t('validation.hide_password'));
             if (showIcon) showIcon.classList.toggle('hidden', !showing);
             if (hideIcon) hideIcon.classList.toggle('hidden', showing);
         });
@@ -418,13 +518,22 @@ function initPasswordRules() {
                 return;
             }
             const ok = confirm.value === source.value;
-            matchEl.textContent = ok ? 'Passwords match.' : 'Passwords do not match.';
+            matchEl.textContent = ok ? t('validation.passwords_match') : t('validation.passwords_mismatch');
             matchEl.classList.toggle('text-hb-success', ok);
             matchEl.classList.toggle('text-hb-error', !ok);
         };
         confirm.addEventListener('input', sync);
         source.addEventListener('input', sync);
     });
+}
+
+function syncRegisterNextSteps(type) {
+    const page = qs('[data-auth-page="register"]');
+    if (!page) return;
+    const candidate = qs('[data-auth-next="candidate"]', page);
+    const company = qs('[data-auth-next="company"]', page);
+    if (candidate) candidate.classList.toggle('hidden', type === 'company');
+    if (company) company.classList.toggle('hidden', type !== 'company');
 }
 
 function initAccountTypeToggle() {
@@ -436,7 +545,7 @@ function initAccountTypeToggle() {
 
         options.forEach((btn) => {
             btn.addEventListener('click', () => {
-                const type = btn.getAttribute('data-account-type');
+                const type = btn.getAttribute('data-account-type') || 'candidate';
                 options.forEach((other) => {
                     const active = other === btn;
                     other.setAttribute('aria-checked', active ? 'true' : 'false');
@@ -444,7 +553,7 @@ function initAccountTypeToggle() {
                     other.classList.toggle('text-hb-navy', active);
                     other.classList.toggle('text-hb-muted', !active);
                 });
-                if (input) input.value = type || 'candidate';
+                if (input) input.value = type;
                 if (submit) {
                     const label =
                         type === 'company'
@@ -452,8 +561,11 @@ function initAccountTypeToggle() {
                             : submit.getAttribute('data-submit-label-candidate');
                     if (label) submit.textContent = label;
                 }
+                syncRegisterNextSteps(type);
             });
         });
+
+        syncRegisterNextSteps(input?.value || 'candidate');
     });
 }
 
@@ -511,19 +623,6 @@ function initOtpInputs() {
     });
 }
 
-function setSubmitting(form, submitting) {
-    const btn = qs('[data-auth-submit]', form);
-    if (!btn) return;
-    btn.disabled = submitting;
-    btn.setAttribute('aria-busy', submitting ? 'true' : 'false');
-    if (submitting) {
-        btn.dataset.originalLabel = btn.textContent;
-        btn.textContent = t('status.please_wait');
-    } else if (btn.dataset.originalLabel) {
-        btn.textContent = btn.dataset.originalLabel;
-    }
-}
-
 function validateAuthForm(form) {
     const type = form.getAttribute('data-auth-form');
     let valid = true;
@@ -542,26 +641,26 @@ function validateAuthForm(form) {
     };
 
     if (type === 'login' || type === 'forgot-password') {
-        require('email', 'Enter a valid email address.', isValidEmail);
+        require('email', t('validation.email'), isValidEmail);
     }
     if (type === 'login') {
-        require('password', 'Enter your password.', (v) => v.length > 0);
+        require('password', t('validation.password_required'), (v) => v.length > 0);
     }
     if (type === 'register') {
-        require('first_name', 'First name is required.', (v) => v.trim().length > 0);
-        require('last_name', 'Last name is required.', (v) => v.trim().length > 0);
-        require('email', 'Enter a valid email address.', isValidEmail);
-        require('password', 'Use at least 12 characters, with a number and a symbol.', (v) => {
+        require('first_name', t('validation.first_name'), (v) => v.trim().length > 0);
+        require('last_name', t('validation.last_name'), (v) => v.trim().length > 0);
+        require('email', t('validation.email'), isValidEmail);
+        require('password', t('validation.password_rules'), (v) => {
             const rules = passwordRules(v);
             return rules.length && rules.number && rules.symbol;
         });
         const termsField = qs('[data-field="terms"]', form);
         const terms = qs('#register-terms', form);
         const termsOk = terms?.checked;
-        setFieldError(termsField, termsOk ? '' : 'Agree to the Terms of Service to continue.');
+        setFieldError(termsField, termsOk ? '' : t('validation.terms'));
         const termsError = qs('#register-terms-error', form);
         if (termsError) {
-            termsError.textContent = termsOk ? '' : 'Agree to the Terms of Service to continue.';
+            termsError.textContent = termsOk ? '' : t('validation.terms');
             termsError.classList.toggle('hidden', termsOk);
         }
         if (!termsOk) {
@@ -570,11 +669,11 @@ function validateAuthForm(form) {
         }
     }
     if (type === 'reset-password') {
-        require('password', 'Use at least 12 characters, with a number and a symbol.', (v) => {
+        require('password', t('validation.password_rules'), (v) => {
             const rules = passwordRules(v);
             return rules.length && rules.number && rules.symbol;
         });
-        require('password_confirmation', 'Passwords must match.', (v, input) => {
+        require('password_confirmation', t('validation.password_match'), (v, input) => {
             const source = qs('[data-password-confirm-source]', form);
             return v.length > 0 && source && v === source.value;
         });
@@ -584,7 +683,7 @@ function validateAuthForm(form) {
         const hidden = qs('[data-otp-value]', form);
         const code = hidden?.value || '';
         const ok = /^\d{6}$/.test(code);
-        setFieldError(field, ok ? '' : 'Enter the 6-digit verification code.');
+        setFieldError(field, ok ? '' : t('validation.otp'));
         if (!ok) {
             valid = false;
             firstInvalid.push(qs('[data-otp-digit]', field));
@@ -604,14 +703,40 @@ function initAuthForms() {
 
             if (!validateAuthForm(form)) return;
 
-            setSubmitting(form, true);
-            window.setTimeout(() => {
-                setSubmitting(form, false);
-                if (note) {
-                    note.classList.remove('hidden');
-                    note.focus?.();
+            const type = form.getAttribute('data-auth-form');
+            if (type === 'forgot-password') {
+                const email = qs('[data-field="email"] input', form)?.value?.trim();
+                const continueLink = qs('[data-forgot-continue]', form);
+                if (continueLink && email) {
+                    try {
+                        const url = new URL(continueLink.href, window.location.origin);
+                        url.searchParams.set('email', email);
+                        continueLink.href = url.pathname + url.search;
+                    } catch {
+                        // Keep existing href.
+                    }
                 }
-            }, 450);
+            }
+            if (type === 'register') {
+                const accountType = qs('[data-account-type-input]', form)?.value || 'candidate';
+                syncRegisterNextSteps(accountType);
+                const email = qs('[data-field="email"] input', form)?.value?.trim();
+                const verifyLink = qs('[data-auth-next="verify"]', form);
+                if (verifyLink && email) {
+                    try {
+                        const url = new URL(verifyLink.href, window.location.origin);
+                        url.searchParams.set('email', email);
+                        verifyLink.href = url.pathname + url.search;
+                    } catch {
+                        // Keep existing href.
+                    }
+                }
+            }
+
+            if (note) {
+                note.classList.remove('hidden');
+                if (typeof note.focus === 'function') note.focus();
+            }
         });
     });
 
@@ -654,7 +779,7 @@ function initFilePreviews(root) {
                 nameEl.textContent = file.name;
                 nameEl.classList.remove('hidden');
             }
-            if (metaEl) metaEl.textContent = `${formatFileSize(file.size)} · Local selection only`;
+            if (metaEl) metaEl.textContent = `${formatFileSize(file.size)} · ${t('validation.file_local_only')}`;
             if (chip) chip.classList.remove('hidden');
 
             if (kind === 'photo' || kind === 'logo') {
@@ -715,19 +840,27 @@ function initExperienceMode(root) {
     });
 }
 
-const COMPANY_STEP_LABELS = [
-    'Step 1 of 4 · Company identity',
-    'Step 2 of 4 · Workspace details',
-    'Step 3 of 4 · Hiring preferences',
-    'Step 4 of 4 · Invite your team',
-];
+function companyStepLabels() {
+    return [
+        t('onboarding.company_step_1'),
+        t('onboarding.company_step_2'),
+        t('onboarding.company_step_3'),
+        t('onboarding.company_step_4'),
+    ];
+}
 
-const CANDIDATE_STEP_LABELS = [
-    'Step 1 of 4 · Basics',
-    'Step 2 of 4 · Resume import',
-    'Step 3 of 4 · Skills & work preferences',
-    'Step 4 of 4 · Review & finish',
-];
+function candidateStepLabels() {
+    return [
+        t('onboarding.candidate_step_1'),
+        t('onboarding.candidate_step_2'),
+        t('onboarding.candidate_step_3'),
+        t('onboarding.candidate_step_4'),
+    ];
+}
+
+function prefersReducedMotion() {
+    return Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
 
 function updateStepper(root, current) {
     const stepper = qs('[data-onboarding-stepper]', root);
@@ -792,10 +925,10 @@ function showOnboardingStep(root, step) {
     const type = root.getAttribute('data-onboarding');
     if (stepLabel) {
         if (type === 'company') {
-            stepLabel.textContent = COMPANY_STEP_LABELS[step - 1] || `Step ${step} of ${total}`;
+            stepLabel.textContent = companyStepLabels()[step - 1] || `Step ${step} of ${total}`;
         }
         if (type === 'candidate') {
-            stepLabel.textContent = CANDIDATE_STEP_LABELS[step - 1] || `Step ${step} of ${total}`;
+            stepLabel.textContent = candidateStepLabels()[step - 1] || `Step ${step} of ${total}`;
         }
     }
 
@@ -807,10 +940,10 @@ function showOnboardingStep(root, step) {
     if (next) {
         next.classList.toggle('hidden', step >= total);
         if (type === 'candidate') {
-            next.textContent = step === 3 ? 'Continue to review' : 'Continue';
+            next.textContent = step === 3 ? t('onboarding.continue_review') : t('onboarding.continue');
         }
         if (type === 'company') {
-            next.textContent = 'Save & continue';
+            next.textContent = t('onboarding.save_continue');
         }
     }
     if (finish) finish.classList.toggle('hidden', step < total);
@@ -818,6 +951,11 @@ function showOnboardingStep(root, step) {
 
     if (type === 'candidate') {
         syncCandidatePreview(root, step);
+    }
+
+    if (!prefersReducedMotion()) {
+        const panel = qs(`[data-onboarding-panel][data-step="${step}"]`, root);
+        panel?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
@@ -841,9 +979,9 @@ function validateOnboardingStep(root, step) {
 
     if (type === 'candidate') {
         if (step === 1) {
-            requireText('headline', 'Enter a professional headline.');
-            requireText('location', 'Enter your location.');
-            requireText('years_experience', 'Enter years of experience.');
+            requireText('headline', t('validation.headline'));
+            requireText('location', t('validation.location'));
+            requireText('years_experience', t('validation.years_experience'));
         }
         if (step === 2) {
             const field = qs('[data-field="resume"]', panel);
@@ -852,9 +990,9 @@ function validateOnboardingStep(root, step) {
             const demoName = qs('[data-file-name]', field)?.textContent?.trim();
             let message = '';
             if (file && file.size > 5 * 1024 * 1024) {
-                message = 'Choose a file under 5 MB for this frontend check.';
+                message = t('validation.resume_size');
             } else if (!file && !demoName) {
-                message = 'Select a CV / resume file to continue.';
+                message = t('validation.resume_file');
             }
             setFieldError(field, message);
             if (message) {
@@ -863,10 +1001,10 @@ function validateOnboardingStep(root, step) {
             }
         }
         if (step === 3) {
-            requireText('preferred_roles', 'Enter at least one preferred role.');
-            requireText('home_location', 'Enter your home location.');
-            requireText('work_model', 'Select a work model.');
-            requireText('skills', 'Enter at least one skill.');
+            requireText('preferred_roles', t('validation.preferred_roles'));
+            requireText('home_location', t('validation.home_location'));
+            requireText('work_model', t('validation.work_model'));
+            requireText('skills', t('validation.skills'));
         }
         if (step === 4) {
             syncCandidateReview(root);
@@ -875,36 +1013,37 @@ function validateOnboardingStep(root, step) {
 
     if (type === 'company') {
         if (step === 1) {
-            requireText('legal_name', 'Enter the legal company name.');
+            requireText('legal_name', t('validation.legal_name'));
             const docField = qs('[data-field="document"]', panel);
             const docInput = docField ? qs('input[type="file"]', docField) : null;
             const file = docInput?.files?.[0];
-            setFieldError(docField, file ? '' : 'Select a verification document.');
-            if (!file) {
+            const demoName = qs('[data-file-name]', docField)?.textContent?.trim();
+            const ok = Boolean(file || demoName);
+            setFieldError(docField, ok ? '' : t('validation.document'));
+            if (!ok) {
                 valid = false;
                 focusables.push(docInput);
             }
         }
         if (step === 2) {
-            requireText('display_name', 'Enter a company display name.');
-            requireText('workspace_slug', 'Enter a workspace URL slug.');
+            requireText('display_name', t('validation.display_name'));
+            requireText('workspace_slug', t('validation.workspace_slug'));
             const slugField = qs('[data-field="workspace_slug"]', panel);
             const slugInput = slugField ? qs('input', slugField) : null;
             if (slugInput && slugInput.value && !/^[a-z0-9-]+$/.test(slugInput.value)) {
-                setFieldError(slugField, 'Use lowercase letters, numbers, and hyphens only.');
+                setFieldError(slugField, t('validation.workspace_slug_format'));
                 valid = false;
                 focusables.push(slugInput);
             }
-            requireText('website', 'Enter a company website.');
-            requireText('industry', 'Select an industry.');
-            requireText('headquarters', 'Enter headquarters location.');
-            requireText('timezone', 'Select a default timezone.');
-            const authField = qs('[data-field="authorized"]', panel);
+            requireText('website', t('validation.website'));
+            requireText('industry', t('validation.industry'));
+            requireText('headquarters', t('validation.headquarters'));
+            requireText('timezone', t('validation.timezone'));
             const authInput = qs('#company-authorized', panel);
             const authOk = Boolean(authInput?.checked);
             const authError = qs('#company-authorized-error', panel);
             if (authError) {
-                authError.textContent = authOk ? '' : 'Confirm you are authorized to manage this workspace.';
+                authError.textContent = authOk ? '' : t('validation.authorized');
                 authError.classList.toggle('hidden', authOk);
             }
             if (!authOk) {
@@ -916,7 +1055,7 @@ function validateOnboardingStep(root, step) {
         if (step === 3) {
             const model = qs('[data-hiring-model-input]', panel)?.value;
             const field = qs('[data-field="hiring_model"]', panel);
-            setFieldError(field, model ? '' : 'Choose a hiring model.');
+            setFieldError(field, model ? '' : t('validation.hiring_model'));
             if (!model) {
                 valid = false;
                 focusables.push(qs('[data-hiring-model]', panel));
@@ -928,7 +1067,7 @@ function validateOnboardingStep(root, step) {
                     valid = false;
                     focusables.push(input);
                     const field = input.closest('[data-field]');
-                    setFieldError(field, 'Enter a valid work email, or leave the row blank.');
+                    setFieldError(field, t('validation.invite_email'));
                 }
             });
         }
@@ -985,8 +1124,8 @@ function syncCandidatePreview(root, step) {
     if (yearsEl) yearsEl.textContent = years;
     if (resumeEl) resumeEl.textContent = resumeName;
 
-    const progress = step <= 1 ? '25% complete' : step === 2 ? '50% complete' : step === 3 ? '75% complete' : '100% complete';
-    if (progressEl) progressEl.textContent = progress;
+    const percent = step <= 1 ? 25 : step === 2 ? 50 : step === 3 ? 75 : 100;
+    if (progressEl) progressEl.textContent = t('onboarding.percent_complete', { percent });
     if (nextEl) {
         nextEl.textContent =
             step >= 4
@@ -1052,19 +1191,19 @@ function initInviteRows(root) {
         row.setAttribute('data-invite-row', '');
         row.innerHTML = `
             <div data-field="invite_email_${index}">
-                <label class="hb-label" for="invite-email-${index}">Work email</label>
+                <label class="hb-label" for="invite-email-${index}">${t('onboarding.work_email')}</label>
                 <input id="invite-email-${index}" name="invites[${index}][email]" type="email" class="hb-input" placeholder="name@company.example">
             </div>
             <div>
-                <label class="hb-label" for="invite-role-${index}">Role</label>
+                <label class="hb-label" for="invite-role-${index}">${t('onboarding.role')}</label>
                 <select id="invite-role-${index}" name="invites[${index}][role]" class="hb-input">
-                    <option value="hiring_manager">Hiring manager</option>
-                    <option value="interviewer" selected>Interviewer</option>
-                    <option value="admin">Company admin</option>
+                    <option value="hiring_manager">${t('onboarding.hiring_manager')}</option>
+                    <option value="interviewer" selected>${t('onboarding.interviewer')}</option>
+                    <option value="admin">${t('onboarding.admin')}</option>
                 </select>
             </div>
             <div class="flex items-end">
-                <button type="button" class="hb-btn-ghost text-hb-muted" data-remove-invite>Remove</button>
+                <button type="button" class="hb-btn-ghost text-hb-muted" data-remove-invite>${t('onboarding.remove')}</button>
             </div>
         `;
         list.appendChild(row);
@@ -1087,6 +1226,34 @@ function initCompanyPreviewBindings(root) {
     syncCompanyPreview(root);
 }
 
+function collectOnboardingDraft(form) {
+    const data = {};
+    qsa('input, select, textarea', form).forEach((el) => {
+        if (!el.name || el.type === 'file') return;
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            data[el.name] = el.checked;
+        } else {
+            data[el.name] = el.value;
+        }
+    });
+    return data;
+}
+
+function restoreOnboardingDraft(form, draft) {
+    if (!draft || typeof draft !== 'object') return;
+    Object.entries(draft).forEach(([name, value]) => {
+        const fields = qsa(`[name="${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`, form);
+        if (!fields.length) return;
+        fields.forEach((el) => {
+            if (el.type === 'checkbox' || el.type === 'radio') {
+                el.checked = Boolean(value);
+            } else {
+                el.value = value ?? '';
+            }
+        });
+    });
+}
+
 function initOnboarding() {
     qsa('[data-onboarding]').forEach((root) => {
         const total = Number(root.getAttribute('data-onboarding-total') || 1);
@@ -1095,6 +1262,7 @@ function initOnboarding() {
         if (step > total) step = total;
         const form = qs('[data-onboarding-form]', root);
         const note = qs('[data-onboarding-frontend-note]', root);
+        const storageKey = root.getAttribute('data-onboarding-storage');
 
         initFilePreviews(root);
         initCharCounters(root);
@@ -1102,13 +1270,43 @@ function initOnboarding() {
         initHiringModel(root);
         initInviteRows(root);
         initCompanyPreviewBindings(root);
+
+        if (storageKey && form) {
+            try {
+                const saved = JSON.parse(window.localStorage.getItem(storageKey) || 'null');
+                if (saved?.values) {
+                    restoreOnboardingDraft(form, saved.values);
+                }
+                if (Number.isFinite(saved?.step) && saved.step >= 1 && saved.step <= total) {
+                    step = saved.step;
+                }
+            } catch {
+                // Ignore draft restore failures.
+            }
+        }
+
+        const persistDraft = () => {
+            if (!storageKey || !form) return;
+            try {
+                window.localStorage.setItem(
+                    storageKey,
+                    JSON.stringify({ step, values: collectOnboardingDraft(form), at: Date.now() }),
+                );
+            } catch {
+                // Ignore quota / private mode.
+            }
+        };
+
         showOnboardingStep(root, step);
+        form?.addEventListener('input', persistDraft);
+        form?.addEventListener('change', persistDraft);
 
         qs('[data-onboarding-next]', root)?.addEventListener('click', () => {
             if (!validateOnboardingStep(root, step)) return;
             if (step < total) {
                 step += 1;
                 showOnboardingStep(root, step);
+                persistDraft();
                 if (root.getAttribute('data-onboarding') === 'candidate') {
                     if (step === total) syncCandidateReview(root);
                     syncCandidatePreview(root, step);
@@ -1120,6 +1318,7 @@ function initOnboarding() {
             if (step > 1) {
                 step -= 1;
                 showOnboardingStep(root, step);
+                persistDraft();
                 if (note) note.classList.add('hidden');
             }
         });
@@ -1127,21 +1326,263 @@ function initOnboarding() {
         form?.addEventListener('submit', (event) => {
             event.preventDefault();
             if (!validateOnboardingStep(root, step)) return;
-            const finish = qs('[data-onboarding-finish]', root);
-            if (finish) {
-                finish.disabled = true;
-                finish.setAttribute('aria-busy', 'true');
-                const original = finish.textContent;
-                finish.textContent = t('status.please_wait');
-                window.setTimeout(() => {
-                    finish.disabled = false;
-                    finish.removeAttribute('aria-busy');
-                    finish.textContent = original;
-                    if (note) note.classList.remove('hidden');
-                }, 450);
+            persistDraft();
+            if (note) {
+                note.classList.remove('hidden');
+                if (typeof note.focus === 'function') note.focus();
             }
         });
     });
+}
+
+function initPublicJobsDirectory() {
+    const root = qs('[data-jobs-directory]');
+    if (!root) return;
+
+    const form = qs('[data-jobs-filter-form]', root) || qs('#jobs-filter-form', root);
+    const resultsEl = qs('[data-jobs-results]', root);
+    const emptyEl = qs('[data-jobs-empty]', root);
+    const countEl = qs('[data-jobs-count]', root);
+    const sortSelect = qs('[data-jobs-sort]', root);
+    const pagination = qs('[data-jobs-pagination]', root);
+    const pageStatus = qs('[data-jobs-page-status]', root);
+    const pageNumbers = qs('[data-jobs-page-numbers]', root);
+    const prevBtn = qs('[data-jobs-page-prev]', root);
+    const nextBtn = qs('[data-jobs-page-next]', root);
+    const filtersPanel = qs('[data-jobs-filters]', root);
+    const filtersBackdrop = qs('[data-jobs-filters-backdrop]', root);
+    const pageSize = Math.max(1, Number(root.getAttribute('data-page-size') || 5));
+    let page = 1;
+
+    if (!form || !resultsEl) return;
+
+    const cards = () => qsa('[data-job-card]', resultsEl);
+
+    const checked = (name) =>
+        Array.from(form.querySelectorAll(`input[name="${name}[]"]:checked`)).map((el) => el.value);
+
+    const isDesktopFilters = () => window.matchMedia('(min-width: 1024px)').matches;
+
+    const closeFilters = () => {
+        if (!filtersPanel) return;
+        filtersPanel.classList.add('-translate-x-full', 'rtl:translate-x-full');
+        filtersPanel.classList.remove('translate-x-0', 'is-open');
+        if (!isDesktopFilters()) {
+            setDrawerInert(filtersPanel, true);
+        }
+        filtersBackdrop?.classList.add('hidden');
+        if (filtersBackdrop) {
+            filtersBackdrop.hidden = true;
+            filtersBackdrop.setAttribute('aria-hidden', 'true');
+        }
+        document.body.classList.remove('overflow-hidden');
+        const openBtn = qs('[data-jobs-filters-open]', root);
+        openBtn?.setAttribute('aria-expanded', 'false');
+        if (openBtn && document.activeElement && filtersPanel.contains(document.activeElement)) {
+            openBtn.focus();
+        }
+    };
+
+    const openFilters = () => {
+        if (!filtersPanel) return;
+        filtersPanel.classList.remove('-translate-x-full', 'rtl:translate-x-full');
+        filtersPanel.classList.add('translate-x-0', 'is-open');
+        setDrawerInert(filtersPanel, false);
+        filtersBackdrop?.classList.remove('hidden');
+        if (filtersBackdrop) {
+            filtersBackdrop.hidden = false;
+            filtersBackdrop.setAttribute('aria-hidden', 'false');
+        }
+        document.body.classList.add('overflow-hidden');
+        qs('[data-jobs-filters-open]', root)?.setAttribute('aria-expanded', 'true');
+        qs('input, button, select', filtersPanel)?.focus();
+    };
+
+    const syncFiltersDesktopState = () => {
+        if (!filtersPanel) return;
+        if (isDesktopFilters()) {
+            filtersPanel.classList.remove('is-open');
+            setDrawerInert(filtersPanel, false);
+            filtersBackdrop?.classList.add('hidden');
+            if (filtersBackdrop) {
+                filtersBackdrop.hidden = true;
+                filtersBackdrop.setAttribute('aria-hidden', 'true');
+            }
+            document.body.classList.remove('overflow-hidden');
+        } else if (!filtersPanel.classList.contains('is-open')) {
+            setDrawerInert(filtersPanel, true);
+        }
+    };
+    syncFiltersDesktopState();
+    window.addEventListener('resize', syncFiltersDesktopState);
+
+    const renderPagination = (visibleCount) => {
+        if (!pagination) return;
+        const totalPages = Math.max(1, Math.ceil(visibleCount / pageSize));
+        if (page > totalPages) page = totalPages;
+        const showPager = visibleCount > pageSize;
+        pagination.hidden = !showPager;
+        pagination.classList.toggle('hidden', !showPager);
+
+        const from = visibleCount === 0 ? 0 : (page - 1) * pageSize + 1;
+        const to = Math.min(visibleCount, page * pageSize);
+        if (pageStatus) {
+            if (!showPager) {
+                pageStatus.textContent = '';
+            } else {
+                const template =
+                    pagination.getAttribute('data-status-template') || 'Showing :from–:to of :total';
+                pageStatus.textContent = template
+                    .replace(':from', String(from))
+                    .replace(':to', String(to))
+                    .replace(':total', String(visibleCount));
+            }
+        }
+
+        if (!showPager) {
+            if (pageNumbers) pageNumbers.innerHTML = '';
+            return;
+        }
+
+        if (prevBtn) prevBtn.disabled = page <= 1;
+        if (nextBtn) nextBtn.disabled = page >= totalPages;
+        if (pageNumbers) {
+            pageNumbers.innerHTML = '';
+            for (let i = 1; i <= totalPages; i += 1) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className =
+                    'inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 text-sm font-semibold ' +
+                    (i === page
+                        ? 'border-hb-blue bg-hb-info-soft text-hb-blue'
+                        : 'border-hb-border bg-hb-surface text-hb-muted hover:text-hb-navy');
+                btn.textContent = String(i);
+                btn.setAttribute('aria-label', `Page ${i}`);
+                btn.setAttribute('aria-current', i === page ? 'page' : 'false');
+                btn.addEventListener('click', () => {
+                    page = i;
+                    applyFilters({ keepPage: true });
+                });
+                pageNumbers.appendChild(btn);
+            }
+        }
+    };
+
+    const applyFilters = ({ keepPage = false } = {}) => {
+        const q = (form.q?.value || '').trim().toLowerCase();
+        const location = (form.location?.value || '').trim().toLowerCase();
+        const models = checked('work_model');
+        const employment = checked('employment');
+        const disciplines = checked('discipline');
+        const salaryMinRaw = form.salary_min?.value;
+        const salaryMaxRaw = form.salary_max?.value;
+        const salaryMin = salaryMinRaw === '' || salaryMinRaw == null ? 0 : Number(salaryMinRaw);
+        const salaryMax =
+            salaryMaxRaw === '' || salaryMaxRaw == null
+                ? Number.MAX_SAFE_INTEGER
+                : Number(salaryMaxRaw);
+        const sort = sortSelect?.value || 'newest';
+
+        let visibleCards = [];
+        cards().forEach((card) => {
+            const hay = card.dataset.title || '';
+            const loc = card.dataset.location || '';
+            const model = card.dataset.workModel || '';
+            const emp = card.dataset.employment || '';
+            const discipline = card.dataset.discipline || '';
+            const min = Number(card.dataset.salaryMin || 0);
+            const max = Number(card.dataset.salaryMax || 0);
+
+            const matchQ = !q || hay.includes(q);
+            const matchLoc = !location || loc.includes(location) || hay.includes(location);
+            const matchModel = models.length === 0 || models.includes(model);
+            const matchEmp = employment.length === 0 || employment.includes(emp);
+            const matchDisc = disciplines.length === 0 || disciplines.includes(discipline);
+            const matchSalary = max >= salaryMin && min <= salaryMax;
+            const show = matchQ && matchLoc && matchModel && matchEmp && matchDisc && matchSalary;
+            card.dataset.matches = show ? '1' : '0';
+            if (show) visibleCards.push(card);
+        });
+
+        visibleCards.sort((a, b) => {
+            if (sort === 'salary') {
+                return Number(b.dataset.salaryMax || 0) - Number(a.dataset.salaryMax || 0);
+            }
+            if (sort === 'company') {
+                return (a.dataset.company || '').localeCompare(b.dataset.company || '');
+            }
+            if (sort === 'relevance') {
+                const aq = q ? (a.dataset.title || '').indexOf(q) : 0;
+                const bq = q ? (b.dataset.title || '').indexOf(q) : 0;
+                if (aq !== bq) return aq - bq;
+            }
+            return Number(b.dataset.postedRank || 0) - Number(a.dataset.postedRank || 0);
+        });
+
+        visibleCards.forEach((card) => resultsEl.appendChild(card));
+
+        if (!keepPage) page = 1;
+        const total = visibleCards.length;
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+
+        cards().forEach((card) => {
+            const matches = card.dataset.matches === '1';
+            const index = visibleCards.indexOf(card);
+            const onPage = matches && index >= start && index < end;
+            card.classList.toggle('hidden', !onPage);
+        });
+
+        if (countEl) countEl.textContent = String(total);
+        emptyEl?.classList.toggle('hidden', total !== 0);
+        resultsEl.classList.toggle('hidden', total === 0);
+        renderPagination(total);
+    };
+
+    form.addEventListener('input', () => applyFilters());
+    form.addEventListener('change', () => applyFilters());
+    sortSelect?.addEventListener('change', () => applyFilters());
+
+    root.querySelectorAll('[data-clear-filters]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            form.reset();
+            form.querySelectorAll('input[type="checkbox"]').forEach((el) => {
+                el.checked = false;
+            });
+            if (form.salary_min) form.salary_min.value = '';
+            if (form.salary_max) form.salary_max.value = '';
+            if (sortSelect) sortSelect.value = 'newest';
+            page = 1;
+            applyFilters();
+            closeFilters();
+        });
+    });
+
+    qs('[data-jobs-filters-open]', root)?.addEventListener('click', openFilters);
+    qs('[data-jobs-filters-close]', root)?.addEventListener('click', closeFilters);
+    qs('[data-jobs-filters-apply]', root)?.addEventListener('click', () => {
+        applyFilters();
+        closeFilters();
+    });
+    filtersBackdrop?.addEventListener('click', closeFilters);
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && filtersBackdrop && !filtersBackdrop.classList.contains('hidden')) {
+            closeFilters();
+        }
+    });
+
+    prevBtn?.addEventListener('click', () => {
+        if (page > 1) {
+            page -= 1;
+            applyFilters({ keepPage: true });
+        }
+    });
+    nextBtn?.addEventListener('click', () => {
+        page += 1;
+        applyFilters({ keepPage: true });
+    });
+
+    applyFilters();
 }
 
 const CANDIDATE_SAVED_STORAGE_KEY = 'hb_candidate_saved_jobs_v2';
@@ -1184,14 +1625,14 @@ function updateSaveButton(button, saved) {
     if (!button) return;
     button.setAttribute('aria-pressed', saved ? 'true' : 'false');
     if (button.hasAttribute('data-remove-saved')) {
-        button.textContent = 'Remove';
+        button.textContent = t('jobs.remove_saved');
         return;
     }
     const label = qs('[data-save-label]', button) || button;
     if (label === button) {
-        button.textContent = saved ? 'Saved' : 'Save';
+        button.textContent = saved ? t('jobs.saved') : t('jobs.save');
     } else {
-        label.textContent = saved ? 'Saved' : 'Save';
+        label.textContent = saved ? t('jobs.saved') : t('jobs.save_job');
     }
 }
 
@@ -1200,7 +1641,7 @@ function syncSavedCounts(root, count) {
         el.textContent = String(count);
     });
     qsa('[data-saved-count-label]', root).forEach((el) => {
-        el.textContent = count === 1 ? 'saved role' : 'saved roles';
+        el.textContent = count === 1 ? t('jobs.saved_role') : t('jobs.saved_roles');
     });
 }
 
@@ -1264,8 +1705,8 @@ function initCandidateJobsDiscover(root, savedIds) {
         if (countLabel) {
             countLabel.textContent =
                 visibleCards.length === 1
-                    ? '1 recommended role'
-                    : `${visibleCards.length} recommended roles`;
+                    ? t('jobs.recommended_one')
+                    : t('jobs.recommended_many', { count: String(visibleCards.length) });
         }
         empty?.classList.toggle('hidden', visibleCards.length !== 0);
         results.classList.toggle('hidden', visibleCards.length === 0);
@@ -1344,28 +1785,32 @@ function initCandidateJobsSaved(root, savedIds) {
     root._hbRefreshSaved = refresh;
 }
 
-function initCandidateJobs() {
-    const root = qs('[data-candidate-jobs]');
-    if (!root) return;
-
-    const defaults = parseDefaultSaved(root);
+function initCandidateSavedJobsState() {
+    const jobsRoot = qs('[data-candidate-jobs]');
+    const defaults = jobsRoot ? parseDefaultSaved(jobsRoot) : [];
     let savedIds = readSavedJobIds(defaults);
-    if (!window.localStorage.getItem(CANDIDATE_SAVED_STORAGE_KEY)) {
+    if (!window.localStorage.getItem(CANDIDATE_SAVED_STORAGE_KEY) && defaults.length) {
         writeSavedJobIds(savedIds);
     }
 
-    const mode = root.getAttribute('data-candidate-jobs-mode') || 'discover';
-    if (mode === 'discover') {
-        initCandidateJobsDiscover(root, savedIds);
-    } else {
-        initCandidateJobsSaved(root, savedIds);
+    const mode = jobsRoot?.getAttribute('data-candidate-jobs-mode') || '';
+    if (jobsRoot && mode === 'discover') {
+        initCandidateJobsDiscover(jobsRoot, savedIds);
+    } else if (jobsRoot && mode === 'saved') {
+        initCandidateJobsSaved(jobsRoot, savedIds);
     }
 
+    qsa('[data-save-job]').forEach((button) => {
+        const id = String(button.getAttribute('data-save-job') || '');
+        if (id) {
+            updateSaveButton(button, savedIds.includes(id));
+        }
+    });
     syncSavedCounts(document, savedIds.length);
 
-    root.addEventListener('click', (event) => {
+    document.addEventListener('click', (event) => {
         const button = event.target.closest('[data-save-job]');
-        if (!button || !root.contains(button)) return;
+        if (!button) return;
 
         const id = String(button.getAttribute('data-save-job') || '');
         if (!id) return;
@@ -1375,14 +1820,23 @@ function initCandidateJobs() {
         writeSavedJobIds(savedIds);
         syncSavedCounts(document, savedIds.length);
 
-        qsa(`[data-save-job="${id}"]`, root).forEach((btn) => {
+        qsa(`[data-save-job="${id}"]`).forEach((btn) => {
             updateSaveButton(btn, !isSaved);
         });
 
-        if (mode === 'saved' && typeof root._hbRefreshSaved === 'function') {
-            root._hbRefreshSaved(savedIds);
+        if (mode === 'saved' && typeof jobsRoot?._hbRefreshSaved === 'function') {
+            jobsRoot._hbRefreshSaved(savedIds);
+        }
+
+        const live = qs('[data-save-live]');
+        if (live) {
+            live.textContent = !isSaved ? t('jobs.saved_announce') : t('jobs.unsaved_announce');
         }
     });
+}
+
+function initCandidateJobs() {
+    initCandidateSavedJobsState();
 }
 
 function readApplyDraft(key) {
@@ -1797,6 +2251,10 @@ function initCandidateInterviews() {
     });
 }
 
+function messageDraftKey(threadId) {
+    return `hb_candidate_message_draft_${threadId}`;
+}
+
 function initCandidateMessages() {
     const root = qs('[data-candidate-messages]');
     if (!root) return;
@@ -1814,6 +2272,29 @@ function initCandidateMessages() {
     const empty = qs('[data-thread-empty]', root);
     const messageList = qs('[data-message-list]', root);
     const compose = qs('[data-message-compose]', root);
+
+    const persistDraft = (threadId) => {
+        if (!threadId || !compose) return;
+        try {
+            const value = compose.value || '';
+            if (value.trim()) {
+                window.localStorage.setItem(messageDraftKey(threadId), value);
+            } else {
+                window.localStorage.removeItem(messageDraftKey(threadId));
+            }
+        } catch {
+            // Ignore.
+        }
+    };
+
+    const restoreDraft = (threadId) => {
+        if (!compose) return;
+        try {
+            compose.value = window.localStorage.getItem(messageDraftKey(threadId)) || '';
+        } catch {
+            compose.value = '';
+        }
+    };
 
     const renderThread = (thread) => {
         if (!thread || !messageList) return;
@@ -1881,14 +2362,34 @@ function initCandidateMessages() {
             btn.setAttribute('aria-selected', selected ? 'true' : 'false');
             btn.classList.toggle('bg-hb-info-soft', selected);
         });
+
+        restoreDraft(thread.id);
     };
 
     list?.addEventListener('click', (event) => {
         const btn = event.target.closest('[data-thread-id]');
         if (!btn) return;
+        const previousId = root.getAttribute('data-active-thread');
+        persistDraft(previousId);
         const thread = threads.find((item) => item.id === btn.getAttribute('data-thread-id'));
         if (thread) renderThread(thread);
     });
+
+    compose?.addEventListener('input', () => {
+        persistDraft(root.getAttribute('data-active-thread'));
+        qs('[data-compose-status]', root)?.classList.add('hidden');
+    });
+
+    const requestedThread =
+        new URLSearchParams(window.location.search).get('thread') ||
+        root.getAttribute('data-active-thread');
+    const initial =
+        threads.find((item) => item.id === requestedThread) ||
+        threads.find((item) => item.selected) ||
+        threads[0];
+    if (initial) {
+        renderThread(initial);
+    }
 
     search?.addEventListener('input', () => {
         const q = (search.value || '').trim().toLowerCase();
@@ -1927,25 +2428,126 @@ function initCandidateMessages() {
         const activeId = root.getAttribute('data-active-thread');
         const thread = threads.find((item) => item.id === activeId);
         const now = new Date();
-        const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const locale = window.__hbLocale === 'ar' ? 'ar' : 'en-US';
+        const time = now.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
         const localMessage = {
             id: `local-${Date.now()}`,
             from: 'you',
             author: 'Maya Chen',
-            role: 'You',
+            role: t('messages.you'),
             time,
             body,
-            status: `Draft · ${time}`,
+            status: t('messages.draft_status', { time }),
         };
         if (thread) {
             thread.messages = [...(thread.messages || []), localMessage];
             thread.snippet = body.slice(0, 48);
+            try {
+                window.localStorage.removeItem(messageDraftKey(thread.id));
+            } catch {
+                // Ignore.
+            }
             renderThread(thread);
         }
         if (compose) compose.value = '';
         if (status) {
             status.textContent = t('status.message_undelivered');
             status.classList.remove('hidden');
+        }
+    });
+}
+
+function initCandidateProfile() {
+    const root = qs('[data-candidate-profile]');
+    if (!root) return;
+
+    const storageKey = 'hb_candidate_profile_draft_v1';
+
+    const collect = (form) => {
+        const data = {};
+        qsa('input, textarea, select', form).forEach((field) => {
+            if (!field.name) return;
+            if (field.type === 'checkbox') {
+                data[field.name] = field.checked ? '1' : '0';
+                return;
+            }
+            data[field.name] = field.value;
+        });
+        return data;
+    };
+
+    const apply = (form, data) => {
+        Object.entries(data || {}).forEach(([key, value]) => {
+            const field = form.elements.namedItem(key);
+            if (!field || !('value' in field)) return;
+            if (field.type === 'checkbox') {
+                field.checked = value === '1' || value === true || value === 'true';
+                return;
+            }
+            field.value = value;
+        });
+    };
+
+    const refreshHeading = (values) => {
+        const headline = qs('[data-profile-display-headline]', root);
+        if (headline && (values.headline || values.location)) {
+            headline.textContent = [values.headline, values.location].filter(Boolean).join(' · ');
+        }
+    };
+
+    try {
+        const saved = JSON.parse(window.localStorage.getItem(storageKey) || 'null');
+        if (saved) {
+            qsa('[data-profile-form]', root).forEach((form) => apply(form, saved));
+            refreshHeading(saved);
+        }
+    } catch {
+        // Ignore.
+    }
+
+    qsa('[data-profile-save]', root).forEach((button) => {
+        button.addEventListener('click', () => {
+            const form = button.closest('form');
+            if (!form) return;
+            const note = qs(`[data-profile-frontend-note="${button.getAttribute('data-profile-save')}"]`, root);
+            let existing = {};
+            try {
+                existing = JSON.parse(window.localStorage.getItem(storageKey) || '{}') || {};
+            } catch {
+                existing = {};
+            }
+            const next = { ...existing, ...collect(form) };
+            try {
+                window.localStorage.setItem(storageKey, JSON.stringify(next));
+            } catch {
+                // Ignore.
+            }
+            refreshHeading(next);
+            if (note) {
+                note.classList.remove('hidden');
+            }
+            const live = qs('[data-profile-live]');
+            if (live) {
+                live.textContent = t('status.draft_saved');
+            }
+        });
+    });
+
+    qs('[data-profile-preview]')?.addEventListener('click', () => {
+        const form = qs('[data-profile-form="basics"]', root);
+        const values = form ? collect(form) : {};
+        const title = qs('[data-profile-preview-name]');
+        const meta = qs('[data-profile-preview-meta]');
+        const about = qs('[data-profile-preview-about]');
+        if (title) {
+            title.textContent =
+                values.name || qs('[data-profile-display-name]', root)?.textContent || '';
+        }
+        if (meta) {
+            meta.textContent = [values.headline, values.location].filter(Boolean).join(' · ');
+        }
+        if (about) {
+            about.textContent = values.about || '';
         }
     });
 }
@@ -2282,7 +2884,9 @@ function syncNotificationDropdown(items) {
     const dot = qs('[data-dropdown-unread-dot]', dropdown);
     const label = qs('[data-dropdown-unread-label]', dropdown);
     dot?.classList.toggle('hidden', unread === 0);
-    if (label) label.textContent = `${unread} unread`;
+    if (label) {
+        label.textContent = t('notifications.unread', { count: String(unread) });
+    }
 
     qsa('[data-dropdown-item]', dropdown).forEach((row) => {
         const id = row.getAttribute('data-notification-id');
@@ -2329,7 +2933,11 @@ function initCandidateNotificationsPage() {
             dot?.classList.toggle('bg-hb-blue', item.unread);
             dot?.classList.toggle('bg-transparent', !item.unread);
             const toggle = qs('[data-notification-toggle-read]', row);
-            if (toggle) toggle.textContent = item.unread ? 'Mark read' : 'Mark unread';
+            if (toggle) {
+                toggle.textContent = item.unread
+                    ? t('notifications.mark_read')
+                    : t('notifications.mark_unread');
+            }
 
             const matchFilter = mode === 'all'
                 || (mode === 'unread' && item.unread)
@@ -2404,12 +3012,14 @@ document.addEventListener('DOMContentLoaded', () => {
     initOtpInputs();
     initAuthForms();
     initOnboarding();
+    initPublicJobsDirectory();
     initCandidateJobs();
     initCandidateApply();
     initCandidateApplicationsList();
     initApplicationDetail();
     initCandidateInterviews();
     initCandidateMessages();
+    initCandidateProfile();
     initAssessmentIntro();
     initAssessmentTake();
     initAssessmentResult();

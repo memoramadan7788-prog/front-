@@ -21,7 +21,7 @@
         {{ __('common.skip_to_content') }}
     </a>
 
-    <header class="sticky top-0 z-40 border-b border-hb-border/80 bg-hb-surface/95 backdrop-blur">
+    <header class="sticky top-0 z-40 isolate border-b border-hb-border/80 bg-hb-surface/95 backdrop-blur">
         <div class="hb-container flex h-[88px] items-center justify-between gap-6">
             <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2.5" aria-label="{{ __('common.brand_home') }}">
                 <span class="hb-brand-mark" aria-hidden="true">h</span>

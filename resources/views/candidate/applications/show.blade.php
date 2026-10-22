@@ -1,7 +1,19 @@
 @extends('layouts.app')
 
+@php
+    $messageUrl = ! empty($application['message_thread_id'])
+        ? route('candidate.messages.index', ['thread' => $application['message_thread_id']])
+        : route('candidate.messages.index');
+    $interviewUrl = ! empty($application['interview_id'])
+        ? route('candidate.interviews.show', $application['interview_id'])
+        : route('candidate.interviews.index');
+    $offerUrl = ! empty($application['offer_id'])
+        ? route('candidate.offers.show', $application['offer_id'])
+        : null;
+@endphp
+
 @section('title', $pageTitle ?? __('candidate.applications.show_page_title'))
-@section('breadcrumb', '19 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.applications'))
+@section('breadcrumb', __('candidate.workspace') . ' / ' . __('navigation.candidate.applications'))
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ $application['title'] }}</h1>
@@ -19,9 +31,9 @@
 @endsection
 
 @section('page_actions')
-    <button type="button" class="hb-btn-primary" disabled title="{{ __('candidate.applications.messaging_soon') }}">
+    <a href="{{ $messageUrl }}" class="hb-btn-primary">
         {{ __('candidate.applications.message_team') }}
-    </button>
+    </a>
 @endsection
 
 @section('content')
@@ -70,8 +82,8 @@
                             </div>
 
                             <div class="mt-5 flex flex-wrap gap-2">
-                                <a href="{{ route('candidate.interviews.show', 'int-ns204-portfolio') }}" class="hb-btn-primary">{{ __('candidate.applications.view_preparation') }}</a>
-                                <a href="{{ route('candidate.interviews.index') }}" class="hb-btn-outline">{{ __('candidate.interviews.reschedule') }}</a>
+                                <a href="{{ $interviewUrl }}" class="hb-btn-primary">{{ __('candidate.applications.view_preparation') }}</a>
+                                <a href="{{ $interviewUrl }}" class="hb-btn-outline">{{ __('candidate.interviews.reschedule') }}</a>
                             </div>
                         </section>
                     @elseif (! empty($application['archived']))
@@ -89,8 +101,8 @@
                                 <span class="font-medium text-hb-navy">{{ __('candidate.applications.next_label') }}</span> {{ $application['next_step'] }}
                             </p>
                             <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.applications.last_activity', ['date' => $application['last_activity']]) }}</p>
-                            @if (($application['stage_key'] ?? '') === 'offer')
-                                <a href="{{ route('candidate.offers.show', $application['id']) }}" class="hb-btn-primary mt-4 inline-flex">
+                            @if (($application['stage_key'] ?? '') === 'offer' && $offerUrl)
+                                <a href="{{ $offerUrl }}" class="hb-btn-primary mt-4 inline-flex">
                                     {{ __('candidate.applications.review_offer') }}
                                 </a>
                             @endif
@@ -154,9 +166,9 @@
                             </li>
                         @endforeach
                     </ul>
-                    <button type="button" class="hb-btn-outline mt-4 w-full" disabled title="{{ __('candidate.applications.messaging_soon') }}">
+                    <a href="{{ $messageUrl }}" class="hb-btn-outline mt-4 w-full text-center">
                         {{ __('candidate.applications.send_message') }}
-                    </button>
+                    </a>
                 </section>
 
                 <section class="hb-surface p-5" aria-labelledby="materials-heading">

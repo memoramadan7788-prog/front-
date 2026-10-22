@@ -7,16 +7,16 @@
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('onboarding.company.title') }}</h1>
     <p class="mt-1 text-sm text-hb-muted">
         {{ __('onboarding.company.eyebrow') }} ·
-        <span data-onboarding-step-label>{{ __('onboarding.company.step_labels.2') }}</span>
+        <span data-onboarding-step-label>{{ __('onboarding.company.step_labels.1') }}</span>
     </p>
 @endsection
 
 @section('content')
 
-    <div data-onboarding="company" data-onboarding-total="4" data-onboarding-start="2">
+    <div data-onboarding="company" data-onboarding-total="4" data-onboarding-start="1" data-onboarding-storage="hb_onboarding_company_v1">
         <x-stepper
             variant="underline"
-            :current="2"
+            :current="1"
             :steps="[
                 ['label' => __('onboarding.company.stepper.identity')],
                 ['label' => __('onboarding.company.stepper.workspace')],

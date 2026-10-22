@@ -10,7 +10,9 @@ class CandidateScreensTest extends TestCase
     {
         $this->get(route('candidate.dashboard'))
             ->assertOk()
-            ->assertSee('13 / My workspace / Overview', false)
+            ->assertSee('My workspace', false)
+            ->assertSee('Overview', false)
+            ->assertDontSee('13 / My workspace', false)
             ->assertSee('Good morning, Maya', false)
             ->assertSee('Here’s what’s next in your search', false)
             ->assertSee('Discover jobs', false)
@@ -40,7 +42,9 @@ class CandidateScreensTest extends TestCase
     {
         $this->get(route('candidate.profile'))
             ->assertOk()
-            ->assertSee('22 / My workspace / Profile &amp; resume', false)
+            ->assertSee('My workspace', false)
+            ->assertSee('Profile &amp; resume', false)
+            ->assertDontSee('22 / My workspace', false)
             ->assertSee('Your experience, in your own words', false)
             ->assertSee('Preview profile', false)
             ->assertSee('Maya Chen', false)

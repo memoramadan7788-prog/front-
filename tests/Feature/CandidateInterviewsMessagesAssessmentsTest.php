@@ -10,7 +10,9 @@ class CandidateInterviewsMessagesAssessmentsTest extends TestCase
     {
         $this->get(route('candidate.interviews.index'))
             ->assertOk()
-            ->assertSee('20 / My workspace / Interviews', false)
+            ->assertSee('My workspace', false)
+            ->assertSee('Interviews', false)
+            ->assertDontSee('20 / My workspace', false)
             ->assertSee('Your interviews', false)
             ->assertSee('All times shown in Central Time', false)
             ->assertSee('Upcoming (1)', false)
@@ -46,7 +48,9 @@ class CandidateInterviewsMessagesAssessmentsTest extends TestCase
     {
         $this->get(route('candidate.messages.index'))
             ->assertOk()
-            ->assertSee('21 / My workspace / Messages', false)
+            ->assertSee('My workspace', false)
+            ->assertSee('Messages', false)
+            ->assertDontSee('21 / My workspace', false)
             ->assertSee('Messages', false)
             ->assertSee('Keep hiring conversations and useful context together.', false)
             ->assertSee('Inbox', false)

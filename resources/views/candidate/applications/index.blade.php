@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $pageTitle ?? __('candidate.applications.index_page_title'))
-@section('breadcrumb', '18 / ' . __('candidate.workspace') . ' / ' . __('navigation.candidate.applications'))
+@section('breadcrumb', __('candidate.workspace') . ' / ' . __('navigation.candidate.applications'))
 
 @section('page_header')
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('candidate.applications.index_title') }}</h1>
@@ -148,7 +148,7 @@
                                     <p class="mt-1 text-sm text-hb-text">{{ __('candidate.applications.next_step', ['step' => $app['next_step']]) }}</p>
                                 </div>
                                 @if (($app['stage_key'] ?? '') === 'offer')
-                                    <a href="{{ route('candidate.offers.show', $app['id']) }}" class="text-sm font-semibold text-hb-blue hover:underline">
+                                    <a href="{{ route('candidate.offers.show', $app['offer_id'] ?? $app['id']) }}" class="text-sm font-semibold text-hb-blue hover:underline">
                                         {{ __('candidate.applications.review_offer') }}
                                     </a>
                                 @else

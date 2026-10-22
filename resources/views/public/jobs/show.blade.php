@@ -78,13 +78,33 @@
                         <p class="mt-3 text-2xl font-semibold text-hb-navy">{{ $job['salary_label'] }}</p>
                         <p class="mt-1 text-xs text-hb-muted">{{ __('public.jobs.salary_annual') }}<br>{{ $job['location'] }} · {{ $job['work_model'] }} · {{ $job['employment'] }}</p>
                         <div class="mt-5 space-y-2">
-                            <span class="hb-btn-primary flex w-full cursor-not-allowed justify-center opacity-70" title="{{ __('public.jobs.apply_title') }}">
+                            <a
+                                href="{{ route('candidate.applications.apply', $job['id']) }}"
+                                class="hb-btn-primary flex w-full justify-center"
+                                title="{{ __('public.jobs.apply_title') }}"
+                                data-public-apply
+                            >
                                 {{ __('public.jobs.apply') }}
-                            </span>
-                            <x-button variant="secondary" class="w-full" type="button" disabled>{{ __('public.jobs.save_job') }}</x-button>
+                            </a>
+                            <button
+                                type="button"
+                                class="hb-btn-outline w-full"
+                                data-save-job="{{ $job['id'] }}"
+                                aria-pressed="false"
+                                title="{{ __('public.jobs.save_local_title') }}"
+                            >
+                                <span data-save-label>{{ __('public.jobs.save_job') }}</span>
+                            </button>
+                            <p class="sr-only" data-save-live aria-live="polite"></p>
                         </div>
                         <p class="mt-3 text-xs text-hb-muted">
                             {{ __('public.jobs.apply_note') }}
+                        </p>
+                        <p class="mt-2 text-xs text-hb-muted">
+                            {{ __('public.jobs.apply_via_account') }}
+                            <a href="{{ route('login', ['redirect' => route('candidate.applications.apply', $job['id'])]) }}" class="font-semibold text-hb-blue hover:underline">{{ __('public.jobs.apply_sign_in') }}</a>
+                            ·
+                            <a href="{{ route('register', ['redirect' => route('candidate.applications.apply', $job['id'])]) }}" class="font-semibold text-hb-blue hover:underline">{{ __('public.jobs.apply_register') }}</a>
                         </p>
                     </div>
 

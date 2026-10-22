@@ -11,7 +11,9 @@ class CompanyTeamEmployeesScreensTest extends TestCase
     {
         $this->get(route('company.employees.index'))
             ->assertOk()
-            ->assertSee('37 / Company workspace / Team &amp; permissions', false)
+            ->assertSee('Company workspace', false)
+            ->assertSee('Team &amp; permissions', false)
+            ->assertDontSee('37 / Company workspace', false)
             ->assertSee('Team &amp; permissions', false)
             ->assertSee('Give each teammate the access they need, and no more.', false)
             ->assertSee('Invite teammate', false)

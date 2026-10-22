@@ -1,16 +1,20 @@
 @php
     /** @var array<string, mixed> $job */
+    $postedRank = $postedRank ?? 0;
 @endphp
 <article
     class="hb-surface flex flex-col p-5"
     data-job-card
+    data-job-id="{{ $job['id'] }}"
     data-title="{{ strtolower($job['title'].' '.$job['company'].' '.$job['keyword']) }}"
+    data-company="{{ strtolower($job['company']) }}"
     data-location="{{ strtolower($job['location']) }}"
     data-work-model="{{ $job['work_model'] }}"
     data-employment="{{ $job['employment'] }}"
     data-discipline="{{ $job['discipline'] }}"
     data-salary-min="{{ $job['salary_min'] }}"
     data-salary-max="{{ $job['salary_max'] }}"
+    data-posted-rank="{{ $postedRank }}"
 >
     <div class="flex items-start justify-between gap-3">
         <div>

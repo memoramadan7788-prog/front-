@@ -29,7 +29,7 @@
                 type="button"
                 class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-hb-muted hover:bg-hb-page hover:text-hb-text"
                 data-hb-modal-close
-                aria-label="{{ __('candidate.applications.close_dialog') }}"
+                aria-label="{{ __('common.close_dialog') }}"
             >
                 <span aria-hidden="true">&times;</span>
             </button>

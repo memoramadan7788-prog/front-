@@ -114,16 +114,16 @@
                 {{ __('auth.register.submit_candidate') }}
             </button>
 
-            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status">
+            <div class="hidden rounded-lg border border-hb-info-soft bg-hb-info-soft px-3 py-2.5 text-sm text-hb-navy" data-auth-frontend-note role="status" tabindex="-1">
                 <p>{{ __('auth.register.note_ready') }}</p>
                 <p class="mt-2 space-y-1">
-                    <a href="{{ route('verification.notice', ['email' => 'maya.chen@example.com']) }}" class="block font-semibold text-hb-blue hover:underline">
+                    <a href="{{ route('verification.notice', ['email' => 'maya.chen@example.com']) }}" class="block font-semibold text-hb-blue hover:underline" data-auth-next="verify">
                         {{ __('auth.register.continue_verify') }}
                     </a>
-                    <a href="{{ route('onboarding.candidate') }}" class="block font-semibold text-hb-blue hover:underline" data-onboarding-preview-candidate>
+                    <a href="{{ route('onboarding.candidate') }}" class="block font-semibold text-hb-blue hover:underline" data-auth-next="candidate" data-onboarding-preview-candidate>
                         {{ __('auth.register.continue_candidate') }}
                     </a>
-                    <a href="{{ route('onboarding.company') }}" class="block font-semibold text-hb-blue hover:underline" data-onboarding-preview-company>
+                    <a href="{{ route('onboarding.company') }}" class="hidden block font-semibold text-hb-blue hover:underline" data-auth-next="company" data-onboarding-preview-company>
                         {{ __('auth.register.continue_company') }}
                     </a>
                 </p>
