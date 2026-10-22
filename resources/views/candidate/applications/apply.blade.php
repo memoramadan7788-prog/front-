@@ -13,23 +13,44 @@
 @section('content')
     @php
         $role = $flow['role_summary'];
+        $canProceed = (bool) ($flow['can_proceed'] ?? true);
+        $eligibility = $flow['eligibility'] ?? [];
     @endphp
-
 
     <div class="mb-6 rounded-lg border border-hb-blue/20 bg-hb-info-soft px-4 py-3 text-sm text-hb-blue" role="status">
         {{ $flow['journey_banner'] }}
     </div>
 
+    @include('partials.job-eligibility-banner', [
+        'eligibility' => $eligibility,
+        'job' => $flow['job'] ?? [],
+    ])
+
+    @if ($canProceed)
     <div class="mb-6" data-apply-stepper>
         <x-stepper :steps="$flow['steps']" :current="$flow['current_step']" variant="underline" />
     </div>
+    @endif
 
-    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]" data-candidate-apply-page>
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]" data-candidate-apply-page data-can-proceed="{{ $canProceed ? '1' : '0' }}">
         <div>
+            @if ($canProceed)
             @include('candidate.applications._apply-form', [
                 'flow' => $flow,
                 'formId' => 'candidate-apply-page-form',
             ])
+            @else
+                <section class="hb-surface p-5 sm:p-6" aria-labelledby="apply-blocked-heading">
+                    <h2 id="apply-blocked-heading" class="text-lg font-semibold text-hb-navy">{{ __('jobs.eligibility.apply_blocked_heading') }}</h2>
+                    <p class="mt-2 text-sm text-hb-muted">{{ __('jobs.eligibility.apply_blocked_body') }}</p>
+                    <div class="mt-5 flex flex-wrap gap-2">
+                        <a href="{{ route('candidate.jobs.index') }}" class="hb-btn-outline">{{ __('jobs.eligibility.back_discover') }}</a>
+                        @if (! empty($eligibility['membership_path']))
+                            <a href="{{ route('candidate.membership') }}" class="hb-btn-primary">{{ __('jobs.eligibility.open_membership') }}</a>
+                        @endif
+                    </div>
+                </section>
+            @endif
         </div>
 
         <aside class="space-y-4">
@@ -45,6 +66,7 @@
                     <li>{{ $role['salary'] }}</li>
                     <li>{{ __('candidate.applications.hiring_contact', ['name' => $role['hiring_contact']]) }}</li>
                     <li>{{ __('candidate.applications.team', ['name' => $role['team']]) }}</li>
+                    <li>{{ __('jobs.visibility.'.($role['visibility'] ?? 'public')) }} · {{ __('jobs.application_mode.'.($role['application_mode'] ?? 'open')) }}</li>
                 </ul>
             </section>
 

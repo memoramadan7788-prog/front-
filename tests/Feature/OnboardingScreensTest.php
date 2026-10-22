@@ -68,6 +68,7 @@ class OnboardingScreensTest extends TestCase
             ->assertOk()
             ->assertSee('Pending review', false)
             ->assertSee('waiting on document review', false)
+            ->assertSee('presentation mock only', false)
             ->assertDontSee('Company approved', false);
     }
 

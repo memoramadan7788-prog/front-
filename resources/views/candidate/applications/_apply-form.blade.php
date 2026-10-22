@@ -3,6 +3,7 @@
     $profile = $flow['profile'];
     $defaults = $flow['defaults'];
     $job = $flow['job'];
+    $flags = $flow['requirements_flags'] ?? ['cv_required' => true, 'ai_consent_required' => true, 'cover_note_required' => false];
     $formId = $formId ?? 'candidate-apply-form';
 @endphp
 
@@ -12,6 +13,9 @@
     data-candidate-apply-form
     data-submitted-url="{{ route('candidate.applications.submitted', ['job' => $job['id']]) }}"
     data-storage-key="hb_candidate_apply_draft_{{ $job['id'] }}"
+    data-cv-required="{{ ! empty($flags['cv_required']) ? '1' : '0' }}"
+    data-ai-consent-required="{{ ! empty($flags['ai_consent_required']) ? '1' : '0' }}"
+    data-cover-note-required="{{ ! empty($flags['cover_note_required']) ? '1' : '0' }}"
     novalidate
 >
     <div data-apply-panel="questions">
@@ -114,6 +118,24 @@
                 <p class="hb-field-error hidden" data-error-for="salary" role="alert"></p>
             </div>
 
+            <div class="mt-4" data-field="cover_note">
+                <label class="hb-label" for="{{ $formId }}-cover">
+                    {{ __('candidate.applications.cover_note') }}
+                    @if (! empty($flags['cover_note_required']))
+                        <span class="text-hb-error">*</span>
+                    @endif
+                </label>
+                <textarea
+                    id="{{ $formId }}-cover"
+                    name="cover_note"
+                    rows="3"
+                    class="hb-input"
+                    data-apply-field="cover_note"
+                    @if (! empty($flags['cover_note_required'])) required @endif
+                >{{ $defaults['cover_note'] ?? '' }}</textarea>
+                <p class="hb-field-error hidden" data-error-for="cover_note" role="alert"></p>
+            </div>
+
             <div class="mt-5 space-y-3">
                 <label class="flex items-start gap-3 text-sm text-hb-text">
                     <input
@@ -121,7 +143,7 @@
                         name="consent"
                         class="hb-checkbox mt-0.5"
                         value="1"
-                        @checked($defaults['consent'])
+                        @checked($defaults['consent'] ?? false)
                         data-apply-field="consent"
                         required
                     >
@@ -131,6 +153,25 @@
                     </span>
                 </label>
                 <p class="hb-field-error hidden" data-error-for="consent" role="alert"></p>
+
+                @if (! empty($flags['ai_consent_required']))
+                    <label class="flex items-start gap-3 text-sm text-hb-text">
+                        <input
+                            type="checkbox"
+                            name="ai_consent"
+                            class="hb-checkbox mt-0.5"
+                            value="1"
+                            @checked($defaults['ai_consent'] ?? false)
+                            data-apply-field="ai_consent"
+                            required
+                        >
+                        <span>
+                            {{ __('candidate.applications.ai_consent', ['company' => $job['company']]) }}
+                            <span class="text-hb-error">*</span>
+                        </span>
+                    </label>
+                    <p class="hb-field-error hidden" data-error-for="ai_consent" role="alert"></p>
+                @endif
 
                 <label class="flex items-start gap-3 text-sm text-hb-text">
                     <input
@@ -190,6 +231,16 @@
                     <dt class="font-medium text-hb-muted">{{ __('candidate.applications.review_salary') }}</dt>
                     <dd class="text-end text-hb-navy" data-review-salary>{{ $defaults['salary'] }}</dd>
                 </div>
+                <div class="flex flex-col gap-1">
+                    <dt class="font-medium text-hb-muted">{{ __('candidate.applications.cover_note') }}</dt>
+                    <dd class="text-hb-navy" data-review-cover>{{ $defaults['cover_note'] ?? '—' }}</dd>
+                </div>
+                @if (! empty($flags['ai_consent_required']))
+                    <div class="flex flex-wrap justify-between gap-2">
+                        <dt class="font-medium text-hb-muted">{{ __('candidate.applications.review_ai_consent') }}</dt>
+                        <dd class="text-end text-hb-navy" data-review-ai-consent>{{ ! empty($defaults['ai_consent']) ? __('candidate.applications.consent_yes') : __('candidate.applications.consent_no') }}</dd>
+                    </div>
+                @endif
             </dl>
 
             <div

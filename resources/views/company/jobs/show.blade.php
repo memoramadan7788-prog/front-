@@ -17,6 +17,17 @@
             <x-badge variant="neutral" :dot="true">{{ $job['status'] }}</x-badge>
         @endif
         <x-badge variant="neutral" :dot="true">{{ $job['model'] }}</x-badge>
+        @if (! empty($job['visibility']))
+            <x-badge :variant="($job['visibility'] ?? '') === 'private' ? 'pending' : 'info'" :dot="true">
+                {{ __('jobs.visibility.'.$job['visibility']) }}
+            </x-badge>
+        @endif
+        @if (! empty($job['application_mode']) && ($job['application_mode'] ?? '') !== 'open')
+            <x-badge variant="info" :dot="true">{{ __('jobs.application_mode.'.$job['application_mode']) }}</x-badge>
+        @endif
+        @if (($job['status_key'] ?? '') === 'closed' && ! empty($job['closed_reason']))
+            <x-badge variant="neutral" :dot="true">{{ $job['closed_reason'] }}</x-badge>
+        @endif
         <span class="text-hb-muted">
             {{ $job['published_label'] ?? ($job['posted_at'] ? __('company.jobs.published_on', ['date' => $job['posted_at']]) : __('company.jobs.not_published')) }}
             · {{ __('company.jobs.owner_label', ['owner' => $job['owner']]) }}
@@ -26,10 +37,12 @@
 
 @section('page_actions')
     <div class="flex flex-wrap gap-2">
-        @if (($job['status_key'] ?? '') === 'open')
+        @if (($job['status_key'] ?? '') === 'open' && ($job['visibility'] ?? 'public') === 'public')
             <a href="{{ route('jobs.show', $job['id']) }}" class="hb-btn-primary" target="_blank" rel="noopener noreferrer">
                 {{ __('company.jobs.view_public_job') }}
             </a>
+            <a href="{{ route('company.jobs.create', ['job' => $job['id']]) }}" class="hb-btn-outline">{{ __('company.jobs.edit_job') }}</a>
+        @elseif (($job['status_key'] ?? '') === 'open')
             <a href="{{ route('company.jobs.create', ['job' => $job['id']]) }}" class="hb-btn-outline">{{ __('company.jobs.edit_job') }}</a>
         @elseif (($job['status_key'] ?? '') === 'draft')
             <a href="{{ route('company.jobs.create', ['job' => $job['id']]) }}" class="hb-btn-primary">{{ __('company.jobs.continue_editing') }}</a>
@@ -176,9 +189,23 @@
 
                     <section class="hb-surface p-5" aria-labelledby="stage-expectations-heading">
                         <h2 id="stage-expectations-heading" class="text-base font-semibold text-hb-navy">{{ __('company.jobs.stage_expectations') }}</h2>
-                        <p class="mt-3 text-sm font-medium text-hb-navy">
-                            {{ __('company.jobs.stage_flow') }}
-                        </p>
+                        @if (! empty($job['stages_config']))
+                            <p class="mt-3 text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('company.jobs.configured_stages') }}</p>
+                            <ol class="mt-2 space-y-1.5 text-sm text-hb-navy">
+                                @foreach ($job['stages_config'] as $stage)
+                                    <li>
+                                        {{ $stage['order'] ?? ($loop->iteration) }}. {{ $stage['label'] ?? ($stage['type'] ?? '') }}
+                                        @if (! empty($stage['required']))
+                                            <span class="text-xs text-hb-muted">({{ __('company.jobs.skill_required') }})</span>
+                                        @endif
+                                    </li>
+                                @endforeach
+                            </ol>
+                        @else
+                            <p class="mt-3 text-sm font-medium text-hb-navy">
+                                {{ __('company.jobs.stage_flow') }}
+                            </p>
+                        @endif
                         <p class="mt-3 text-xs leading-relaxed text-hb-muted">
                             {{ $job['stage_note'] ?? __('company.jobs.stage_note_default') }}
                         </p>
@@ -260,9 +287,11 @@
                     </ul>
                 @endif
                 <div class="mt-6 flex flex-wrap gap-2">
-                    <a href="{{ route('jobs.show', $job['id']) }}" class="hb-btn-primary" target="_blank" rel="noopener noreferrer">
-                        {{ __('company.jobs.view_public_job') }}
-                    </a>
+                    @if (($job['visibility'] ?? 'public') === 'public' && ($job['status_key'] ?? '') === 'open')
+                        <a href="{{ route('jobs.show', $job['id']) }}" class="hb-btn-primary" target="_blank" rel="noopener noreferrer">
+                            {{ __('company.jobs.view_public_job') }}
+                        </a>
+                    @endif
                     <button type="button" class="hb-btn-outline" disabled title="{{ __('company.jobs.publication_controls_soon') }}">
                         {{ __('company.jobs.manage_publication') }}
                     </button>

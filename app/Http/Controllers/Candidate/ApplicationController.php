@@ -58,6 +58,11 @@ class ApplicationController extends Controller
 
         abort_unless($flow['job'] !== null, 404);
 
+        // Private jobs the current demo context cannot view stay unavailable (presentation boundary).
+        if (($flow['eligibility']['can_view'] ?? true) === false && ($flow['job']['visibility'] ?? '') === 'private') {
+            abort(404);
+        }
+
         return view('candidate.applications.apply', [
             'pageTitle' => 'Apply · Hirebridge',
             'uiRole' => 'candidate',

@@ -4,8 +4,10 @@
 @section('eyebrow', __('auth.verify.eyebrow'))
 
 @section('content')
-    @php($email = $email ?? 'maya.chen@example.com')
-
+    @php
+        $email = $email ?? 'maya.chen@example.com';
+        $verifyState = $verifyState ?? 'default';
+    @endphp
 
     <h1 class="text-2xl font-semibold tracking-tight text-hb-navy">{{ __('auth.verify.title') }}</h1>
     <p class="mt-2 text-sm text-hb-muted">
@@ -14,7 +16,20 @@
         {{ __('auth.verify.intro_after') }}
     </p>
 
-    <div class="mt-8 space-y-5" data-auth-page="verify-email">
+    <div class="mt-8 space-y-5" data-auth-page="verify-email" data-verify-state="{{ $verifyState }}">
+        @if ($verifyState === 'failed')
+            <x-alert variant="error">
+                <p class="font-semibold text-hb-navy">{{ __('auth.verify.failed_title') }}</p>
+                <p class="mt-1 text-hb-muted">{{ __('auth.verify.failed_body') }}</p>
+                <p class="mt-2 text-hb-muted">{{ __('auth.verify.failed_next') }}</p>
+            </x-alert>
+        @elseif ($verifyState === 'resent')
+            <x-alert variant="info">
+                <p class="font-semibold text-hb-navy">{{ __('auth.verify.resent_title') }}</p>
+                <p class="mt-1 text-hb-muted">{{ __('auth.verify.resent_body') }}</p>
+            </x-alert>
+        @endif
+
         <div class="rounded-lg border border-hb-border bg-hb-surface px-4 py-3 text-sm">
             <p class="font-semibold text-hb-navy">{{ __('auth.verify.entry_title') }}</p>
             <p class="mt-1 text-hb-muted">{{ __('auth.verify.entry_note') }}</p>
@@ -85,6 +100,14 @@
         <p class="text-xs text-hb-muted">{{ __('auth.verify.return_later') }} <a href="{{ route('login') }}" class="text-hb-blue hover:underline">{{ __('auth.verify.sign_in_link') }}</a>.</p>
         <p class="text-center text-xs text-hb-muted">
             {{ __('auth.login.need_help') }} <a href="mailto:support@hirebridge.example" class="text-hb-blue hover:underline">support@hirebridge.example</a>
+        </p>
+        <p class="text-center text-xs text-hb-muted">
+            {{ __('auth.verify.demo_states') }}
+            <a class="text-hb-blue hover:underline" href="{{ route('verification.notice', ['email' => $email, 'verify_state' => 'default']) }}">default</a>
+            ·
+            <a class="text-hb-blue hover:underline" href="{{ route('verification.notice', ['email' => $email, 'verify_state' => 'failed']) }}">failed</a>
+            ·
+            <a class="text-hb-blue hover:underline" href="{{ route('verification.notice', ['email' => $email, 'verify_state' => 'resent']) }}">resent</a>
         </p>
     </div>
 @endsection

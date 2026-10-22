@@ -29,6 +29,7 @@
             'preview_result' => __('admin.settings.preview_result'),
             'preview_time' => __('admin.settings.preview_time'),
             'preview_description' => __('admin.settings.preview_description'),
+            'preview_sample' => __('admin.settings.audit_sample_label'),
             'status_connected' => __('admin.settings.status_connected'),
             'status_unavailable' => __('admin.settings.status_unavailable'),
             'previous' => __('common.actions.previous'),
@@ -155,6 +156,9 @@
                         {{ __('admin.settings.audit_heading') }}
                     </h2>
                     <p class="mt-1 text-sm text-hb-muted">{{ __('admin.settings.audit_intro') }}</p>
+                    <p class="mt-2 text-xs font-semibold uppercase tracking-wide text-hb-pending" data-audit-sample-banner>
+                        {{ __('admin.settings.audit_sample_label') }}
+                    </p>
                 </div>
 
                 <div class="flex flex-col gap-3 border-b border-hb-border px-5 py-4 sm:flex-row sm:flex-wrap sm:items-center sm:px-6">
@@ -236,10 +240,17 @@
                                     data-time="{{ $event['time'] }}"
                                     data-description="{{ $event['description'] }}"
                                     data-result-label="{{ $resultLabels[$event['result']] ?? $event['result'] }}"
+                                    data-is-sample="{{ ! empty($event['is_sample']) ? 'true' : 'false' }}"
+                                    data-sample-label="{{ $event['sample_label'] ?? __('admin.settings.audit_sample_label') }}"
                                     tabindex="0"
                                 >
                                     <td class="px-5 py-3 whitespace-nowrap text-hb-muted">
                                         <time dir="ltr">{{ $event['time'] }}</time>
+                                        @if (! empty($event['is_sample']))
+                                            <span class="mt-1 block text-[10px] font-semibold uppercase tracking-wide text-hb-pending">
+                                                {{ __('admin.settings.audit_sample_short') }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="px-4 py-3 font-semibold text-hb-navy">{{ $event['actor'] }}</td>
                                     <td class="px-4 py-3 text-hb-text">{{ $event['action'] }}</td>

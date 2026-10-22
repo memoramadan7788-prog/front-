@@ -109,6 +109,34 @@
                         </section>
                     @endif
 
+                    @if (! empty($application['assessment_id']))
+                        <section class="hb-surface mt-6 p-5 sm:p-6" aria-labelledby="linked-assessment-heading" data-linked-assessment>
+                            <h2 id="linked-assessment-heading" class="text-lg font-semibold text-hb-navy">{{ __('candidate.assessments.linked_assessment_heading') }}</h2>
+                            <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.assessments.linked_assessment_intro') }}</p>
+                            <dl class="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                                <div>
+                                    <dt class="text-hb-muted">{{ __('candidate.applications.current_status') }}</dt>
+                                    <dd class="font-semibold text-hb-navy">{{ $application['assessment_status'] ?? '—' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-hb-muted">{{ __('candidate.assessments.attempts_used') }}</dt>
+                                    <dd class="font-semibold text-hb-navy" dir="ltr">
+                                        {{ __('candidate.assessments.assessment_attempt_line', [
+                                            'used' => $application['assessment_attempts_used'] ?? 0,
+                                            'limit' => $application['assessment_attempt_limit'] ?? 1,
+                                        ]) }}
+                                    </dd>
+                                </div>
+                            </dl>
+                            @if (($application['assessment_proctoring_review'] ?? '') === 'pending')
+                                <p class="mt-3 text-sm text-hb-text">{{ __('candidate.assessments.assessment_proctoring_pending') }}</p>
+                            @endif
+                            <a href="{{ route('candidate.assessments.show', $application['assessment_id']) }}" class="hb-btn-outline mt-4 inline-flex">
+                                {{ __('candidate.assessments.open_assessment') }}
+                            </a>
+                        </section>
+                    @endif
+
                     <section class="hb-surface mt-6 p-5 sm:p-6" aria-labelledby="activity-heading-overview">
                         <h2 id="activity-heading-overview" class="text-lg font-semibold text-hb-navy">{{ __('candidate.applications.application_activity') }}</h2>
                         <ol class="mt-4 space-y-3 rounded-lg border border-hb-border px-4 py-4">
@@ -183,19 +211,46 @@
                     </button>
                 </section>
 
-                <section class="hb-surface p-5" aria-labelledby="controls-heading">
+                <section class="hb-surface p-5" aria-labelledby="controls-heading" data-application-controls>
                     <h2 id="controls-heading" class="text-base font-semibold text-hb-navy">{{ __('candidate.applications.application_controls') }}</h2>
-                    <p class="mt-2 text-sm leading-relaxed text-hb-muted">
-                        {{ __('candidate.applications.withdraw_note') }}
+                    <dl class="mt-3 space-y-2 text-sm text-hb-muted">
+                        <div class="flex justify-between gap-2">
+                            <dt>{{ __('candidate.applications.attempt_label') }}</dt>
+                            <dd class="font-medium text-hb-navy">
+                                {{ __('candidate.applications.attempt_value', [
+                                    'current' => $application['attempt_no'] ?? 1,
+                                    'limit' => $application['attempt_limit'] ?? 1,
+                                ]) }}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="font-medium text-hb-text">{{ __('candidate.applications.reapply_heading') }}</dt>
+                            <dd class="mt-1">
+                                @if (! empty($application['can_reapply']))
+                                    {{ __('candidate.applications.reapply_available') }}
+                                @else
+                                    {{ $application['reapply_reason'] ?? __('candidate.applications.reapply_blocked') }}
+                                @endif
+                            </dd>
+                        </div>
+                    </dl>
+                    <p class="mt-3 text-sm leading-relaxed text-hb-muted">
+                        @if (! empty($application['can_withdraw']))
+                            {{ __('candidate.applications.withdraw_available_note') }}
+                        @else
+                            {{ $application['withdraw_reason'] ?? __('candidate.applications.withdraw_note') }}
+                        @endif
                     </p>
                     <button
                         type="button"
                         class="mt-4 text-sm font-semibold text-hb-blue hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                         data-withdraw-preview
-                        @disabled(! empty($application['archived']))
+                        @disabled(! empty($application['archived']) || empty($application['can_withdraw']))
+                        title="{{ ! empty($application['can_withdraw']) ? __('candidate.applications.withdraw_preview_title') : ($application['withdraw_reason'] ?? __('candidate.applications.withdraw_note')) }}"
                     >
                         {{ ! empty($application['archived']) ? __('candidate.applications.withdrawn') : __('candidate.applications.withdraw') }}
                     </button>
+                    <p class="mt-2 text-xs text-hb-muted">{{ __('candidate.applications.withdraw_preview_only') }}</p>
                     <p class="mt-2 hidden text-sm text-hb-muted" data-withdraw-status role="status"></p>
                 </section>
 

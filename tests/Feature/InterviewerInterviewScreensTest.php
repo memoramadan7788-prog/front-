@@ -57,13 +57,15 @@ class InterviewerInterviewScreensTest extends TestCase
             ->assertSee('Luis Romero', false)
             ->assertSee('int-ns204-luis-team', false)
             ->assertSee('NS-204', false)
-            ->assertDontSee('Maya Chen', false);
+            ->assertSee('data-interview-id="int-ns204-luis-team"', false)
+            ->assertDontSee('data-interview-id="int-ns204-portfolio"', false);
 
         $aisha = $this->get(route('interviewer.interviews.prepare', 'int-ns204-aisha-portfolio'));
         $aisha->assertOk()
             ->assertSee('Aisha Patel', false)
             ->assertSee('int-ns204-aisha-portfolio', false)
-            ->assertDontSee('Maya Chen', false);
+            ->assertSee('data-interview-id="int-ns204-aisha-portfolio"', false)
+            ->assertDontSee('data-interview-id="int-ns204-portfolio"', false);
     }
 
     public function test_unknown_interview_returns_not_found(): void

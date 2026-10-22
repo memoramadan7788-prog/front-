@@ -115,6 +115,12 @@ return [
         'resend_soon' => 'Resend isn’t available yet — no email is sent in this preview.',
         'tips_title' => 'A couple of things to check',
         'tips_body' => 'Look in spam or promotions folders. Make sure your email address is spelled correctly. Requesting a new code makes the previous code expire.',
+        'failed_title' => 'Verification could not complete',
+        'failed_body' => 'This preview shows a failed verification state. No code was checked on a server, and your email is not verified.',
+        'failed_next' => 'You can try entering a six-digit code again, or return to registration to change the email address.',
+        'resent_title' => 'Resend previewed',
+        'resent_body' => 'A resend was previewed only. No email was delivered, and no new code was issued by a server.',
+        'demo_states' => 'Demo states:',
     ],
     'reset' => [
         'eyebrow' => 'Account access',

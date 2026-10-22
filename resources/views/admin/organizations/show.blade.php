@@ -10,13 +10,14 @@
             : __('admin.organizations.company_workspace');
         $lifecycleLabel = match ($organization['lifecycle_key'] ?? 'active') {
             'pending' => __('admin.organizations.lifecycle_pending'),
+            'rejected' => __('admin.organizations.lifecycle_rejected'),
             'suspended' => __('admin.organizations.lifecycle_suspended'),
             'archived' => __('admin.organizations.lifecycle_archived'),
             default => __('admin.organizations.lifecycle_active'),
         };
         $lifecycleVariant = match ($organization['lifecycle_key'] ?? 'active') {
             'pending' => 'pending',
-            'suspended' => 'error',
+            'rejected', 'suspended' => 'error',
             'archived' => 'neutral',
             default => 'success',
         };
@@ -61,9 +62,32 @@
         $isLimited = ($organization['detail_level'] ?? 'limited') === 'limited';
         $isSuspended = ($organization['lifecycle_key'] ?? '') === 'suspended';
         $isArchived = ($organization['lifecycle_key'] ?? '') === 'archived';
+        $isPending = ($organization['lifecycle_key'] ?? '') === 'pending';
+        $isRejected = ($organization['lifecycle_key'] ?? '') === 'rejected';
+        $membershipRequests = $organization['membership_requests'] ?? [];
+        $statusHistory = $organization['status_history'] ?? [];
+        $reviewEvidence = $organization['review_evidence'] ?? [];
+        $companyDemoQuery = $organization['company_demo_query'] ?? null;
     @endphp
 
-    <div data-admin-org-show data-tabs id="admin-org-detail-tabs">
+    <div
+        data-admin-org-show
+        data-tabs
+        id="admin-org-detail-tabs"
+        data-org-id="{{ $organization['id'] }}"
+        data-lifecycle="{{ $organization['lifecycle_key'] ?? '' }}"
+    >
+        <x-alert variant="info" class="mb-6" data-org-review-authority>
+            <p class="text-sm text-hb-text">{{ __('admin.organizations.review_authority') }}</p>
+            @if ($companyDemoQuery && Route::has('company.dashboard'))
+                <p class="mt-2 text-xs text-hb-muted">
+                    {{ __('admin.organizations.company_consistency_hint') }}
+                    <a href="{{ route('company.dashboard', [], false) }}?{{ $companyDemoQuery }}" class="font-semibold text-hb-blue hover:underline" dir="ltr">
+                        {{ __('admin.organizations.open_company_demo') }}
+                    </a>
+                </p>
+            @endif
+        </x-alert>
         <div
             class="mb-6 flex flex-wrap gap-4 border-b border-hb-border text-sm font-semibold"
             role="tablist"
@@ -104,6 +128,44 @@
 
             <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,18rem)]">
                 <div class="min-w-0 space-y-6">
+                    @if ($statusHistory !== [] || $reviewEvidence !== [])
+                        <section class="hb-surface p-5 sm:p-6" aria-labelledby="org-governance-heading" data-org-governance>
+                            <h2 id="org-governance-heading" class="text-base font-semibold text-hb-navy">
+                                {{ __('admin.organizations.governance_heading') }}
+                            </h2>
+                            @if (! empty($organization['rejection_reason']))
+                                <p class="mt-2 text-sm text-hb-text" data-org-rejection-reason>
+                                    {{ __('admin.organizations.rejection_reason', ['reason' => $organization['rejection_reason']]) }}
+                                </p>
+                            @endif
+                            @if (! empty($organization['suspension_reason']))
+                                <p class="mt-2 text-sm text-hb-text" data-org-suspension-reason>
+                                    {{ __('admin.organizations.suspension_reason', ['reason' => $organization['suspension_reason']]) }}
+                                </p>
+                            @endif
+                            @if ($reviewEvidence !== [])
+                                <h3 class="mt-4 text-sm font-semibold text-hb-navy">{{ __('admin.organizations.evidence_heading') }}</h3>
+                                <ul class="mt-2 list-disc space-y-1 ps-5 text-sm text-hb-muted">
+                                    @foreach ($reviewEvidence as $item)
+                                        <li>{{ $item }}</li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                            @if ($statusHistory !== [])
+                                <h3 class="mt-4 text-sm font-semibold text-hb-navy">{{ __('admin.organizations.history_heading') }}</h3>
+                                <ol class="mt-2 space-y-2 text-sm text-hb-text">
+                                    @foreach ($statusHistory as $event)
+                                        <li class="rounded-lg border border-hb-border bg-hb-page px-3 py-2">
+                                            <span class="font-medium" dir="ltr">{{ $event['at'] ?? '' }}</span>
+                                            · {{ $event['label'] ?? '' }}
+                                            <span class="text-hb-muted">· {{ $event['actor'] ?? '' }}</span>
+                                        </li>
+                                    @endforeach
+                                </ol>
+                            @endif
+                        </section>
+                    @endif
+
                     <section class="hb-surface p-5 sm:p-6" aria-labelledby="org-profile-heading">
                         <h2 id="org-profile-heading" class="text-base font-semibold text-hb-navy">
                             {{ __('admin.organizations.workspace_profile') }}
@@ -302,6 +364,40 @@
                     </a>
                 </div>
             </section>
+
+            @if ($membershipRequests !== [])
+                <section class="mt-6 hb-surface overflow-hidden" aria-labelledby="org-membership-requests-heading" data-org-membership-requests>
+                    <div class="border-b border-hb-border px-5 py-4 sm:px-6">
+                        <h2 id="org-membership-requests-heading" class="text-base font-semibold text-hb-navy">
+                            {{ __('admin.organizations.membership_requests_heading') }}
+                        </h2>
+                        <p class="mt-1 text-sm text-hb-muted">{{ __('admin.organizations.membership_requests_intro') }}</p>
+                    </div>
+                    <ul class="divide-y divide-hb-border">
+                        @foreach ($membershipRequests as $request)
+                            @php
+                                $reqStatus = \App\Support\Frontend\FrontendStatusVocabulary::resolve(
+                                    \App\Support\Frontend\FrontendStatusVocabulary::membership(),
+                                    (string) ($request['status_key'] ?? 'pending'),
+                                );
+                            @endphp
+                            <li class="px-5 py-4 sm:px-6" data-membership-request-id="{{ $request['id'] ?? '' }}" data-candidate-id="{{ $request['candidate_id'] ?? '' }}">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <p class="font-semibold text-hb-navy">{{ $request['name'] ?? '' }}</p>
+                                    <x-badge :variant="$reqStatus['variant']" :dot="true">{{ $reqStatus['label'] }}</x-badge>
+                                </div>
+                                <p class="mt-1 text-sm text-hb-muted" dir="ltr">{{ $request['email'] ?? '' }}</p>
+                                <p class="mt-1 text-sm text-hb-text">
+                                    {{ __('admin.organizations.membership_requested_role', ['role' => $request['requested_role'] ?? '']) }}
+                                </p>
+                                @if (! empty($request['note']))
+                                    <p class="mt-2 text-xs text-hb-muted">{{ $request['note'] }}</p>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
         </div>
 
         {{-- Usage --}}

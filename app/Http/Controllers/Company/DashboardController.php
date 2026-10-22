@@ -19,6 +19,7 @@ class DashboardController extends Controller
             'uiRole' => 'company',
             'showMockBanner' => false,
             'dashboard' => MockCompanyData::dashboard(),
+            'organizationContext' => MockCompanyData::organizationContext(),
             'frontendOnly' => true,
         ]);
     }

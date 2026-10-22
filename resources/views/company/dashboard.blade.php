@@ -9,6 +9,10 @@
 @endsection
 
 @section('page_actions')
+    @php
+        $organizationContext = $organizationContext ?? \App\Support\Frontend\MockCompanyData::organizationContext();
+        $canCreateJobs = (bool) ($organizationContext['capabilities']['can_create_jobs'] ?? true);
+    @endphp
     <div class="flex flex-wrap items-center gap-2" data-company-dashboard>
         <label class="sr-only" for="company-date-range">{{ __('company.dashboard.date_range') }}</label>
         <select
@@ -21,13 +25,25 @@
                 <option value="{{ $range }}" @selected($range === $dashboard['date_range'])>{{ $range }}</option>
             @endforeach
         </select>
-        <a href="{{ route('company.jobs.create') }}" class="hb-btn-primary">
-            {{ __('company.dashboard.create_job_short') }}
-        </a>
+        @if ($canCreateJobs)
+            <a href="{{ route('company.jobs.create') }}" class="hb-btn-primary">
+                {{ __('company.dashboard.create_job_short') }}
+            </a>
+        @else
+            <span
+                class="hb-btn-primary cursor-not-allowed opacity-50"
+                role="link"
+                aria-disabled="true"
+                title="{{ __('company.organization.create_jobs_unavailable') }}"
+            >
+                {{ __('company.dashboard.create_job_short') }}
+            </span>
+        @endif
     </div>
 @endsection
 
 @section('content')
+    @include('partials.company-organization-banner', ['organizationContext' => $organizationContext ?? null])
     <p id="company-date-range-note" class="sr-only">{{ __('company.dashboard.date_range_note') }}</p>
 
     <p
@@ -237,9 +253,18 @@
                             <p class="text-sm font-semibold text-hb-navy">{{ $item['title'] }}</p>
                             <p class="mt-1 text-sm text-hb-muted">{{ $item['body'] }}</p>
                             @if (($item['pending_batch'] ?? '') === '5B')
-                                <a href="{{ route('company.jobs.create') }}" class="hb-btn-outline mt-3 w-full text-sm">
-                                    {{ $item['action'] }}
-                                </a>
+                                @if ($canCreateJobs)
+                                    <a href="{{ route('company.jobs.create') }}" class="hb-btn-outline mt-3 w-full text-sm">
+                                        {{ $item['action'] }}
+                                    </a>
+                                @else
+                                    <span
+                                        class="hb-btn-outline mt-3 inline-flex w-full cursor-not-allowed justify-center opacity-50"
+                                        role="link"
+                                        aria-disabled="true"
+                                        title="{{ __('company.organization.create_jobs_unavailable') }}"
+                                    >{{ $item['action'] }}</span>
+                                @endif
                             @elseif (($item['pending_batch'] ?? '') === '5E')
                                 <a href="{{ route('company.offers.create', ['applicant' => 'ethan-cole']) }}" class="hb-btn-outline mt-3 w-full text-sm">
                                     {{ $item['action'] }}

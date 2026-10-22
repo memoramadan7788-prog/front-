@@ -9,6 +9,99 @@ namespace App\Support\Frontend;
 class MockCandidateData
 {
     /**
+     * Optional employee membership request (Workflow 2 / F9A).
+     * Demo via `?membership=none|draft|pending|approved|rejected`.
+     *
+     * @return array<string, mixed>
+     */
+    public static function membership(?string $demoState = null): array
+    {
+        $state = $demoState
+            ?? (is_string(request()->query('membership')) ? request()->query('membership') : null)
+            ?? 'none';
+
+        if (! in_array($state, ['none', 'draft', 'pending', 'approved', 'rejected'], true)) {
+            $state = 'none';
+        }
+
+        $companies = [
+            [
+                'id' => 'org-ns-001',
+                'name' => 'Northstar Labs',
+                'domain' => 'northstarlabs.example',
+            ],
+            [
+                'id' => 'org-ms-001',
+                'name' => 'Meridian Studio',
+                'domain' => 'meridian.example',
+            ],
+            [
+                'id' => 'org-ah-001',
+                'name' => 'Atlas Health',
+                'domain' => 'atlashealth.example',
+            ],
+        ];
+
+        $request = match ($state) {
+            'pending' => [
+                'id' => 'req-maya-chen',
+                'company_id' => 'org-ns-001',
+                'company_name' => 'Northstar Labs',
+                'job_title' => 'Product Designer',
+                'department' => 'Product & Design',
+                'status' => 'pending',
+                'status_label' => 'Pending company review',
+                'submitted_at' => 'October 19, 2026',
+                'rejection_reason' => null,
+                'can_submit_another' => false,
+            ],
+            'approved' => [
+                'id' => 'req-maya-chen-approved',
+                'company_id' => 'org-ns-001',
+                'company_name' => 'Northstar Labs',
+                'job_title' => 'Product Designer',
+                'department' => 'Product & Design',
+                'status' => 'approved',
+                'status_label' => 'Approved · Employee',
+                'submitted_at' => 'October 10, 2026',
+                'reviewed_at' => 'October 12, 2026',
+                'assigned_role' => 'Employee',
+                'rejection_reason' => null,
+                'can_submit_another' => false,
+            ],
+            'rejected' => [
+                'id' => 'req-maya-cohen-style',
+                'company_id' => 'org-ns-001',
+                'company_name' => 'Northstar Labs',
+                'job_title' => 'Hiring coordinator',
+                'department' => 'People Operations',
+                'status' => 'rejected',
+                'status_label' => 'Rejected',
+                'submitted_at' => 'October 12, 2026',
+                'reviewed_at' => 'October 14, 2026',
+                'rejection_reason' => 'People Operations already has an assigned HR admin for this workspace.',
+                'can_submit_another' => true,
+            ],
+            default => null,
+        };
+
+        return [
+            'design_source' => 'workflow_2',
+            'design_note' => 'No dedicated Figma membership frame was verified for F9A. UI uses Frame 51 patterns.',
+            'candidate' => [
+                'id' => 'maya-chen',
+                'name' => 'Maya Chen',
+                'email' => 'maya.chen@example.com',
+            ],
+            'demo_state' => $state,
+            'companies' => $companies,
+            'request' => $request,
+            'storage_key' => 'hb_candidate_membership_request_v1',
+            'frontend_only' => true,
+        ];
+    }
+
+    /**
      * Figma 22 — Profile & resume presentation payload.
      *
      * @return array<string, mixed>
@@ -368,8 +461,109 @@ class MockCandidateData
                 'saved_action_label' => 'Review role',
                 'recommended_rank' => 5,
                 'posted_rank' => 6,
+                'organization_id' => 'org-ms-001',
+                'visibility' => 'public',
+                'publication_status' => 'published',
+            ],
+            [
+                'id' => 'ns-208',
+                'title' => 'Internal Design Systems Lead',
+                'company' => 'Northstar Labs',
+                'company_slug' => 'northstar-labs',
+                'organization_id' => 'org-ns-001',
+                'code' => 'NS-208',
+                'discipline' => 'Product & Design',
+                'work_model' => 'Hybrid',
+                'location' => 'Austin, TX',
+                'location_short' => 'Austin',
+                'employment' => 'Full-time',
+                'salary_min' => 150000,
+                'salary_max' => 180000,
+                'salary_label' => '$150k–$180k',
+                'source' => 'Direct hire',
+                'experience_level' => 'Lead',
+                'keyword' => 'internal design systems lead private employee',
+                'match_reason' => 'Private employee-eligible role at Northstar Labs.',
+                'primary_cta' => 'review_apply',
+                'primary_cta_label' => 'Review & apply →',
+                'application_state' => null,
+                'saved_on' => null,
+                'saved_status' => 'Private',
+                'saved_action' => 'review_role',
+                'saved_action_label' => 'Review role',
+                'recommended_rank' => 6,
+                'posted_rank' => 5,
+                'visibility' => 'private',
+                'private_apply_mode' => 'all_employees',
+                'publication_status' => 'published',
+                'openings_count' => 1,
+                'deadline' => 'December 15, 2026',
+                'requirements_flags' => [
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => false,
+                ],
+            ],
+            [
+                'id' => 'ns-209',
+                'title' => 'Nominated Product Designer',
+                'company' => 'Northstar Labs',
+                'company_slug' => 'northstar-labs',
+                'organization_id' => 'org-ns-001',
+                'code' => 'NS-209',
+                'discipline' => 'Product & Design',
+                'work_model' => 'Hybrid',
+                'location' => 'Austin, TX',
+                'location_short' => 'Austin',
+                'employment' => 'Full-time',
+                'salary_min' => 130000,
+                'salary_max' => 155000,
+                'salary_label' => '$130k–$155k',
+                'source' => 'Direct hire',
+                'experience_level' => 'Senior',
+                'keyword' => 'nominated product designer private',
+                'match_reason' => 'Private nomination-only role at Northstar Labs.',
+                'primary_cta' => 'review_apply',
+                'primary_cta_label' => 'Review & apply →',
+                'application_state' => null,
+                'saved_on' => null,
+                'saved_status' => 'Private',
+                'saved_action' => 'review_role',
+                'saved_action_label' => 'Review role',
+                'recommended_rank' => 7,
+                'posted_rank' => 4,
+                'visibility' => 'private',
+                'private_apply_mode' => 'nominated_only',
+                'publication_status' => 'published',
+                'openings_count' => 1,
+                'deadline' => 'December 1, 2026',
+                'nominations' => [
+                    ['candidate_id' => 'maya-chen', 'name' => 'Maya Chen'],
+                ],
+                'requirements_flags' => [
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => true,
+                ],
             ],
         ];
+
+        // Ensure public NS-204 carries presentation contract fields.
+        $jobs = array_map(function (array $job): array {
+            if (($job['id'] ?? '') === 'ns-204') {
+                $job['organization_id'] = 'org-ns-001';
+                $job['visibility'] = 'public';
+                $job['publication_status'] = 'published';
+                $job['employees_cannot_apply_public'] = true;
+                $job['requirements_flags'] = [
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => false,
+                ];
+            }
+
+            return $job;
+        }, $jobs);
 
         return array_map(function (array $job) use ($saved): array {
             return array_merge($job, [
@@ -444,6 +638,13 @@ class MockCandidateData
                 'job_id' => 'ns-204',
                 'message_thread_id' => 'msg-olivia-ns204',
                 'interview_id' => 'int-ns204-portfolio',
+                'assessment_id' => 'exam-ns204-systems',
+                'assessment_attempt_id' => 'attempt-ns204-maya-1',
+                'assessment_status' => 'Ready to start',
+                'assessment_status_key' => 'ready',
+                'assessment_attempts_used' => 1,
+                'assessment_attempt_limit' => 2,
+                'assessment_proctoring_review' => 'pending',
                 'reference' => 'HB-NS204-MC-1012',
                 'title' => 'Senior Product Designer',
                 'company' => 'Northstar Labs',
@@ -492,6 +693,13 @@ class MockCandidateData
                 ],
                 'screening_summary' => 'Hybrid availability, motivation, salary expectations',
                 'consent_summary' => 'Application processing approved · Talent pool opt-in not selected',
+                'attempt_no' => 1,
+                'attempt_limit' => 1,
+                'can_reapply' => false,
+                'reapply_reason' => 'An active application already exists for this role.',
+                'can_withdraw' => false,
+                'withdraw_reason' => 'Withdrawal is unavailable after the hiring team has started review.',
+                'withdraw_status' => 'review_started',
             ],
             [
                 'id' => 'hb-ms108-mc-1019',
@@ -577,6 +785,13 @@ class MockCandidateData
                     ['label' => 'mayachen.design', 'meta' => 'Portfolio'],
                     ['label' => 'Screening answers', 'meta' => 'Oct 18'],
                 ],
+                'attempt_no' => 1,
+                'attempt_limit' => 2,
+                'can_reapply' => false,
+                'reapply_reason' => 'An active application already exists for this role.',
+                'can_withdraw' => true,
+                'withdraw_reason' => null,
+                'withdraw_status' => 'before_review',
                 'screening_summary' => 'Hybrid availability, research focus, salary expectations',
                 'consent_summary' => 'Application processing approved',
             ],
@@ -702,11 +917,24 @@ class MockCandidateData
         }
 
         $job = $job ?? self::job('ns-204');
+        $job = JobAccessPresentation::normalizeJob($job);
+        $context = JobAccessPresentation::candidateContext();
+        $eligibility = JobAccessPresentation::eligibility($job, $context);
+        $job['eligibility'] = $eligibility;
+
         $company = $job['company'] ?? 'Northstar Labs';
         $locationShort = $job['location_short'] ?? 'Austin';
+        $flags = $job['requirements_flags'] ?? [
+            'cv_required' => true,
+            'ai_consent_required' => true,
+            'cover_note_required' => false,
+        ];
 
         return [
             'job' => $job,
+            'access_context' => $context,
+            'eligibility' => $eligibility,
+            'can_proceed' => (bool) ($eligibility['can_apply'] ?? false),
             'profile' => [
                 'name' => $profile['name'],
                 'email' => $profile['email'],
@@ -732,9 +960,13 @@ class MockCandidateData
                 'hybrid' => 'Yes · Two office days per week',
                 'interest' => 'I’m drawn to operational tools and SaaS products where design systems and discovery shape complex workflows. '.$company.'’s product focus and hybrid setup match how I like to collaborate.',
                 'salary' => '$155,000 – $165,000',
-                'consent' => true,
+                'cover_note' => '',
+                'consent' => false,
+                'ai_consent' => false,
                 'talent_pool' => false,
+                'resume_attached' => true,
             ],
+            'requirements_flags' => $flags,
             'role_summary' => [
                 'source' => $job['source'] ?? 'Direct hire',
                 'title' => $job['title'] ?? 'Senior Product Designer',
@@ -744,6 +976,8 @@ class MockCandidateData
                 'salary' => ($job['salary_label'] ?? '$140k–$170k').' USD',
                 'hiring_contact' => $job['hiring_contact'] ?? 'Olivia Bennett',
                 'team' => $job['discipline'] ?? 'Product & Design',
+                'visibility' => $job['visibility'] ?? 'public',
+                'application_mode' => $job['application_mode'] ?? 'open',
             ],
             'before_submit' => 'Your resume and portfolio will be shared with the authorized '.$company.' hiring team for this role. Other applications and private preferences stay confidential.',
             'footer' => $profile['footer'],
@@ -813,10 +1047,12 @@ class MockCandidateData
     public static function interviews(): array
     {
         $upcoming = [
-            [
+            InterviewBookingPresentation::enrichInterview([
                 'id' => 'int-ns204-portfolio',
                 'application_id' => 'hb-ns204-mc-1012',
                 'job_id' => 'ns-204',
+                'organization_id' => 'org-ns-001',
+                'candidate_id' => 'maya-chen',
                 'title' => 'Portfolio interview',
                 'company' => 'Northstar Labs',
                 'role' => 'Senior Product Designer',
@@ -827,15 +1063,19 @@ class MockCandidateData
                 'time' => '10:00–10:45 AM · Central Time (UTC−05:00)',
                 'time_short' => '10:00–10:45',
                 'day_key' => '2026-10-22',
+                'starts_time' => '10:00:00',
                 'weekday' => 'Thu',
                 'day_num' => '22',
                 'interviewer' => 'Alex Morgan · Interviewer · Product Design',
                 'interviewer_short' => 'Alex Morgan',
+                'interviewer_id' => 'alex-morgan',
                 'format' => 'Video meeting · Link available 15 minutes before the interview.',
                 'type' => 'Remote',
                 'duration' => '45 minutes',
+                'round_no' => 2,
                 'calendar_label' => 'Maya Chen · Portfolio · NS-204',
                 'scope' => 'upcoming',
+                'evaluation_status' => 'pending',
                 'prep' => [
                     ['label' => 'Review the role description', 'done' => true],
                     ['label' => 'Choose two portfolio projects', 'done' => false],
@@ -843,14 +1083,48 @@ class MockCandidateData
                     ['label' => 'Prepare your questions', 'done' => false],
                 ],
                 'guide_note' => 'Checklist progress is saved in this browser.',
-            ],
+            ]),
+            InterviewBookingPresentation::enrichInterview([
+                'id' => 'int-ah312-near',
+                'application_id' => 'hb-ah312-mc-1018',
+                'job_id' => 'ah-312',
+                'organization_id' => 'org-ah-001',
+                'candidate_id' => 'maya-chen',
+                'title' => 'Screening follow-up',
+                'company' => 'Atlas Health',
+                'role' => 'Senior UX Designer',
+                'code' => 'AH-312',
+                'status' => 'Confirmed · within 24h cutoff',
+                'status_key' => 'confirmed',
+                'when' => 'Tuesday, October 20',
+                'time' => '4:00–4:30 PM · Central Time (UTC−05:00)',
+                'time_short' => '4:00–4:30',
+                'day_key' => '2026-10-20',
+                'starts_time' => '16:00:00',
+                'weekday' => 'Tue',
+                'day_num' => '20',
+                'interviewer' => 'Priya Shah · Interviewer',
+                'interviewer_short' => 'Priya Shah',
+                'interviewer_id' => 'priya-shah',
+                'format' => 'Video meeting',
+                'type' => 'Remote',
+                'duration' => '30 minutes',
+                'round_no' => 1,
+                'calendar_label' => 'Maya Chen · Screening · AH-312',
+                'scope' => 'upcoming',
+                'evaluation_status' => 'not_started',
+                'prep' => [],
+                'guide_note' => 'Reschedule is unavailable inside the 24-hour cutoff in this preview.',
+            ]),
         ];
 
         $past = [
-            [
+            InterviewBookingPresentation::enrichInterview([
                 'id' => 'int-ns204-screening',
                 'application_id' => 'hb-ns204-mc-1012',
                 'job_id' => 'ns-204',
+                'organization_id' => 'org-ns-001',
+                'candidate_id' => 'maya-chen',
                 'title' => 'Recruiter screening',
                 'company' => 'Northstar Labs',
                 'role' => 'Senior Product Designer',
@@ -861,29 +1135,60 @@ class MockCandidateData
                 'time' => '11:00–11:30 AM Central · Olivia Bennett · Completed',
                 'time_short' => '11:00–11:30',
                 'day_key' => '2026-10-15',
+                'starts_time' => '11:00:00',
                 'interviewer' => 'Olivia Bennett',
+                'interviewer_id' => 'olivia-bennett',
                 'format' => 'Video meeting',
                 'type' => 'Remote',
                 'duration' => '30 minutes',
+                'round_no' => 1,
                 'scope' => 'past',
+                'evaluation_status' => 'submitted',
                 'note' => 'Next stage: portfolio interview. No action required for the completed screening.',
                 'prep' => [],
-            ],
+            ]),
+            InterviewBookingPresentation::enrichInterview([
+                'id' => 'int-ms108-cancelled',
+                'application_id' => 'hb-ms108-mc-1019',
+                'job_id' => 'ms-108',
+                'candidate_id' => 'maya-chen',
+                'title' => 'Team panel',
+                'company' => 'Meridian Studio',
+                'role' => 'Lead Product Designer',
+                'code' => 'MS-108',
+                'status' => 'Cancelled',
+                'status_key' => 'cancelled',
+                'when' => 'October 18',
+                'time' => 'Cancelled by hiring team · sample',
+                'time_short' => '—',
+                'day_key' => '2026-10-18',
+                'starts_time' => '13:00:00',
+                'interviewer' => 'Jamie Rivera',
+                'format' => 'Video meeting',
+                'type' => 'Remote',
+                'duration' => '45 minutes',
+                'round_no' => 2,
+                'scope' => 'past',
+                'evaluation_status' => 'not_applicable',
+                'note' => 'Sample cancelled interview. It is not an active upcoming session.',
+                'prep' => [],
+            ]),
         ];
 
         return [
             'week_label' => 'October 19–23, 2026',
             'timezone' => 'Week view · Central Time (UTC−05:00)',
+            'demo_now' => InterviewBookingPresentation::DEMO_NOW,
             'days' => [
                 ['key' => '2026-10-19', 'label' => 'Mon 19', 'slots' => [['time' => '9:00 AM', 'label' => 'Available'], ['time' => '2:00 PM', 'label' => 'Available']]],
-                ['key' => '2026-10-20', 'label' => 'Tue 20', 'slots' => [['time' => '9:00 AM', 'label' => 'Available'], ['time' => '2:00 PM', 'label' => 'Available']]],
+                ['key' => '2026-10-20', 'label' => 'Tue 20', 'highlight' => true, 'slots' => [['time' => '4:00–4:30', 'label' => 'Maya Chen · Screening · AH-312', 'interview_id' => 'int-ah312-near'], ['time' => '9:00 AM', 'label' => 'Available']]],
                 ['key' => '2026-10-21', 'label' => 'Wed 21', 'slots' => [['time' => '9:00 AM', 'label' => 'Available'], ['time' => '2:00 PM', 'label' => 'Available']]],
                 ['key' => '2026-10-22', 'label' => 'Thu 22', 'highlight' => true, 'slots' => [['time' => '10:00–10:45', 'label' => 'Maya Chen · Portfolio · NS-204', 'interview_id' => 'int-ns204-portfolio']]],
                 ['key' => '2026-10-23', 'label' => 'Fri 23', 'slots' => [['time' => '9:00 AM', 'label' => 'Available'], ['time' => '2:00 PM', 'label' => 'Available']]],
             ],
             'upcoming' => $upcoming,
             'past' => $past,
-            'selected_id' => 'int-ns204-portfolio',
+            'selected_id' => request()->query('interview') === 'int-ah312-near' ? 'int-ah312-near' : 'int-ns204-portfolio',
             'footer' => self::profile()['footer'],
         ];
     }
@@ -1023,27 +1328,48 @@ class MockCandidateData
      */
     public static function assessments(): array
     {
+        $consentDeclined = request()->query('consent') === 'declined';
+        $exhaustedDemo = request()->query('attempts') === 'exhausted';
+
         return [
             [
                 'id' => 'exam-ns204-systems',
                 'application_id' => 'hb-ns204-mc-1012',
                 'job_id' => 'ns-204',
+                'attempt_id' => 'attempt-ns204-maya-1',
                 'title' => 'Design systems practical',
                 'company' => 'Northstar Labs',
                 'role' => 'Senior Product Designer',
                 'code' => 'NS-204',
-                'status' => 'Ready to start',
-                'status_key' => 'ready',
+                'status' => $exhaustedDemo ? 'Attempts exhausted' : ($consentDeclined ? 'Consent required' : 'Ready to start'),
+                'status_key' => $exhaustedDemo ? 'exhausted' : ($consentDeclined ? 'consent_required' : 'ready'),
+                'lifecycle' => $exhaustedDemo ? 'unavailable_expired' : 'published_assigned',
                 'time_limit_min' => 45,
                 'attempt_limit' => 2,
-                'attempt_no' => 1,
+                'attempt_no' => $exhaustedDemo ? 2 : 1,
+                'attempts_remaining' => $exhaustedDemo ? 0 : 1,
+                'can_start' => ! $exhaustedDemo && ! $consentDeclined,
+                'can_resume' => false,
+                'retake_available' => ! $exhaustedDemo,
                 'passing_score' => 70,
                 'questions_count' => 4,
                 'due' => 'Complete before Oct 22 interview',
+                'deadline' => 'October 22, 2026, 9:00 AM Central',
+                'timer_authority_note' => 'Browser timer is presentation-only. Server-controlled timing is required for production exams.',
+                'proctoring_required' => true,
+                'camera_consent_required' => true,
+                'identity_verification' => 'required',
+                'proctoring_consent_state' => $consentDeclined ? 'declined' : 'pending',
+                'grading' => [
+                    'methods' => ['automatic_mc', 'manual_short'],
+                    'preliminary' => true,
+                    'publication_status' => 'candidate_preview',
+                ],
                 'instructions' => [
                     'You will answer four short questions about design systems and workflow prioritization.',
                     'The timer starts when you begin. Leaving the page does not pause the timer.',
                     'Stay in a quiet space with a stable connection for the full attempt.',
+                    'This assessment may require camera consent for proctoring review. No camera is accessed in this frontend preview.',
                     'Submit when you are finished to review your estimated score.',
                 ],
                 'questions' => [
@@ -1093,21 +1419,89 @@ class MockCandidateData
                 'id' => 'exam-ah312-research',
                 'application_id' => 'hb-ah312-mc-1018',
                 'job_id' => 'ah-312',
+                'attempt_id' => null,
                 'title' => 'UX research scenario',
                 'company' => 'Atlas Health',
                 'role' => 'Senior UX Designer',
                 'code' => 'AH-312',
                 'status' => 'Scheduled',
                 'status_key' => 'scheduled',
+                'lifecycle' => 'not_started',
                 'time_limit_min' => 30,
                 'attempt_limit' => 1,
                 'attempt_no' => 0,
+                'attempts_remaining' => 1,
+                'can_start' => false,
+                'can_resume' => false,
+                'retake_available' => false,
                 'passing_score' => 75,
                 'questions_count' => 3,
                 'due' => 'Opens after screening call',
+                'deadline' => null,
+                'timer_authority_note' => 'Browser timer is presentation-only. Server-controlled timing is required for production exams.',
+                'proctoring_required' => false,
+                'camera_consent_required' => false,
+                'identity_verification' => 'not_required',
+                'proctoring_consent_state' => 'not_required',
+                'grading' => [
+                    'methods' => ['automatic_mc', 'manual_short'],
+                    'preliminary' => true,
+                    'publication_status' => 'not_published',
+                ],
                 'instructions' => [
                     'This assessment unlocks after your recruiter screening.',
                     'Start remains unavailable until your screening is complete.',
+                ],
+                'questions' => [],
+            ],
+            [
+                'id' => 'exam-ns204-flagged',
+                'application_id' => 'hb-ns204-mc-1012',
+                'job_id' => 'ns-204',
+                'attempt_id' => 'attempt-ns204-maya-flagged',
+                'title' => 'Design systems practical · Prior attempt',
+                'company' => 'Northstar Labs',
+                'role' => 'Senior Product Designer',
+                'code' => 'NS-204',
+                'status' => 'Flagged for review',
+                'status_key' => 'flagged',
+                'lifecycle' => 'flagged_proctoring',
+                'time_limit_min' => 45,
+                'attempt_limit' => 2,
+                'attempt_no' => 1,
+                'attempts_remaining' => 1,
+                'can_start' => false,
+                'can_resume' => false,
+                'retake_available' => true,
+                'passing_score' => 70,
+                'questions_count' => 4,
+                'due' => 'Awaiting human proctoring review',
+                'deadline' => 'October 20, 2026',
+                'timer_authority_note' => 'Browser timer is presentation-only.',
+                'proctoring_required' => true,
+                'camera_consent_required' => true,
+                'identity_verification' => 'completed',
+                'proctoring_consent_state' => 'accepted',
+                'proctoring_flags' => [
+                    [
+                        'id' => 'flag-ns204-1',
+                        'event_type' => 'attention_away',
+                        'label' => 'Attention left the exam window',
+                        'recorded_at' => 'Oct 18, 2026 · 3:12 PM',
+                        'severity' => 'review',
+                        'note' => 'Sample signal for human review. Not an automatic fail or cheating verdict.',
+                    ],
+                ],
+                'proctoring_review_status' => 'pending',
+                'grading' => [
+                    'methods' => ['automatic_mc', 'manual_short'],
+                    'preliminary' => true,
+                    'score' => null,
+                    'publication_status' => 'held_for_review',
+                ],
+                'instructions' => [
+                    'A prior attempt was flagged for human proctoring review.',
+                    'Flags are signals for authorized reviewers. They are not automatic failures.',
                 ],
                 'questions' => [],
             ],
@@ -1179,60 +1573,136 @@ class MockCandidateData
      */
     public static function offers(): array
     {
-        return [
-            [
-                'id' => 'offer-ms108',
-                'application_id' => 'hb-ms108-mc-1019',
-                'job_id' => 'ms-108',
-                'company' => 'Meridian Studio',
-                'title' => 'Lead Product Designer',
-                'code' => 'MS-108',
-                'received_on' => 'October 19, 2026',
-                'deadline' => 'October 28',
-                'status' => 'Awaiting your response',
-                'status_key' => 'awaiting',
-                'source' => 'Agency-managed',
-                'headline' => 'A new chapter at Meridian',
-                'meta' => 'Remote · United States · Full-time',
-                'start_date' => 'November 16, 2026',
-                'banner' => 'Review your offer by October 28. This is a separate Meridian Studio application. Your Northstar Labs application remains at Interview.',
-                'compensation' => [
-                    ['label' => 'Base salary', 'value' => '$165,000 USD'],
-                    ['label' => 'Target annual bonus', 'value' => '10% of base · subject to plan terms'],
-                    ['label' => 'Equity', 'value' => 'Grant details in the offer letter'],
-                    ['label' => 'Benefits', 'value' => 'Medical, dental, vision, retirement, learning budget'],
-                ],
-                'compensation_note' => 'The signed offer letter governs all terms. Bonus and equity are not guaranteed cash compensation.',
-                'documents' => [
-                    [
-                        'name' => 'Meridian_Offer_Maya_Chen.pdf',
-                        'status' => 'Ready for review',
-                        'action' => 'Open document',
-                    ],
-                    [
-                        'name' => 'Benefits_Overview_2026.pdf',
-                        'status' => 'Reference',
-                        'action' => 'Download',
-                    ],
-                ],
-                'contact' => [
-                    'name' => 'Jamie Rivera',
-                    'role' => 'Assigned agency recruiter',
-                    'note' => 'Questions about compensation, timing, or terms? Send a message before the response deadline.',
-                ],
-                'after_accept' => [
-                    'status' => 'Not started',
-                    'steps' => [
-                        'Confirm and sign your offer',
-                        'Complete company checks',
-                        'Share onboarding details',
-                        'Meet your Meridian team',
-                    ],
-                    'note' => 'Onboarding only starts after your confirmed acceptance.',
-                ],
-                'footer' => self::profile()['footer'],
+        $active = OfferLifecyclePresentation::enrich([
+            'id' => 'offer-ms108',
+            'application_id' => 'hb-ms108-mc-1019',
+            'job_id' => 'ms-108',
+            'candidate_id' => 'maya-chen',
+            'company' => 'Meridian Studio',
+            'title' => 'Lead Product Designer',
+            'code' => 'MS-108',
+            'received_on' => 'October 19, 2026',
+            'deadline' => 'October 28, 2026',
+            'expires_at' => '2026-10-28T23:59:00-05:00',
+            'status' => 'Awaiting your response',
+            'status_key' => OfferLifecyclePresentation::AWAITING,
+            'source' => 'Agency-managed',
+            'headline' => 'A new chapter at Meridian',
+            'meta' => 'Remote · United States · Full-time',
+            'start_date' => 'November 16, 2026',
+            'currency' => 'USD',
+            'banner' => 'Review your offer by October 28. This is a separate Meridian Studio application. Your Northstar Labs application remains at Interview.',
+            'compensation' => [
+                ['label' => 'Base salary', 'value' => '$165,000 USD'],
+                ['label' => 'Target annual bonus', 'value' => '10% of base · subject to plan terms'],
+                ['label' => 'Equity', 'value' => 'Grant details in the offer letter'],
+                ['label' => 'Benefits', 'value' => 'Medical, dental, vision, retirement, learning budget'],
             ],
-        ];
+            'compensation_note' => 'The signed offer letter governs all terms. Bonus and equity are not guaranteed cash compensation.',
+            'documents' => [
+                [
+                    'name' => 'Meridian_Offer_Maya_Chen.pdf',
+                    'status' => 'Ready for review',
+                    'action' => 'Open document',
+                ],
+                [
+                    'name' => 'Benefits_Overview_2026.pdf',
+                    'status' => 'Reference',
+                    'action' => 'Download',
+                ],
+            ],
+            'contact' => [
+                'name' => 'Jamie Rivera',
+                'role' => 'Assigned agency recruiter',
+                'note' => 'Questions about compensation, timing, or terms? Send a message before the response deadline.',
+            ],
+            'after_accept' => [
+                'status' => 'Not started',
+                'steps' => [
+                    'Confirm and sign your offer',
+                    'Complete company checks',
+                    'Share onboarding details',
+                    'Meet your Meridian team',
+                ],
+                'note' => 'Onboarding only starts after your confirmed acceptance.',
+            ],
+            'footer' => self::profile()['footer'],
+        ]);
+
+        $expired = OfferLifecyclePresentation::enrich([
+            'id' => 'offer-ms107-expired',
+            'application_id' => 'hb-ms107-mc-1001',
+            'job_id' => 'ms-107',
+            'candidate_id' => 'maya-chen',
+            'company' => 'Meridian Studio',
+            'title' => 'Product Designer',
+            'code' => 'MS-107',
+            'received_on' => 'September 20, 2026',
+            'deadline' => 'October 5, 2026',
+            'expires_at' => '2026-10-05T23:59:00-05:00',
+            'status' => 'Expired',
+            'status_key' => OfferLifecyclePresentation::EXPIRED,
+            'source' => 'Agency-managed',
+            'headline' => 'Previous Meridian offer (sample)',
+            'meta' => 'Remote · United States · Full-time',
+            'start_date' => 'October 20, 2026',
+            'currency' => 'USD',
+            'banner' => 'This sample offer expired on October 5. Accept and decline stay unavailable.',
+            'compensation' => [
+                ['label' => 'Base salary', 'value' => '$140,000 USD'],
+            ],
+            'compensation_note' => 'Expired sample — no response can be submitted.',
+            'documents' => [],
+            'contact' => [
+                'name' => 'Jamie Rivera',
+                'role' => 'Assigned agency recruiter',
+                'note' => 'Contact Jamie if you need a new offer draft.',
+            ],
+            'after_accept' => [
+                'status' => 'Not available',
+                'steps' => [],
+                'note' => 'Expired offers cannot start onboarding.',
+            ],
+            'footer' => self::profile()['footer'],
+        ]);
+
+        $accepted = OfferLifecyclePresentation::enrich([
+            'id' => 'offer-sample-accepted',
+            'application_id' => 'hb-sample-accepted',
+            'job_id' => 'sample-job',
+            'candidate_id' => 'maya-chen',
+            'company' => 'Sample Co',
+            'title' => 'Sample accepted offer',
+            'code' => 'SAMPLE-A',
+            'received_on' => 'September 1, 2026',
+            'deadline' => 'September 10, 2026',
+            'status' => 'Accepted (sample record)',
+            'status_key' => OfferLifecyclePresentation::ACCEPTED,
+            'source' => 'Direct hire',
+            'headline' => 'Labeled sample — already accepted',
+            'meta' => 'Presentation sample only',
+            'start_date' => 'October 1, 2026',
+            'currency' => 'USD',
+            'banner' => 'Labeled sample record. No new decision can be previewed.',
+            'compensation' => [
+                ['label' => 'Base salary', 'value' => '$150,000 USD'],
+            ],
+            'compensation_note' => 'Sample accepted offer.',
+            'documents' => [],
+            'contact' => [
+                'name' => 'Sample Recruiter',
+                'role' => 'HR',
+                'note' => 'Sample contact.',
+            ],
+            'after_accept' => [
+                'status' => 'Sample complete',
+                'steps' => ['Acceptance recorded in sample data'],
+                'note' => 'Presentation only.',
+            ],
+            'footer' => self::profile()['footer'],
+        ]);
+
+        return [$active, $expired, $accepted];
     }
 
     /**
@@ -1258,44 +1728,7 @@ class MockCandidateData
      */
     public static function notifications(): array
     {
-        return [
-            [
-                'id' => 'n-interview',
-                'title' => __('candidate.notifications.items.interview_title'),
-                'body' => __('candidate.notifications.items.interview_body'),
-                'time' => __('candidate.notifications.items.interview_time'),
-                'unread' => true,
-                'category' => 'interviews',
-                'href' => '/candidate/interviews',
-            ],
-            [
-                'id' => 'n-message',
-                'title' => __('candidate.notifications.items.message_title'),
-                'body' => __('candidate.notifications.items.message_body'),
-                'time' => __('candidate.notifications.items.message_time'),
-                'unread' => true,
-                'category' => 'messages',
-                'href' => '/candidate/messages',
-            ],
-            [
-                'id' => 'n-offer',
-                'title' => __('candidate.notifications.items.offer_title'),
-                'body' => __('candidate.notifications.items.offer_body'),
-                'time' => __('candidate.notifications.items.offer_time'),
-                'unread' => false,
-                'category' => 'offers',
-                'href' => '/candidate/offers/offer-ms108',
-            ],
-            [
-                'id' => 'n-assessment',
-                'title' => __('candidate.notifications.items.assessment_title'),
-                'body' => __('candidate.notifications.items.assessment_body'),
-                'time' => __('candidate.notifications.items.assessment_time'),
-                'unread' => false,
-                'category' => 'assessments',
-                'href' => '/candidate/assessments',
-            ],
-        ];
+        return MockNotificationData::forActor('candidate');
     }
 
     /**

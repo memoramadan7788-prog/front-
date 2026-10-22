@@ -16,6 +16,9 @@
 
 @section('content')
     @php
+        $organizationContext = $organizationContext ?? \App\Support\Frontend\MockCompanyData::organizationContext();
+        $canPublishJobs = (bool) ($organizationContext['capabilities']['can_publish_jobs'] ?? false);
+        $canCreateJobs = (bool) ($organizationContext['capabilities']['can_create_jobs'] ?? false);
         $wizardI18n = [
             'draft_subtitle' => __('company.jobs.draft_subtitle'),
             'code' => $wizard['code'],
@@ -26,14 +29,31 @@
             'preview_ready' => __('company.jobs.js.preview_ready'),
             'required_field' => __('company.jobs.js.required_field'),
             'back' => __('common.actions.back'),
+            'visibility_public' => __('company.jobs.visibility_public'),
+            'visibility_private' => __('company.jobs.visibility_private'),
+            'private_mode_employees' => __('company.jobs.private_mode_employees'),
+            'private_mode_nominated' => __('company.jobs.private_mode_nominated'),
+            'mode_open' => __('company.jobs.application_mode_open'),
+            'none_selected' => __('company.jobs.none_selected'),
+            'stage_screening' => __('company.jobs.stage_screening'),
+            'stage_exam' => __('company.jobs.stage_exam'),
+            'stage_interview' => __('company.jobs.stage_interview'),
+            'stage_offer' => __('company.jobs.stage_offer'),
+            'cv_required' => __('company.jobs.cv_required'),
+            'ai_consent_required' => __('company.jobs.ai_consent_required'),
+            'cover_note_required' => __('company.jobs.cover_note_required'),
+            'nomination_required_pick' => __('company.jobs.nomination_required_pick'),
         ];
     @endphp
+    @include('partials.company-organization-banner', ['organizationContext' => $organizationContext])
     <div
         data-job-wizard
         data-job-id="{{ $wizard['job_id'] ?? 'new' }}"
         data-storage-key="{{ $wizard['storage_key'] ?? 'hb_company_job_draft_new' }}"
         data-defaults="{{ json_encode($wizard['defaults'], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
         data-i18n="{{ json_encode($wizardI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
+        data-org-can-create="{{ $canCreateJobs ? '1' : '0' }}"
+        data-org-can-publish="{{ $canPublishJobs ? '1' : '0' }}"
     >
     {{-- Wizard steps --}}
     <div class="mb-6 flex flex-wrap gap-4 border-b border-hb-border text-sm font-semibold" role="tablist" aria-label="{{ __('company.jobs.wizard_steps_aria') }}">
@@ -105,10 +125,48 @@
                         <input id="job-salary-max" name="salary_max" type="text" class="hb-input" value="{{ $wizard['defaults']['salary_max'] }}" required data-wizard-field>
                         <p class="hb-field-error hidden" data-field-error role="alert"></p>
                     </div>
+                    <div data-field="category">
+                        <label for="job-category" class="hb-label">{{ __('company.jobs.category') }} <span class="text-hb-error">*</span></label>
+                        <select id="job-category" name="category" class="hb-input" required data-wizard-field>
+                            @foreach ($wizard['categories'] ?? [] as $category)
+                                <option value="{{ $category }}" @selected($category === ($wizard['defaults']['category'] ?? ''))>{{ $category }}</option>
+                            @endforeach
+                        </select>
+                        <p class="hb-field-error hidden" data-field-error role="alert"></p>
+                    </div>
+                    <div data-field="openings_count">
+                        <label for="job-openings" class="hb-label">{{ __('company.jobs.openings_count') }} <span class="text-hb-error">*</span></label>
+                        <input id="job-openings" name="openings_count" type="number" min="1" max="99" class="hb-input" value="{{ $wizard['defaults']['openings_count'] ?? '1' }}" required data-wizard-field>
+                        <p class="hb-field-error hidden" data-field-error role="alert"></p>
+                    </div>
+                    <div data-field="deadline">
+                        <label for="job-deadline" class="hb-label">{{ __('company.jobs.deadline') }}</label>
+                        <input id="job-deadline" name="deadline" type="text" class="hb-input" value="{{ $wizard['defaults']['deadline'] ?? '' }}" placeholder="{{ __('company.jobs.deadline_placeholder') }}" data-wizard-field>
+                    </div>
                 </div>
                 <p class="mt-4 text-xs text-hb-muted">
                     {{ __('company.jobs.salary_hint') }}
                 </p>
+
+                <div class="mt-6">
+                    <h3 class="text-sm font-semibold text-hb-navy">{{ __('company.jobs.skills_heading') }}</h3>
+                    <p class="mt-1 text-xs text-hb-muted">{{ __('company.jobs.skills_intro') }}</p>
+                    <ul class="mt-3 space-y-2">
+                        @foreach ($wizard['skill_options'] ?? [] as $skill)
+                            @php $key = str_replace([' ', '&'], ['_', ''], strtolower($skill['value'])); @endphp
+                            <li class="flex flex-wrap items-center gap-3 rounded-lg border border-hb-border bg-hb-page px-3 py-2 text-sm">
+                                <label class="inline-flex items-center gap-2 text-hb-text">
+                                    <input type="checkbox" name="skill_{{ $key }}" value="1" class="hb-checkbox" data-wizard-field @checked($wizard['defaults']['skill_'.$key] ?? false)>
+                                    <span>{{ $skill['label'] }}</span>
+                                </label>
+                                <label class="ms-auto inline-flex items-center gap-2 text-xs text-hb-muted">
+                                    <input type="checkbox" name="skill_{{ $key }}_required" value="1" class="hb-checkbox" data-wizard-field @checked($wizard['defaults']['skill_'.$key.'_required'] ?? false)>
+                                    <span>{{ __('company.jobs.skill_required') }}</span>
+                                </label>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             </section>
 
             {{-- Step 2: Description (shown with role cards on edit steps per Frame 27) --}}
@@ -176,17 +234,7 @@
                     </label>
                 </fieldset>
 
-                <div class="mt-6">
-                    <h3 class="text-sm font-semibold text-hb-navy">{{ __('company.jobs.default_pipeline_stages') }}</h3>
-                    <ol class="mt-3 flex flex-wrap gap-2">
-                        @foreach ($wizard['hiring_stages'] as $stage)
-                            <li class="rounded-lg border border-hb-border bg-hb-page px-3 py-1.5 text-xs font-semibold text-hb-navy">
-                                {{ $stage }}
-                            </li>
-                        @endforeach
-                    </ol>
-                    <p class="mt-2 text-xs text-hb-muted">{{ __('company.jobs.default_stages_hint') }}</p>
-                </div>
+                @include('company.jobs.wizard._access-and-stages', ['wizard' => $wizard])
             </section>
 
             {{-- Step 4: Review --}}
@@ -218,10 +266,43 @@
                         <dt class="text-hb-muted">{{ __('company.jobs.review_hiring_manager') }}</dt>
                         <dd class="font-medium text-hb-navy" data-review="hiring_manager"></dd>
                     </div>
+                    <div class="grid gap-1 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                        <dt class="text-hb-muted">{{ __('company.jobs.review_visibility') }}</dt>
+                        <dd class="font-medium text-hb-navy" data-review="visibility"></dd>
+                    </div>
+                    <div class="grid gap-1 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                        <dt class="text-hb-muted">{{ __('company.jobs.review_application_mode') }}</dt>
+                        <dd class="font-medium text-hb-navy" data-review="application_mode"></dd>
+                    </div>
+                    <div class="grid gap-1 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                        <dt class="text-hb-muted">{{ __('company.jobs.review_openings') }}</dt>
+                        <dd class="font-medium text-hb-navy" data-review="openings"></dd>
+                    </div>
+                    <div class="grid gap-1 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                        <dt class="text-hb-muted">{{ __('company.jobs.review_deadline') }}</dt>
+                        <dd class="font-medium text-hb-navy" data-review="deadline"></dd>
+                    </div>
+                    <div class="grid gap-1 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                        <dt class="text-hb-muted">{{ __('company.jobs.review_stages') }}</dt>
+                        <dd class="font-medium text-hb-navy" data-review="stages"></dd>
+                    </div>
+                    <div class="grid gap-1 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                        <dt class="text-hb-muted">{{ __('company.jobs.review_nominations') }}</dt>
+                        <dd class="font-medium text-hb-navy" data-review="nominations"></dd>
+                    </div>
+                    <div class="grid gap-1 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                        <dt class="text-hb-muted">{{ __('company.jobs.review_requirements') }}</dt>
+                        <dd class="font-medium text-hb-navy" data-review="requirements_flags"></dd>
+                    </div>
                 </dl>
                 <div class="mt-5 rounded-lg border border-hb-info-soft bg-hb-info-soft px-4 py-3 text-sm text-hb-navy" role="status">
                     {{ __('company.jobs.publish_requires_approval') }}
                 </div>
+                @if (! $canPublishJobs)
+                    <div class="mt-3 rounded-lg border border-hb-pending/30 bg-hb-pending-soft px-4 py-3 text-sm text-hb-navy" role="status" data-org-publish-gate>
+                        {{ __('company.organization.publish_jobs_unavailable') }}
+                    </div>
+                @endif
             </section>
 
             <div
@@ -232,12 +313,19 @@
 
             {{-- Footer actions --}}
             <div class="flex flex-col gap-3 border-t border-hb-border pt-5 sm:flex-row sm:flex-wrap sm:items-center">
-                <button type="button" class="hb-btn-outline" data-wizard-save-draft>{{ __('company.jobs.save_draft') }}</button>
+                <button type="button" class="hb-btn-outline" data-wizard-save-draft @if (! $canCreateJobs) disabled title="{{ __('company.organization.create_jobs_unavailable') }}" @endif>{{ __('company.jobs.save_draft') }}</button>
                 <button type="button" class="hb-btn-outline" data-wizard-preview>{{ __('company.jobs.preview') }}</button>
                 <button type="button" class="hb-btn-outline" data-wizard-back hidden>{{ __('common.actions.back') }}</button>
-                <button type="button" class="hb-btn-primary" data-wizard-continue>{{ __('company.jobs.continue_review') }}</button>
+                <button type="button" class="hb-btn-primary" data-wizard-continue @if (! $canCreateJobs) disabled @endif>{{ __('company.jobs.continue_review') }}</button>
                 <span class="sr-only" data-wizard-continue-label>{{ __('company.jobs.continue_review') }}</span>
-                <button type="button" class="hb-btn-primary opacity-50" data-wizard-publish disabled title="{{ __('company.jobs.publish_disabled_title') }}">
+                <button
+                    type="button"
+                    class="hb-btn-primary opacity-50"
+                    data-wizard-publish
+                    disabled
+                    title="{{ $canPublishJobs ? __('company.jobs.publish_disabled_title') : __('company.organization.publish_jobs_unavailable') }}"
+                    data-org-can-publish="{{ $canPublishJobs ? '1' : '0' }}"
+                >
                     {{ __('company.jobs.publish') }}
                 </button>
             </div>
@@ -369,11 +457,35 @@
                 });
             }
 
+            function syncAccessBlocks() {
+                const visibility = fieldValue('visibility') || 'public';
+                const privateBlock = form.querySelector('[data-private-mode-block]');
+                const nominationBlock = form.querySelector('[data-nomination-block]');
+                const isPrivate = visibility === 'private';
+                if (privateBlock) {
+                    privateBlock.classList.toggle('hidden', !isPrivate);
+                    privateBlock.hidden = !isPrivate;
+                }
+                const mode = fieldValue('private_apply_mode') || 'all_employees';
+                const showNom = isPrivate && mode === 'nominated_only';
+                if (nominationBlock) {
+                    nominationBlock.classList.toggle('hidden', !showNom);
+                    nominationBlock.hidden = !showNom;
+                }
+                const examAttach = form.querySelector('[data-exam-attach]');
+                const examOn = Boolean(fieldValue('stage_exam'));
+                if (examAttach) {
+                    examAttach.classList.toggle('hidden', !examOn);
+                }
+            }
+
             function updateChecklist() {
                 const checks = {
-                    role: Boolean(fieldValue('title') && fieldValue('location') && fieldValue('department')),
+                    role: Boolean(fieldValue('title') && fieldValue('location') && fieldValue('department') && fieldValue('category') && fieldValue('openings_count')),
                     salary: Boolean(fieldValue('salary_min') && fieldValue('salary_max')),
                     description: Boolean(fieldValue('about') && fieldValue('requirements')),
+                    visibility: Boolean(fieldValue('visibility')),
+                    stages: Boolean(fieldValue('stage_screening') || fieldValue('stage_interview') || fieldValue('stage_exam') || fieldValue('stage_offer')),
                     privacy: Boolean(fieldValue('accommodation_info')),
                     hiring: Boolean(fieldValue('owner') && fieldValue('hiring_manager') && stepIndex >= 2),
                     approval: false,
@@ -403,6 +515,35 @@
                 set('salary', `${fieldValue('salary_min')} – ${fieldValue('salary_max')}`);
                 set('owner', fieldValue('owner'));
                 set('hiring_manager', fieldValue('hiring_manager'));
+                const visibility = fieldValue('visibility') || 'public';
+                set('visibility', visibility === 'private' ? i18n.visibility_private : i18n.visibility_public);
+                let modeLabel = i18n.mode_open;
+                if (visibility === 'private') {
+                    modeLabel = fieldValue('private_apply_mode') === 'nominated_only'
+                        ? i18n.private_mode_nominated
+                        : i18n.private_mode_employees;
+                }
+                set('application_mode', modeLabel);
+                set('openings', fieldValue('openings_count'));
+                set('deadline', fieldValue('deadline') || i18n.none_selected);
+                const stages = [];
+                if (fieldValue('stage_screening')) stages.push(i18n.stage_screening);
+                if (fieldValue('stage_exam')) stages.push(i18n.stage_exam);
+                if (fieldValue('stage_interview')) stages.push(`${i18n.stage_interview} ×${fieldValue('stage_interview_rounds') || '1'}`);
+                if (fieldValue('stage_offer')) stages.push(i18n.stage_offer);
+                set('stages', stages.join(' · ') || i18n.none_selected);
+                const nominees = [...form.querySelectorAll('[data-nominee-checkbox]:checked')].map((el) => {
+                    const label = el.closest('label')?.querySelector('.font-medium');
+                    return label?.textContent?.trim() || el.name;
+                });
+                set('nominations', visibility === 'private' && fieldValue('private_apply_mode') === 'nominated_only'
+                    ? (nominees.join(', ') || i18n.nomination_required_pick)
+                    : i18n.none_selected);
+                const reqs = [];
+                if (fieldValue('cv_required')) reqs.push(i18n.cv_required);
+                if (fieldValue('ai_consent_required')) reqs.push(i18n.ai_consent_required);
+                if (fieldValue('cover_note_required')) reqs.push(i18n.cover_note_required);
+                set('requirements_flags', reqs.join(' · ') || i18n.none_selected);
             }
 
             function validateStep(index) {
@@ -426,6 +567,16 @@
                         el.removeAttribute('aria-invalid');
                     }
                 });
+                if (key === 'hiring' && fieldValue('visibility') === 'private'
+                    && fieldValue('private_apply_mode') === 'nominated_only') {
+                    const picked = form.querySelectorAll('[data-nominee-checkbox]:checked').length > 0;
+                    const nomBlock = form.querySelector('[data-nomination-block]');
+                    if (!picked) {
+                        valid = false;
+                        setStatus(i18n.nomination_required_pick);
+                        nomBlock?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
                 if (!valid) {
                     const first = panel.querySelector('[aria-invalid="true"]');
                     first?.focus();
@@ -529,16 +680,19 @@
                 el.addEventListener('input', () => {
                     updateCharCount();
                     updateChecklist();
+                    syncAccessBlocks();
                     persistDraft();
                 });
                 el.addEventListener('change', () => {
                     updateChecklist();
+                    syncAccessBlocks();
                     persistDraft();
                 });
             });
 
             restoreDraft();
             updateCharCount();
+            syncAccessBlocks();
             showStep(0);
         })();
     </script>

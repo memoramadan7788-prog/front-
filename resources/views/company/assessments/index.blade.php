@@ -41,6 +41,7 @@
                     <option value="">{{ __('company.assessments.all_status') }}</option>
                     <option value="active">{{ __('company.assessments.status_active') }}</option>
                     <option value="draft">{{ __('company.assessments.status_draft') }}</option>
+                    <option value="pending_approval">{{ __('company.assessments.status_pending_approval') }}</option>
                 </select>
                 <button type="button" class="hb-btn-outline" data-assess-clear>{{ __('company.assessments.clear_filters') }}</button>
             </div>

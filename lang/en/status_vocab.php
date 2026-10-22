@@ -1,0 +1,76 @@
+<?php
+
+return [
+    'organization' => [
+        'pending' => 'Pending verification',
+        'approved' => 'Approved',
+        'rejected' => 'Rejected',
+        'suspended' => 'Suspended',
+        'archived' => 'Archived',
+    ],
+    'membership' => [
+        'none' => 'No company membership',
+        'pending' => 'Membership pending review',
+        'approved' => 'Membership approved',
+        'rejected' => 'Membership rejected',
+    ],
+    'account' => [
+        'active' => 'Active',
+        'invited' => 'Invited',
+        'suspended' => 'Suspended',
+    ],
+    'account_type' => [
+        'candidate' => 'Candidate account',
+        'company' => 'Company account',
+    ],
+    'job_moderation' => [
+        'pending' => 'Pending moderation',
+        'pending_note' => 'Policy review queue label — does not change published listings by itself.',
+        'changes_requested' => 'Changes requested',
+        'changes_note' => 'Employer must revise before publication can proceed.',
+        'approved' => 'Cleared for publication',
+        'approved_note' => 'Presentation clearance only. Company publish still requires an approved organization.',
+        'rejected' => 'Publication rejected',
+        'rejected_note' => 'Listing remains unpublished. Reason retained for review history.',
+    ],
+    'application' => [
+        'submitted' => 'Submitted',
+        'ai_review' => 'AI review',
+        'ai_failed' => 'AI review failed · manual review',
+        'shortlisted' => 'Shortlisted',
+        'rejected' => 'Rejected',
+        'exam' => 'Assessment',
+        'interview' => 'Interview',
+        'offer' => 'Offer',
+        'hired' => 'Hired',
+        'withdrawn' => 'Withdrawn',
+        'expired' => 'Expired',
+        'archived' => 'Archived',
+        // Pipeline board stage aliases (Company UI grouping)
+        'applied' => 'Applied',
+        'screening' => 'Screening',
+        'assessment' => 'Assessment',
+    ],
+    'offer' => [
+        'draft' => 'Draft',
+        'pending_approval' => 'Pending approval',
+        'sent' => 'Sent',
+        'accepted' => 'Accepted',
+        'rejected' => 'Declined',
+        'expired' => 'Expired',
+        'withdrawn' => 'Withdrawn',
+    ],
+    'interview' => [
+        'proposed' => 'Proposed',
+        'confirmed' => 'Confirmed',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+        'no_show' => 'No-show',
+    ],
+    'work_mode' => [
+        'onsite' => 'On-site',
+        'remote' => 'Remote',
+        'hybrid' => 'Hybrid',
+    ],
+    'dictionary_note' => 'Proposed frontend status dictionaries for Backend contract review. Domain enums stay separate.',
+];

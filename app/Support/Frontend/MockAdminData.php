@@ -208,6 +208,7 @@ class MockAdminData
             self::orgRow('org-bl-001', 'Brightline Media', 'company', 'growth', 'verified_active', 'Dana Ortiz', 'brightline.example', 1, 'jobs', 'active'),
             self::orgRow('org-cd-001', 'Cedar Systems', 'company', 'growth', 'pending', 'Riley Quinn', 'cedarsystems.example', 0, 'jobs', 'pending'),
             self::orgRow('org-oa-001', 'Orbit Analytics', 'company', 'business', 'pending', 'Pat Okonkwo', 'orbitanalytics.example', 0, 'jobs', 'pending'),
+            self::orgRow('org-rj-001', 'Redwood Insights', 'company', 'growth', 'rejected', 'Kai Morgan', 'redwoodinsights.example', 0, 'jobs', 'pending'),
             self::orgRow('org-pr-001', 'Pinecrest Recruiting', 'agency', 'agency_partner', 'suspended', 'Support desk', 'pinecrest.example', 0, 'roles', 'suspended'),
             self::orgRow('org-lp-001', 'Legacy Partners', 'company', 'growth', 'archived', 'Archive owner', 'legacypartners.example', 0, 'jobs', 'archived'),
             self::orgRow('org-ss-001', 'Summit Staffing', 'agency', 'agency_partner', 'archived', 'Archive owner', 'summitstaffing.example', 0, 'roles', 'archived'),
@@ -301,7 +302,7 @@ class MockAdminData
     public static function users(): array
     {
         return [
-            self::userRow('usr-maya', 'Maya Chen', 'maya.chen@example.com', 'Personal workspace', null, 'candidate', 'active', 'Today 9:26 AM', 'view_account'),
+            self::userRow('usr-maya', 'Maya Chen', 'maya.chen@example.com', 'Northstar Labs (pending join)', 'org-ns-001', 'candidate', 'active', 'Today 9:26 AM', 'view_account'),
             self::userRow('usr-olivia', 'Olivia Bennett', 'olivia.bennett@northstarlabs.example', 'Northstar Labs', 'org-ns-001', 'company_admin', 'active', 'Today 9:48 AM', 'view_access'),
             self::userRow('usr-daniel', 'Daniel Brooks', 'daniel.brooks@northstarlabs.example', 'Northstar Labs', 'org-ns-001', 'hiring_manager', 'active', 'Yesterday', 'view_access'),
             self::userRow('usr-alex', 'Alex Morgan', 'alex.morgan@northstarlabs.example', 'Northstar Labs', 'org-ns-001', 'interviewer', 'active', 'Today 8:30 AM', 'view_access'),
@@ -345,12 +346,34 @@ class MockAdminData
                     'notes' => 'Agency support enabled for Hirebridge Talent engagements.',
                 ],
                 'members' => [
-                    ['name' => 'Olivia Bennett', 'role' => 'Company Admin / HR', 'scope' => 'All Northstar'],
-                    ['name' => 'Daniel Brooks', 'role' => 'Hiring manager', 'scope' => 'Product & Design'],
-                    ['name' => 'Alex Morgan', 'role' => 'Interviewer', 'scope' => 'Assigned interviews'],
-                    ['name' => 'Jordan Lee', 'role' => 'Hiring manager', 'scope' => 'Customer Experience'],
-                    ['name' => 'Jamie Rivera', 'role' => 'Agency recruiter', 'scope' => 'Assigned submissions only'],
+                    ['name' => 'Olivia Bennett', 'role' => 'Company Admin / HR', 'scope' => 'All Northstar', 'membership' => 'employee', 'account_status' => 'active'],
+                    ['name' => 'Daniel Brooks', 'role' => 'Hiring manager', 'scope' => 'Product & Design', 'membership' => 'employee', 'account_status' => 'active'],
+                    ['name' => 'Alex Morgan', 'role' => 'Interviewer', 'scope' => 'Assigned interviews', 'membership' => 'employee', 'account_status' => 'active'],
+                    ['name' => 'Jordan Lee', 'role' => 'Hiring manager', 'scope' => 'Customer Experience', 'membership' => 'employee', 'account_status' => 'active'],
+                    ['name' => 'Jamie Rivera', 'role' => 'Agency recruiter', 'scope' => 'Assigned submissions only', 'membership' => 'external_agency', 'account_status' => 'active'],
                 ],
+                'membership_requests' => [
+                    [
+                        'id' => 'req-maya-chen',
+                        'candidate_id' => 'maya-chen',
+                        'name' => 'Maya Chen',
+                        'email' => 'maya.chen@example.com',
+                        'requested_role' => 'Employee',
+                        'status_key' => 'pending',
+                        'note' => 'Candidate join request sample. Not an approved employee membership.',
+                    ],
+                ],
+                'status_history' => [
+                    ['at' => '2026-09-28', 'label' => 'Organization created', 'actor' => 'Olivia Bennett'],
+                    ['at' => '2026-10-01', 'label' => 'Business verification approved', 'actor' => 'Priya Shah'],
+                    ['at' => '2026-10-01', 'label' => 'Owner confirmed · org-ns-001', 'actor' => 'Priya Shah'],
+                ],
+                'review_evidence' => [
+                    'Domain ownership: northstarlabs.example',
+                    'Legal entity documents reviewed (sample)',
+                    'Owner: Olivia Bennett',
+                ],
+                'company_demo_query' => 'org_status=approved',
                 'usage_tab' => [
                     'open_jobs' => '3',
                     'candidates' => '28',
@@ -418,13 +441,22 @@ class MockAdminData
         $isAgency = ($base['type'] ?? '') === 'agency';
         $verified = ($base['verification'] ?? '') === 'verified_active';
         $pending = ($base['verification'] ?? '') === 'pending';
+        $rejected = ($base['verification'] ?? '') === 'rejected';
         $suspended = ($base['verification'] ?? '') === 'suspended';
 
         $lifecycle = match (true) {
             $suspended => 'suspended',
             ($base['tab'] ?? '') === 'archived' => 'archived',
+            $rejected => 'rejected',
             $pending => 'pending',
             default => 'active',
+        };
+
+        $companyDemo = match ($lifecycle) {
+            'pending' => 'org_status=pending',
+            'rejected' => 'org_status=rejected',
+            'suspended' => 'org_status=suspended',
+            default => 'org_status=approved',
         };
 
         return [
@@ -432,8 +464,36 @@ class MockAdminData
             'workspace_label_key' => $isAgency ? 'agency_workspace' : 'company_workspace',
             'created_on' => '—',
             'lifecycle_key' => $lifecycle,
-            'verified_badge_key' => $verified ? 'business_verified' : ($pending ? 'verification_pending' : 'not_verified'),
+            'verified_badge_key' => $verified
+                ? 'business_verified'
+                : ($pending ? 'verification_pending' : ($rejected ? 'not_verified' : 'not_verified')),
             'detail_level' => 'limited',
+            'company_demo_query' => $isAgency ? null : $companyDemo,
+            'status_history' => match ($lifecycle) {
+                'pending' => [
+                    ['at' => '2026-10-18', 'label' => 'Verification submitted', 'actor' => (string) $base['owner']],
+                    ['at' => '2026-10-19', 'label' => 'Queued for Super Admin review', 'actor' => 'Platform'],
+                ],
+                'rejected' => [
+                    ['at' => '2026-10-12', 'label' => 'Verification submitted', 'actor' => (string) $base['owner']],
+                    ['at' => '2026-10-15', 'label' => 'Verification rejected · incomplete legal entity evidence', 'actor' => 'Priya Shah'],
+                ],
+                'suspended' => [
+                    ['at' => '2026-10-10', 'label' => 'Support case opened', 'actor' => 'Support desk'],
+                    ['at' => '2026-10-18', 'label' => 'Workspace suspended', 'actor' => 'Priya Shah'],
+                ],
+                default => [
+                    ['at' => '—', 'label' => 'Limited history in this Admin overview', 'actor' => '—'],
+                ],
+            },
+            'review_evidence' => match ($lifecycle) {
+                'pending' => ['Domain claimed · ownership proof incomplete (sample)', 'Owner contact on file'],
+                'rejected' => ['Rejection reason: incomplete legal entity evidence (sample)', 'Owner may resubmit after correcting documents'],
+                'suspended' => ['Suspension reason: active support case (sample)', 'Hiring workflows blocked until restore'],
+                default => ['Limited evidence summary for this overview'],
+            },
+            'rejection_reason' => $rejected ? 'Incomplete legal entity evidence (sample)' : null,
+            'suspension_reason' => $suspended ? 'Active support case (sample)' : null,
             'profile' => [
                 'industry_location' => 'Limited Admin overview · Details expand in later integration',
                 'hiring_models' => $isAgency ? 'Agency-managed submissions' : 'Direct hiring',
@@ -444,6 +504,7 @@ class MockAdminData
                 },
                 'verification' => match ($base['verification'] ?? '') {
                     'pending' => 'Verification pending · business details under review',
+                    'rejected' => 'Verification rejected · owner may correct and resubmit',
                     'suspended' => 'Workspace suspended · support review required',
                     'archived' => 'Archived workspace · read-only historical record',
                     default => 'Verified · Active',
@@ -469,8 +530,11 @@ class MockAdminData
                     'name' => (string) $base['owner'],
                     'role' => $isAgency ? 'Agency contact' : 'Workspace owner',
                     'scope' => (string) $base['domain'],
+                    'membership' => 'owner',
+                    'account_status' => $suspended ? 'suspended' : 'active',
                 ],
             ],
+            'membership_requests' => [],
             'usage_tab' => [
                 'open_jobs' => (string) ($base['active_count'] ?? 0),
                 'candidates' => 'Not expanded',
@@ -497,14 +561,16 @@ class MockAdminData
     {
         $jobs = self::moderationJobs();
         $pending = count(array_filter($jobs, static fn (array $j): bool => ($j['status'] ?? '') === 'pending'));
+        $approved = count(array_filter($jobs, static fn (array $j): bool => ($j['status'] ?? '') === 'approved'));
 
         return [
             'default_status' => 'pending',
             'default_job_id' => $jobs[0]['id'] ?? null,
+            'moderation_contract_note' => __('admin.jobs.moderation_contract_note'),
             'status_filters' => [
                 ['key' => 'pending', 'count' => $pending],
                 ['key' => 'changes_requested', 'count' => 0],
-                ['key' => 'approved', 'count' => 0],
+                ['key' => 'approved', 'count' => $approved],
                 ['key' => 'all', 'count' => count($jobs)],
             ],
             'reason_filters' => [
@@ -580,6 +646,26 @@ class MockAdminData
                 'search' => strtolower('CD-008 UX Designer Cedar Systems Riley Quinn employment'),
                 'sort_time' => '2026-10-19T14:40:00',
             ],
+            [
+                'id' => 'job-ns-204',
+                'code' => 'NS-204',
+                'title' => 'Senior Product Designer',
+                'organization' => 'Northstar Labs',
+                'org_id' => 'org-ns-001',
+                'job_id' => 'ns-204',
+                'location' => 'Austin hybrid',
+                'employment_type' => 'Full-time',
+                'salary_label' => '$140,000–$170,000 USD',
+                'status' => 'approved',
+                'reason_key' => 'salary',
+                'submitted_at' => 'Oct 10 · 11:00 AM',
+                'submitted_by' => 'Olivia Bennett',
+                'policy_title_key' => 'salary_transparency',
+                'policy_body' => 'Northstar Labs · NS-204 Senior Product Designer is already published in the public catalog. No further policy issues are flagged for this sample.',
+                'review_note_default' => 'No further Admin action required for this published sample. Organization approval still gates new publishing in company demos.',
+                'search' => strtolower('NS-204 Senior Product Designer Northstar Labs Olivia Bennett ns-204'),
+                'sort_time' => '2026-10-10T11:00:00',
+            ],
         ];
     }
 
@@ -599,9 +685,18 @@ class MockAdminData
             $agencies[$engagement['agency']] = true;
         }
 
+        // F8-G26: ERD has no dedicated agency entity. Engagements map to company/organization rows.
+
         return [
             'default_status' => 'active',
             'default_engagement_id' => $engagements[0]['id'] ?? null,
+            'scope_banner_title' => __('admin.agencies.scope_banner_title'),
+            'scope_banner_body' => __('admin.agencies.scope_banner_body'),
+            'scope_unsupported' => [
+                __('admin.agencies.scope_no_erd_entity'),
+                __('admin.agencies.scope_no_permissions'),
+                __('admin.agencies.scope_no_write'),
+            ],
             // Snapshot cards: submission/coordination counts; engagement list is the navigable set below.
             'stats' => [
                 'active_engagements' => (string) $active,
@@ -771,6 +866,25 @@ class MockAdminData
         string $lastActive,
         string $actionKey,
     ): array {
+        $accountType = match ($roleKey) {
+            'candidate' => 'candidate',
+            'super_admin' => 'company', // ERD account_type is candidate|company; admin is role (F8-G41)
+            default => 'company',
+        };
+        $platformRole = match ($roleKey) {
+            'super_admin' => 'super_admin',
+            'candidate' => null,
+            default => null,
+        };
+        $companyRole = in_array($roleKey, ['company_admin', 'hiring_manager', 'interviewer', 'agency_recruiter', 'agency_admin'], true)
+            ? $roleKey
+            : null;
+        $membershipStatus = match ($id) {
+            'usr-maya' => 'pending',
+            'usr-morgan' => 'restricted',
+            default => ($orgId ? 'approved' : 'none'),
+        };
+
         return [
             'id' => $id,
             'name' => $name,
@@ -778,10 +892,17 @@ class MockAdminData
             'organization' => $organization,
             'org_id' => $orgId,
             'role_key' => $roleKey,
+            'account_type' => $accountType,
+            'platform_role' => $platformRole,
+            'company_role' => $companyRole,
+            'membership_status' => $membershipStatus,
+            'membership_note' => $id === 'usr-maya'
+                ? 'Pending join request for Northstar Labs (req-maya-chen). Not listed as an approved employee.'
+                : null,
             'state' => $state,
             'last_active' => $lastActive,
             'action_key' => $actionKey,
-            'search' => strtolower($name.' '.$email.' '.$organization.' '.$roleKey),
+            'search' => strtolower($name.' '.$email.' '.$organization.' '.$roleKey.' '.$accountType),
         ];
     }
 
@@ -1181,6 +1302,10 @@ class MockAdminData
         string $result,
         string $description,
     ): array {
+        $normalizedTarget = str_starts_with(strtoupper($targetId), 'ORG-NS')
+            ? 'org-ns-001'
+            : $targetId;
+
         return [
             'id' => $id,
             'sort_time' => $sortTime,
@@ -1192,10 +1317,12 @@ class MockAdminData
             'action' => $action,
             'object' => $object,
             'target_type' => $targetType,
-            'target_id' => $targetId,
+            'target_id' => $normalizedTarget,
             'result' => $result,
             'description' => $description,
-            'search' => strtolower($actor.' '.$action.' '.$object.' '.$targetId.' '.$type.' '.$result),
+            'is_sample' => true,
+            'sample_label' => __('admin.settings.audit_sample_label'),
+            'search' => strtolower($actor.' '.$action.' '.$object.' '.$normalizedTarget.' '.$type.' '.$result),
         ];
     }
 

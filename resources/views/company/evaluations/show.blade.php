@@ -11,6 +11,16 @@
     <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
         <x-badge variant="info" :dot="true">{{ $evaluation['stage'] }}</x-badge>
         <x-badge variant="neutral" :dot="true">{{ $evaluation['source'] }}</x-badge>
+        @if (! empty($evaluation['hr_review_label']))
+            <x-badge
+                :variant="match ($evaluation['hr_review_status'] ?? '') {
+                    'completed' => 'success',
+                    'required' => 'pending',
+                    default => 'info',
+                }"
+                :dot="true"
+            >{{ $evaluation['hr_review_label'] }}</x-badge>
+        @endif
         <span class="text-hb-muted">
             {{ __('company.evaluations.decision_owner_line', [
                 'owner' => $evaluation['decision_owner'],
@@ -43,8 +53,12 @@
 
     <div
         data-company-evaluation
+        data-evaluation-completion="{{ $evaluation['evaluation_completion'] ?? '' }}"
         data-i18n="{{ json_encode($evalI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
     >
+        @if (! empty($evaluation['erd_contract_note']))
+            <p class="mb-4 text-xs text-hb-muted" data-eval-contract-note>{{ $evaluation['erd_contract_note'] }}</p>
+        @endif
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
             <div class="min-w-0 space-y-6">
                 <section class="hb-surface p-5 sm:p-6" aria-labelledby="competency-heading">
@@ -94,10 +108,22 @@
                     <h2 id="recommendations-heading" class="text-lg font-semibold text-hb-navy">{{ __('company.evaluations.recommendations_heading') }}</h2>
                     <ul class="mt-5 space-y-4">
                         @foreach ($evaluation['recommendations'] as $rec)
-                            <li class="rounded-lg border border-hb-border bg-hb-page px-4 py-3">
+                            <li class="rounded-lg border border-hb-border bg-hb-page px-4 py-3" data-recommendation-state="{{ $rec['state'] ?? 'submitted' }}">
                                 <div class="flex flex-wrap items-baseline justify-between gap-2">
                                     <p class="font-semibold text-hb-navy">{{ $rec['name'] }}</p>
-                                    <p class="text-sm font-medium text-hb-blue">{{ $rec['verdict'] }} · {{ $rec['meta'] }}</p>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <x-badge
+                                            :variant="match ($rec['state'] ?? 'submitted') {
+                                                'submitted' => 'success',
+                                                'draft' => 'pending',
+                                                default => 'info',
+                                            }"
+                                            :dot="true"
+                                        >
+                                            {{ __('company.evaluations.rec_state.'.($rec['state'] ?? 'submitted')) }}
+                                        </x-badge>
+                                        <p class="text-sm font-medium text-hb-blue">{{ $rec['verdict'] }} · {{ $rec['meta'] }}</p>
+                                    </div>
                                 </div>
                                 @if (! empty($rec['comment']))
                                     <p class="mt-2 text-sm text-hb-text">{{ $rec['comment'] }}</p>
@@ -111,8 +137,16 @@
             <aside class="space-y-4">
                 <section class="hb-surface p-5" aria-labelledby="decision-heading">
                     <h2 id="decision-heading" class="sr-only">{{ __('company.evaluations.decision_heading') }}</h2>
-                    <x-badge variant="success" :dot="true">{{ $evaluation['decision']['status'] }}</x-badge>
+                    <x-badge
+                        :variant="match ($evaluation['decision']['status_key'] ?? '') {
+                            'proceed' => 'success',
+                            'review' => 'pending',
+                            default => 'info',
+                        }"
+                        :dot="true"
+                    >{{ $evaluation['decision']['status'] }}</x-badge>
                     <p class="mt-3 text-sm text-hb-muted">{{ $evaluation['decision']['detail'] }}</p>
+                    <p class="mt-2 text-xs text-hb-muted">{{ __('company.evaluations.no_auto_promote') }}</p>
                     <div class="mt-5 flex flex-col gap-2">
                         <a href="{{ route('company.offers.create', ['applicant' => $evaluation['applicant_id']]) }}" class="hb-btn-primary text-center">
                             {{ __('company.evaluations.open_draft_offer') }}

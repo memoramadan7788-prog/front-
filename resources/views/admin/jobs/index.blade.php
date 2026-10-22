@@ -51,6 +51,12 @@
         data-initial-q="{{ $initialQuery }}"
         data-i18n="{{ json_encode($jobsI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
     >
+        @if (! empty($jobsPage['moderation_contract_note']))
+            <x-alert variant="info" class="mb-6" data-jobs-moderation-contract role="note">
+                <p class="text-sm text-hb-text">{{ $jobsPage['moderation_contract_note'] }}</p>
+            </x-alert>
+        @endif
+
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
             <label class="relative min-w-0 flex-1">
                 <span class="sr-only">{{ __('admin.jobs.search_placeholder') }}</span>

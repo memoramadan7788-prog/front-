@@ -9,6 +9,69 @@ namespace App\Support\Frontend;
 class MockCompanyData
 {
     /**
+     * Organization status + presentation capability flags (F9A).
+     * Query `?org_status=pending|approved|rejected|suspended` switches the demo variant.
+     * Not authorization — frontend presentation only.
+     *
+     * @return array{organization: array<string, mixed>, capabilities: array<string, bool>, status_banner: array<string, mixed>|null}
+     */
+    public static function organizationContext(?string $statusOverride = null): array
+    {
+        $status = $statusOverride
+            ?? (is_string(request()->query('org_status')) ? request()->query('org_status') : null)
+            ?? 'approved';
+
+        if (! in_array($status, ['pending', 'approved', 'rejected', 'suspended'], true)) {
+            $status = 'approved';
+        }
+
+        $approved = $status === 'approved';
+
+        $banners = [
+            'pending' => [
+                'variant' => 'warning',
+                'title_key' => 'company.organization.banner_pending_title',
+                'body_key' => 'company.organization.banner_pending_body',
+            ],
+            'rejected' => [
+                'variant' => 'error',
+                'title_key' => 'company.organization.banner_rejected_title',
+                'body_key' => 'company.organization.banner_rejected_body',
+            ],
+            'suspended' => [
+                'variant' => 'error',
+                'title_key' => 'company.organization.banner_suspended_title',
+                'body_key' => 'company.organization.banner_suspended_body',
+            ],
+            'approved' => null,
+        ];
+
+        return [
+            'organization' => [
+                'id' => 'org-ns-001',
+                'name' => 'Northstar Labs',
+                'status' => $status,
+                'owner_name' => 'Olivia Bennett',
+                'owner_email' => 'olivia@northstarlabs.example',
+                'rejection_reason' => $status === 'rejected'
+                    ? 'Business registration document could not be verified against the listed legal entity.'
+                    : null,
+                'reviewed_at' => $status === 'approved' ? 'Oct 8, 2026' : ($status === 'rejected' ? 'Oct 12, 2026' : null),
+            ],
+            'capabilities' => [
+                'can_publish_jobs' => $approved,
+                'can_create_jobs' => $approved,
+                'can_manage_members' => $approved || $status === 'pending',
+                'can_assign_roles' => $approved,
+                'can_edit_company_profile' => $status !== 'suspended',
+            ],
+            'status_banner' => $banners[$status],
+            'frontend_only' => true,
+            'presentation_note' => 'Capability flags are presentation-only. They do not enforce access control.',
+        ];
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     public static function jobs(): array
@@ -20,9 +83,11 @@ class MockCompanyData
                 'id' => 'ns-204',
                 'code' => 'NS-204',
                 'title' => 'Senior Product Designer',
+                'organization_id' => 'org-ns-001',
                 'owner' => 'Olivia Bennett',
                 'team' => 'Product & Design',
                 'department' => 'Product & Design',
+                'category' => 'Product & Design',
                 'model' => 'Direct + agency',
                 'model_key' => 'direct_agency',
                 'pipeline' => '12 total · 3 interview',
@@ -30,8 +95,32 @@ class MockCompanyData
                 'pipeline_interview' => 3,
                 'status' => 'Open',
                 'status_key' => 'open',
+                'publication_status' => 'published',
+                'visibility' => 'public',
+                'private_apply_mode' => null,
+                'application_mode' => 'open',
+                'openings_count' => 2,
+                'deadline' => 'November 30, 2026',
+                'skills' => [
+                    ['label' => 'Figma', 'is_required' => true],
+                    ['label' => 'Design systems', 'is_required' => true],
+                    ['label' => 'User research', 'is_required' => false],
+                ],
+                'stages_config' => [
+                    ['type' => 'screening', 'label' => 'Screening', 'required' => true, 'order' => 1, 'exam_id' => null],
+                    ['type' => 'exam', 'label' => 'Design practical', 'required' => false, 'order' => 2, 'exam_id' => 'exam-ns204-systems'],
+                    ['type' => 'interview', 'label' => 'Portfolio interview', 'required' => true, 'order' => 3, 'rounds' => 1],
+                    ['type' => 'offer', 'label' => 'Offer', 'required' => false, 'order' => 4],
+                ],
+                'requirements_flags' => [
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => false,
+                ],
+                'employees_cannot_apply_public' => true,
                 'employment' => 'Full-time',
                 'work_model' => 'Hybrid · Two office days',
+                'work_mode' => 'hybrid',
                 'location' => 'Austin, TX',
                 'salary_label' => '$140k–$170k USD',
                 'salary_min' => '$140,000',
@@ -256,6 +345,135 @@ class MockCompanyData
                 'accommodation_info' => true,
                 'last_edited' => 'Oct 19, 2026',
                 'draft_alert' => 'Missing salary range and approval owner.',
+                'publication_status' => 'draft',
+                'visibility' => 'public',
+            ],
+            [
+                'id' => 'ns-208',
+                'code' => 'NS-208',
+                'title' => 'Internal Design Systems Lead',
+                'organization_id' => 'org-ns-001',
+                'owner' => 'Olivia Bennett',
+                'team' => 'Product & Design',
+                'department' => 'Product & Design',
+                'category' => 'Product & Design',
+                'model' => 'Direct hire',
+                'model_key' => 'direct',
+                'pipeline' => '3 total · Private employees',
+                'pipeline_total' => 3,
+                'pipeline_interview' => 1,
+                'status' => 'Open',
+                'status_key' => 'open',
+                'publication_status' => 'published',
+                'visibility' => 'private',
+                'private_apply_mode' => 'all_employees',
+                'application_mode' => 'all_employees',
+                'openings_count' => 1,
+                'deadline' => 'December 15, 2026',
+                'skills' => [
+                    ['label' => 'Design systems', 'is_required' => true],
+                    ['label' => 'Figma', 'is_required' => true],
+                ],
+                'stages_config' => [
+                    ['type' => 'screening', 'label' => 'Screening', 'required' => true, 'order' => 1],
+                    ['type' => 'interview', 'label' => 'Interview', 'required' => true, 'order' => 2],
+                    ['type' => 'offer', 'label' => 'Offer', 'required' => false, 'order' => 3],
+                ],
+                'requirements_flags' => [
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => false,
+                ],
+                'employment' => 'Full-time',
+                'work_model' => 'Hybrid · Two office days',
+                'work_mode' => 'hybrid',
+                'location' => 'Austin, TX',
+                'salary_label' => '$150k–$180k USD',
+                'salary_min' => '$150,000',
+                'salary_max' => '$180,000',
+                'location_short' => 'Austin hybrid',
+                'posted_at' => 'October 18, 2026',
+                'published_label' => 'Private · Employees · Oct 18',
+                'hiring_manager' => 'Daniel Brooks',
+                'description' => 'Private employee-eligible role for Northstar Labs members only.',
+                'responsibilities' => ['Own the internal design system roadmap.'],
+                'requirements' => ['Approved Northstar Labs employee membership.'],
+                'benefits' => 'Internal mobility benefits.',
+                'process' => 'Internal screen → Portfolio → Offer.',
+                'summary' => 'Lead internal design systems for approved employees.',
+                'stages' => [
+                    ['label' => 'Applied', 'key' => 'Applied', 'count' => 1],
+                    ['label' => 'Screening', 'key' => 'Screening', 'count' => 1],
+                    ['label' => 'Interview', 'key' => 'Interview', 'count' => 1],
+                ],
+                'publish_to_search' => false,
+                'agency_submissions' => false,
+                'accommodation_info' => true,
+            ],
+            [
+                'id' => 'ns-209',
+                'code' => 'NS-209',
+                'title' => 'Nominated Product Designer',
+                'organization_id' => 'org-ns-001',
+                'owner' => 'Olivia Bennett',
+                'team' => 'Product & Design',
+                'department' => 'Product & Design',
+                'category' => 'Product & Design',
+                'model' => 'Direct hire',
+                'model_key' => 'direct',
+                'pipeline' => '1 nominated · Private',
+                'pipeline_total' => 1,
+                'pipeline_interview' => 0,
+                'status' => 'Open',
+                'status_key' => 'open',
+                'publication_status' => 'published',
+                'visibility' => 'private',
+                'private_apply_mode' => 'nominated_only',
+                'application_mode' => 'nominated_only',
+                'openings_count' => 1,
+                'deadline' => 'December 1, 2026',
+                'nominations' => [
+                    ['id' => 'nom-maya-chen', 'candidate_id' => 'maya-chen', 'name' => 'Maya Chen', 'email' => 'maya.chen@example.com', 'nominated_by' => 'Olivia Bennett', 'nominated_at' => 'October 19, 2026'],
+                ],
+                'skills' => [
+                    ['label' => 'Product design', 'is_required' => true],
+                    ['label' => 'Prototyping', 'is_required' => false],
+                ],
+                'stages_config' => [
+                    ['type' => 'screening', 'label' => 'Screening', 'required' => true, 'order' => 1],
+                    ['type' => 'interview', 'label' => 'Interview', 'required' => true, 'order' => 2],
+                    ['type' => 'offer', 'label' => 'Offer', 'required' => false, 'order' => 3],
+                ],
+                'requirements_flags' => [
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => true,
+                ],
+                'employment' => 'Full-time',
+                'work_model' => 'Hybrid · Two office days',
+                'work_mode' => 'hybrid',
+                'location' => 'Austin, TX',
+                'salary_label' => '$130k–$155k USD',
+                'salary_min' => '$130,000',
+                'salary_max' => '$155,000',
+                'location_short' => 'Austin hybrid',
+                'posted_at' => 'October 19, 2026',
+                'published_label' => 'Private · Nominated · Oct 19',
+                'hiring_manager' => 'Daniel Brooks',
+                'description' => 'Private nomination-only role. Approved members still need a nomination.',
+                'responsibilities' => ['Deliver nominated product design initiatives.'],
+                'requirements' => ['Approved membership plus active nomination.'],
+                'benefits' => 'Internal Northstar package.',
+                'process' => 'Nomination → Apply → Interview.',
+                'summary' => 'Nomination-only private role.',
+                'stages' => [
+                    ['label' => 'Applied', 'key' => 'Applied', 'count' => 0],
+                    ['label' => 'Screening', 'key' => 'Screening', 'count' => 0],
+                    ['label' => 'Interview', 'key' => 'Interview', 'count' => 0],
+                ],
+                'publish_to_search' => false,
+                'agency_submissions' => false,
+                'accommodation_info' => true,
             ],
             [
                 'id' => 'ns-198',
@@ -288,11 +506,15 @@ class MockCompanyData
                 'stages' => [
                     ['label' => 'Hired', 'count' => 1],
                 ],
+                'publication_status' => 'closed',
+                'visibility' => 'public',
+                'openings_count' => 1,
+                'closed_reason_key' => 'openings_filled',
+                'closed_reason' => 'Openings filled',
                 'publish_to_search' => false,
                 'agency_submissions' => false,
                 'accommodation_info' => true,
                 'last_edited' => 'Sep 30, 2026',
-                'closed_reason' => 'Role filled',
             ],
             [
                 'id' => 'ns-191',
@@ -323,6 +545,10 @@ class MockCompanyData
                 'process' => '',
                 'summary' => 'Cancelled — headcount reallocated.',
                 'stages' => [],
+                'publication_status' => 'closed',
+                'visibility' => 'public',
+                'closed_reason_key' => 'manual_close',
+                'closed_reason' => 'Cancelled — headcount reallocated',
                 'publish_to_search' => false,
                 'agency_submissions' => true,
                 'accommodation_info' => true,
@@ -485,6 +711,12 @@ class MockCompanyData
                 'Product',
                 'People',
             ],
+            'categories' => [
+                'Product & Design',
+                'Engineering & Data',
+                'People & Operations',
+                'Marketing & Growth',
+            ],
             'employment_types' => ['Full-time', 'Part-time', 'Contract'],
             'work_models' => [
                 'Hybrid · Two office days',
@@ -493,32 +725,86 @@ class MockCompanyData
             ],
             'owners' => ['Olivia Bennett', 'Jordan Lee', 'Daniel Brooks'],
             'hiring_managers' => ['Jordan Lee', 'Daniel Brooks', 'Olivia Bennett', 'Alex Morgan'],
+            'skill_options' => [
+                ['value' => 'Figma', 'label' => 'Figma'],
+                ['value' => 'Design systems', 'label' => 'Design systems'],
+                ['value' => 'User research', 'label' => 'User research'],
+                ['value' => 'Prototyping', 'label' => 'Prototyping'],
+                ['value' => 'Product design', 'label' => 'Product design'],
+            ],
+            'stage_type_options' => [
+                ['value' => 'screening', 'label' => 'Screening'],
+                ['value' => 'exam', 'label' => 'Examination'],
+                ['value' => 'interview', 'label' => 'Interview'],
+                ['value' => 'offer', 'label' => 'Offer'],
+            ],
+            'exam_options' => [
+                ['value' => '', 'label' => 'No exam attached'],
+                ['value' => 'exam-ns204-systems', 'label' => 'Design systems practical'],
+                ['value' => 'exam-generic-screen', 'label' => 'General screening quiz'],
+            ],
+            'nominee_options' => [
+                ['id' => 'maya-chen', 'name' => 'Maya Chen', 'email' => 'maya.chen@example.com'],
+                ['id' => 'alex-morgan', 'name' => 'Alex Morgan', 'email' => 'alex.morgan@northstarlabs.example'],
+                ['id' => 'jordan-lee', 'name' => 'Jordan Lee', 'email' => 'jordan.lee@northstarlabs.example'],
+            ],
+            'design_assumption' => 'Nomination list and stage builder follow shared Hirebridge design patterns.',
             'defaults' => $isNew
                 ? [
                     'title' => '',
                     'department' => 'Customer Experience',
+                    'category' => 'People & Operations',
                     'employment' => 'Full-time',
                     'location' => 'Austin, TX',
                     'work_model' => 'Hybrid · Two office days',
                     'salary_min' => '',
                     'salary_max' => '',
+                    'openings_count' => '1',
+                    'deadline' => '',
                     'about' => '',
                     'requirements' => '',
                     'benefits' => '',
                     'owner' => 'Olivia Bennett',
                     'hiring_manager' => 'Jordan Lee',
+                    'visibility' => 'public',
+                    'private_apply_mode' => 'all_employees',
                     'publish_to_search' => true,
                     'agency_submissions' => false,
                     'accommodation_info' => true,
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => false,
+                    'skill_figma' => true,
+                    'skill_figma_required' => true,
+                    'skill_design_systems' => true,
+                    'skill_design_systems_required' => true,
+                    'skill_user_research' => false,
+                    'skill_user_research_required' => false,
+                    'skill_prototyping' => false,
+                    'skill_prototyping_required' => false,
+                    'skill_product_design' => false,
+                    'skill_product_design_required' => false,
+                    'stage_screening' => true,
+                    'stage_exam' => false,
+                    'stage_exam_id' => '',
+                    'stage_interview' => true,
+                    'stage_interview_rounds' => '1',
+                    'stage_offer' => true,
+                    'nominee_maya-chen' => false,
+                    'nominee_alex-morgan' => false,
+                    'nominee_jordan-lee' => false,
                 ]
                 : [
                     'title' => $draft['title'] ?? 'Customer Success Manager',
                     'department' => $draft['department'] ?? 'Customer Experience',
+                    'category' => $draft['category'] ?? ($draft['department'] ?? 'Customer Experience'),
                     'employment' => $draft['employment'] ?? 'Full-time',
                     'location' => $draft['location'] ?? 'Austin, TX',
                     'work_model' => $draft['work_model'] ?? 'Hybrid · Two office days',
                     'salary_min' => ($draft['salary_min'] ?? '') !== '' ? $draft['salary_min'] : '$110,000',
                     'salary_max' => ($draft['salary_max'] ?? '') !== '' ? $draft['salary_max'] : '$135,000',
+                    'openings_count' => (string) ($draft['openings_count'] ?? '1'),
+                    'deadline' => $draft['deadline'] ?? '',
                     'about' => $draft['description'] ?? 'Turn operational challenges into lasting customer value. You’ll guide mid-market accounts through adoption, renewals, and product feedback loops with design and engineering partners.',
                     'requirements' => is_array($draft['requirements'] ?? null)
                         ? implode("\n", $draft['requirements'])
@@ -526,14 +812,40 @@ class MockCompanyData
                     'benefits' => $draft['benefits'] ?? 'Health coverage, flexible PTO, learning budget, hybrid Austin rhythm.',
                     'owner' => $draft['owner'] ?? 'Olivia Bennett',
                     'hiring_manager' => $draft['hiring_manager'] ?? 'Jordan Lee',
+                    'visibility' => $draft['visibility'] ?? 'public',
+                    'private_apply_mode' => $draft['private_apply_mode'] ?? 'all_employees',
                     'publish_to_search' => (bool) ($draft['publish_to_search'] ?? true),
                     'agency_submissions' => (bool) ($draft['agency_submissions'] ?? false),
                     'accommodation_info' => (bool) ($draft['accommodation_info'] ?? true),
+                    'cv_required' => (bool) (($draft['requirements_flags']['cv_required'] ?? true)),
+                    'ai_consent_required' => (bool) (($draft['requirements_flags']['ai_consent_required'] ?? true)),
+                    'cover_note_required' => (bool) (($draft['requirements_flags']['cover_note_required'] ?? false)),
+                    'skill_figma' => true,
+                    'skill_figma_required' => true,
+                    'skill_design_systems' => true,
+                    'skill_design_systems_required' => true,
+                    'skill_user_research' => false,
+                    'skill_user_research_required' => false,
+                    'skill_prototyping' => false,
+                    'skill_prototyping_required' => false,
+                    'skill_product_design' => false,
+                    'skill_product_design_required' => false,
+                    'stage_screening' => true,
+                    'stage_exam' => ($draft['id'] ?? '') === 'ns-204',
+                    'stage_exam_id' => ($draft['id'] ?? '') === 'ns-204' ? 'exam-ns204-systems' : '',
+                    'stage_interview' => true,
+                    'stage_interview_rounds' => '1',
+                    'stage_offer' => true,
+                    'nominee_maya-chen' => ($draft['private_apply_mode'] ?? '') === 'nominated_only',
+                    'nominee_alex-morgan' => false,
+                    'nominee_jordan-lee' => false,
                 ],
             'checklist' => [
                 ['key' => 'role', 'label' => 'Role and location', 'done' => ! $isNew],
                 ['key' => 'salary', 'label' => 'Salary range', 'done' => ! $isNew && ($draft['salary_min'] ?? '') !== ''],
                 ['key' => 'description', 'label' => 'Description and requirements', 'done' => ! $isNew],
+                ['key' => 'visibility', 'label' => 'Visibility & eligibility', 'done' => ! $isNew],
+                ['key' => 'stages', 'label' => 'Recruitment stages', 'done' => ! $isNew],
                 ['key' => 'privacy', 'label' => 'Privacy & equal-opportunity text', 'done' => ! $isNew],
                 ['key' => 'hiring', 'label' => 'Hiring process', 'done' => false],
                 ['key' => 'approval', 'label' => 'Approval review', 'done' => false],
@@ -1050,9 +1362,19 @@ class MockCompanyData
     {
         $jobId = $jobId ?: 'ns-204';
         $job = self::job($jobId);
-        $applicants = array_values(array_filter(
-            self::applicants(),
-            static fn (array $row): bool => ($row['job_id'] ?? '') === $jobId
+        $applicants = array_values(array_map(
+            static function (array $row): array {
+                $ai = AiScreeningPresentation::forApplicant($row['id'], $row);
+                $row['ai_screening'] = $ai;
+                $row['ai_pipeline_label'] = $ai['pipeline_label'];
+                $row['ai_badge_variant'] = $ai['badge_variant'];
+
+                return $row;
+            },
+            array_filter(
+                self::applicants(),
+                static fn (array $row): bool => ($row['job_id'] ?? '') === $jobId
+            )
         ));
 
         $stages = self::applicantStages();
@@ -1289,6 +1611,8 @@ class MockCompanyData
             $interview['id'] = $relatedInterview['id'];
         }
 
+        $aiScreening = AiScreeningPresentation::forApplicant($id, $base);
+
         return array_merge($base, [
             'subtitle' => $base['headline'].' · '.$base['location'].' · '.$base['years_experience'].' years’ experience',
             'pipeline' => $pipeline,
@@ -1307,10 +1631,12 @@ class MockCompanyData
                     'updated' => $base['applied_on'],
                 ],
             'screening' => $screening,
+            'ai_screening' => $aiScreening,
             'interview' => $interview,
             'interview_id' => $relatedInterview['id'] ?? null,
             'evaluation_id' => $relatedEvaluation['id'] ?? null,
             'offer_id' => $relatedOffer['id'] ?? null,
+            'assessment_id' => $isMaya || $id === 'ethan-cole' || $id === 'nora-kim' ? 'exam-ns204-systems' : null,
             'interview_plan' => $interviewPlan,
             'communications' => $communications,
             'notes_activity' => $notesActivity,
@@ -1423,6 +1749,37 @@ class MockCompanyData
                     ['label' => 'Interview brief attached', 'done' => false],
                 ],
             ],
+            [
+                'id' => 'int-ns204-cancelled-sample',
+                'applicant_id' => 'sam-okonkwo',
+                'applicant' => 'Sam Okonkwo',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'title' => 'Portfolio interview',
+                'type' => 'Portfolio review',
+                'type_key' => 'portfolio',
+                'status' => 'Cancelled',
+                'status_key' => 'cancelled',
+                'day_key' => '2026-10-22',
+                'weekday' => 'Thu',
+                'day_num' => '22',
+                'when' => 'Thursday, Oct 22, 2026',
+                'time' => 'Cancelled · sample',
+                'time_short' => '—',
+                'duration' => '45 minutes',
+                'timezone' => 'Central Time (UTC−05:00)',
+                'interviewer' => 'Alex Morgan',
+                'organizer' => 'Olivia Bennett',
+                'format' => 'Video meeting',
+                'department' => 'Product & Design',
+                'calendar_label' => 'Sam Okonkwo · Cancelled sample',
+                'evaluation_status' => 'not_applicable',
+                'checklist' => [
+                    ['label' => 'Candidate invitation sent', 'done' => false],
+                    ['label' => 'Interview brief attached', 'done' => false],
+                ],
+            ],
         ];
     }
 
@@ -1441,7 +1798,10 @@ class MockCompanyData
      */
     public static function interviewCalendar(): array
     {
-        $interviews = self::interviews();
+        $interviews = array_values(array_filter(
+            self::interviews(),
+            static fn (array $interview): bool => ($interview['status_key'] ?? '') !== 'cancelled'
+        ));
         $byDay = [];
         foreach ($interviews as $interview) {
             $byDay[$interview['day_key']][] = $interview;
@@ -1591,18 +1951,19 @@ class MockCompanyData
                 ['value' => '2026-10-27', 'label' => 'Mon, Oct 27'],
                 ['value' => '2026-10-28', 'label' => 'Tue, Oct 28'],
             ],
-            'slots' => [
+            'slots' => InterviewBookingPresentation::enrichSlots([
                 ['value' => '2026-10-22T10:00', 'label' => 'Thu, Oct 22 · 10:00 AM', 'meta' => '45 min · Central Time', 'date' => '2026-10-22'],
-                ['value' => '2026-10-22T14:00', 'label' => 'Thu, Oct 22 · 2:00 PM', 'meta' => '45 min · Central Time', 'date' => '2026-10-22'],
-                ['value' => '2026-10-23T09:00', 'label' => 'Fri, Oct 23 · 9:00 AM', 'meta' => '45 min · Central Time', 'date' => '2026-10-23', 'unavailable' => true],
+                ['value' => '2026-10-22T14:00', 'label' => 'Thu, Oct 22 · 2:00 PM', 'meta' => '45 min · Central Time', 'date' => '2026-10-22', 'conflict_on_confirm' => true],
+                ['value' => '2026-10-23T09:00', 'label' => 'Fri, Oct 23 · 9:00 AM', 'meta' => '45 min · Central Time · already booked', 'date' => '2026-10-23', 'unavailable' => true],
                 ['value' => '2026-10-23T11:30', 'label' => 'Fri, Oct 23 · 11:30 AM', 'meta' => '45 min · Central Time', 'date' => '2026-10-23'],
-                ['value' => '2026-10-27T10:00', 'label' => 'Mon, Oct 27 · 10:00 AM', 'meta' => '45 min · Central Time', 'date' => '2026-10-27'],
+                ['value' => '2026-10-27T10:00', 'label' => 'Mon, Oct 27 · 10:00 AM', 'meta' => '45 min · Central Time · sample expired window', 'date' => '2026-10-27', 'expired' => true],
                 ['value' => '2026-10-28T15:00', 'label' => 'Tue, Oct 28 · 3:00 PM', 'meta' => '45 min · Central Time', 'date' => '2026-10-28'],
-            ],
+            ]),
             'default_type' => 'portfolio',
             'default_interviewer' => 'alex-morgan',
             'default_date' => '2026-10-22',
             'default_slot' => '2026-10-22T10:00',
+            'availability_authority' => __('company.interviews.availability_authority'),
             'instructions' => __('company.interviews.instructions_body'),
             'applicants' => array_values(array_map(static fn (array $a): array => [
                 'id' => $a['id'],
@@ -1629,12 +1990,17 @@ class MockCompanyData
                 'job_id' => 'ns-204',
                 'job_code' => 'NS-204',
                 'job_title' => 'Senior Product Designer',
+                'interview_id' => 'int-ns204-ethan-final',
                 'source' => 'Direct hire',
                 'stage' => 'Offer stage',
                 'subtitle' => 'NS-204 · Senior Product Designer · Final interviews completed October 16',
                 'decision_owner' => 'Daniel Brooks',
                 'feedback_complete' => '3 / 3',
+                'evaluation_completion' => 'complete',
+                'hr_review_status' => 'completed',
+                'hr_review_label' => 'HR review completed · proceed to offer draft',
                 'scale_legend' => '1 = Below · 2 = Developing · 3 = Meets · 4 = Strong · N/O = Not observed',
+                'erd_contract_note' => 'Competency rows help structure reviewer feedback. Overall score and notes remain the primary review record in this preview.',
                 'competencies' => [
                     [
                         'label' => 'Problem framing',
@@ -1666,27 +2032,116 @@ class MockCompanyData
                         'name' => 'Alex Morgan',
                         'verdict' => 'Strong hire',
                         'meta' => 'Submitted Oct 16, 3:10 PM',
+                        'state' => 'submitted',
                         'comment' => 'Strong portfolio depth. Clear rationale for prioritization and accessibility decisions. Would benefit from early pairing on domain complexity.',
                     ],
                     [
                         'name' => 'Daniel Brooks',
                         'verdict' => 'Hire',
                         'meta' => 'Submitted Oct 16, 4:20 PM',
+                        'state' => 'submitted',
                         'comment' => 'Strong collaboration examples and realistic trade-offs. Recommend proceeding within the approved compensation range.',
                     ],
                     [
                         'name' => 'Olivia Bennett',
                         'verdict' => 'Proceed',
                         'meta' => 'Screening completed Oct 9',
+                        'state' => 'submitted',
                         'comment' => null,
                     ],
                 ],
                 'decision' => [
                     'status' => 'Proceed to offer',
                     'status_key' => 'proceed',
-                    'detail' => 'Recorded Oct 19 by Daniel Brooks. Offer is in draft and has not been sent.',
+                    'detail' => 'Recorded Oct 19 by Daniel Brooks. Offer is in draft and has not been sent. High scores do not auto-promote stages.',
                 ],
                 'evidence_note' => 'Evidence, not an automatic score. Ratings support structured discussion. The hiring manager records the final decision and its rationale.',
+                'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+            ],
+            [
+                'id' => 'eval-maya-chen-pending',
+                'applicant_id' => 'maya-chen',
+                'applicant' => 'Maya Chen',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'interview_id' => 'int-ns204-portfolio',
+                'source' => 'Direct hire',
+                'stage' => 'Interview stage',
+                'subtitle' => 'NS-204 · Portfolio interview · Awaiting scorecards',
+                'decision_owner' => 'Daniel Brooks',
+                'feedback_complete' => '0 / 2',
+                'evaluation_completion' => 'awaiting',
+                'hr_review_status' => 'pending',
+                'hr_review_label' => 'HR review pending — required evaluations incomplete',
+                'scale_legend' => '1 = Below · 2 = Developing · 3 = Meets · 4 = Strong · N/O = Not observed',
+                'erd_contract_note' => 'Competency rows help structure reviewer feedback while evaluations remain incomplete.',
+                'competencies' => [],
+                'recommendations' => [
+                    [
+                        'name' => 'Alex Morgan',
+                        'verdict' => 'Draft in progress',
+                        'meta' => 'Browser draft only · not submitted',
+                        'state' => 'draft',
+                        'comment' => 'Local scorecard draft exists on the interviewer device. Not a submitted evaluation.',
+                    ],
+                    [
+                        'name' => 'Daniel Brooks',
+                        'verdict' => 'Awaiting interview',
+                        'meta' => 'Not started',
+                        'state' => 'pending',
+                        'comment' => null,
+                    ],
+                ],
+                'decision' => [
+                    'status' => 'Awaiting evaluations',
+                    'status_key' => 'awaiting',
+                    'detail' => 'No hiring-stage advance until required evaluations are submitted and HR reviews them.',
+                ],
+                'evidence_note' => 'Partial scorecards stay review-only. High draft ratings never auto-advance the candidate.',
+                'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+            ],
+            [
+                'id' => 'eval-conflict-sample',
+                'applicant_id' => 'nora-kim',
+                'applicant' => 'Nora Kim',
+                'job_id' => 'ns-204',
+                'job_code' => 'NS-204',
+                'job_title' => 'Senior Product Designer',
+                'interview_id' => 'int-ns204-nora-sample',
+                'source' => 'Direct hire',
+                'stage' => 'Interview stage',
+                'subtitle' => 'NS-204 · Sample conflicting recommendations',
+                'decision_owner' => 'Daniel Brooks',
+                'feedback_complete' => '2 / 2',
+                'evaluation_completion' => 'complete_conflict',
+                'hr_review_status' => 'required',
+                'hr_review_label' => 'HR review required — evaluator recommendations conflict',
+                'scale_legend' => '1 = Below · 2 = Developing · 3 = Meets · 4 = Strong · N/O = Not observed',
+                'erd_contract_note' => 'Sample conflict for HR review. Final decision remains human-controlled.',
+                'competencies' => [],
+                'recommendations' => [
+                    [
+                        'name' => 'Alex Morgan',
+                        'verdict' => 'Strong hire',
+                        'meta' => 'Submitted sample',
+                        'state' => 'submitted',
+                        'comment' => 'Recommend advance.',
+                    ],
+                    [
+                        'name' => 'Daniel Brooks',
+                        'verdict' => 'Hold / more review',
+                        'meta' => 'Submitted sample',
+                        'state' => 'submitted',
+                        'comment' => 'Need another round before offer.',
+                    ],
+                ],
+                'decision' => [
+                    'status' => 'HR review required',
+                    'status_key' => 'review',
+                    'detail' => 'Conflicting recommendations. Do not auto-promote based on scores alone.',
+                ],
+                'evidence_note' => 'Conflicts require authorized human review.',
                 'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
             ],
         ];
@@ -1725,10 +2180,20 @@ class MockCompanyData
                 'job_title' => 'Senior Product Designer',
                 'company' => 'Northstar Labs',
                 'department' => 'Product & Design',
-                'status' => 'Draft · Not sent to candidate',
+                'status' => 'Draft · Pending compensation approval',
                 'status_key' => 'draft',
-                'banner' => 'Daniel Brooks must approve compensation before this offer can be sent. Ethan\'s application is at Offer; Maya\'s remains at Interview.',
+                'approval_state' => 'pending_approval',
+                'banner' => 'Daniel Brooks must approve compensation before this offer can be sent. Ethan\'s application is at Offer; Maya\'s remains at Interview. Company approval is distinct from candidate acceptance.',
                 'salary' => '$160,000',
+                'salary_numeric' => 160000,
+                'currency' => 'USD',
+                'currency_note' => 'Presentation uses USD for EN samples. Database locale defaults may differ — Product decision required before global currency changes.',
+                'job_salary_min' => 140000,
+                'job_salary_max' => 170000,
+                'job_salary_band' => '$140,000–$170,000 USD',
+                'salary_in_range' => true,
+                'salary_range_hint' => 'Sample is within the NS-204 approved band ($140k–$170k USD).',
+                'salary_benchmark_hint' => 'Suggested midpoint from sample salary_recommendations: $155,000 USD (advisory only).',
                 'bonus' => '10% of annual base',
                 'employment' => 'Full-time',
                 'employment_options' => ['Full-time', 'Part-time', 'Contract'],
@@ -1736,6 +2201,7 @@ class MockCompanyData
                 'start_date_short' => 'Nov 16, 2026',
                 'deadline' => 'October 28, 2026',
                 'deadline_short' => 'Oct 28',
+                'expires_at' => '2026-10-28T23:59:00-05:00',
                 'work_model' => 'Austin · Hybrid',
                 'equity' => 'Equity grant subject to board approval; terms described in the offer letter.',
                 'template' => 'Northstar_US_Permanent_2026.docx',
@@ -2113,7 +2579,7 @@ class MockCompanyData
             ],
             'audit_body' => 'Removing access ends future workspace access but preserves authored feedback and audit history. Sensitive changes require confirmation.',
             'pending_invite_note' => 'Taylor Reed · Interviewer · Invited Oct 19 · Expires Oct 26',
-            'join_request_count' => 2,
+            'join_request_count' => 3,
             'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
         ];
     }
@@ -2163,9 +2629,32 @@ class MockCompanyData
                     'note' => 'Reviewed and declined earlier — retained for audit history in this preview.',
                     'status' => 'Declined',
                     'status_key' => 'declined',
+                    'rejection_reason' => 'People Operations already has an assigned HR admin for this workspace.',
+                    'reviewed_by' => 'Olivia Bennett',
+                    'reviewed_at' => 'October 14, 2026',
+                ],
+                [
+                    'id' => 'req-maya-chen',
+                    'name' => 'Maya Chen',
+                    'email' => 'maya.chen@example.com',
+                    'requested_role' => 'Employee',
+                    'requested_role_key' => 'employee',
+                    'department' => 'Product & Design',
+                    'requested_at' => 'October 19, 2026',
+                    'note' => 'Optional employee membership request from candidate onboarding (workflow 2). Cross-links with candidate membership mock.',
+                    'status' => 'Pending',
+                    'status_key' => 'pending',
+                    'candidate_id' => 'maya-chen',
+                    'company_id' => 'org-ns-001',
                 ],
             ],
+            'assignable_roles' => [
+                ['value' => 'hr', 'label' => 'HR'],
+                ['value' => 'interviewer', 'label' => 'Interviewer'],
+                ['value' => 'employee', 'label' => 'Employee'],
+            ],
             'footer' => 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026',
+            'preview_disclaimer' => 'Approve and decline actions are frontend previews only. No membership or role is persisted.',
         ];
     }
 
@@ -2433,14 +2922,48 @@ class MockCompanyData
                             'score' => null,
                         ],
                     ],
+                    'proctoring_required' => true,
+                    'question_source' => 'manual',
+                    'approval_status' => 'approved',
+                    'grading_methods' => ['automatic_mc', 'manual_short'],
                     'results' => [
                         [
                             'candidate' => 'Ethan Cole',
                             'candidate_id' => 'ethan-cole',
+                            'attempt_id' => 'attempt-ns204-ethan-1',
                             'score' => 82,
                             'pass' => true,
                             'completed_at' => 'Oct 16, 2026',
                             'attempt' => '1 of 2',
+                            'grading_status' => 'graded',
+                            'grading_method' => 'automatic_mc + manual_short',
+                            'proctoring_review_status' => 'completed',
+                        ],
+                        [
+                            'candidate' => 'Maya Chen',
+                            'candidate_id' => 'maya-chen',
+                            'attempt_id' => 'attempt-ns204-maya-flagged',
+                            'score' => null,
+                            'pass' => null,
+                            'completed_at' => 'Oct 18, 2026',
+                            'attempt' => '1 of 2',
+                            'grading_status' => 'held_for_review',
+                            'grading_method' => 'pending_human',
+                            'proctoring_review_status' => 'pending',
+                        ],
+                    ],
+                    'proctoring_queue' => [
+                        [
+                            'id' => 'flag-ns204-1',
+                            'attempt_id' => 'attempt-ns204-maya-flagged',
+                            'candidate_id' => 'maya-chen',
+                            'candidate' => 'Maya Chen',
+                            'event_type' => 'attention_away',
+                            'label' => 'Attention left the exam window',
+                            'recorded_at' => 'Oct 18, 2026 · 3:12 PM',
+                            'severity' => 'review',
+                            'note' => 'Sample signal for human review. Not an automatic fail or cheating verdict.',
+                            'review_status' => 'pending',
                         ],
                     ],
                 ],
@@ -2450,8 +2973,8 @@ class MockCompanyData
                     'job_id' => 'ns-205',
                     'job_code' => 'NS-205',
                     'job_title' => 'Senior Frontend Engineer',
-                    'status' => 'Draft',
-                    'status_key' => 'draft',
+                    'status' => 'Pending approval',
+                    'status_key' => 'pending_approval',
                     'time_limit_min' => 40,
                     'attempt_limit' => 1,
                     'passing_score' => 75,
@@ -2460,6 +2983,12 @@ class MockCompanyData
                     'completed_count' => 0,
                     'updated' => 'Oct 19, 2026',
                     'owner' => 'Jordan Lee',
+                    'proctoring_required' => false,
+                    'question_source' => 'ai_assisted',
+                    'approval_status' => 'pending_review',
+                    'approval_note' => 'AI-assisted draft questions require reviewer approval before publishing.',
+                    'grading_methods' => ['automatic_mc', 'manual_short'],
+                    'proctoring_queue' => [],
                     'questions' => [
                         [
                             'id' => 'q1',

@@ -43,6 +43,11 @@
             'active' => request()->routeIs('candidate.profile'),
         ],
         [
+            'label' => __('navigation.candidate.membership'),
+            'route' => 'candidate.membership',
+            'active' => request()->routeIs('candidate.membership'),
+        ],
+        [
             'label' => __('navigation.candidate.preferences'),
             'route' => 'candidate.preferences',
             'active' => request()->routeIs('candidate.preferences'),

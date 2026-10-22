@@ -131,6 +131,7 @@
                                 };
                                 $verificationLabel = match ($org['verification']) {
                                     'pending' => __('admin.organizations.verification_pending'),
+                                    'rejected' => __('admin.organizations.verification_rejected'),
                                     'suspended' => __('admin.organizations.verification_suspended'),
                                     'archived' => __('admin.organizations.verification_archived'),
                                     default => __('admin.organizations.verification_verified_active'),

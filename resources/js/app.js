@@ -1865,7 +1865,9 @@ function collectApplyValues(form) {
         hybrid: qs('[data-apply-field="hybrid"]', form)?.value || '',
         interest: qs('[data-apply-field="interest"]', form)?.value?.trim() || '',
         salary: qs('[data-apply-field="salary"]', form)?.value?.trim() || '',
+        cover_note: qs('[data-apply-field="cover_note"]', form)?.value?.trim() || '',
         consent: Boolean(qs('[data-apply-field="consent"]', form)?.checked),
+        ai_consent: Boolean(qs('[data-apply-field="ai_consent"]', form)?.checked),
         talent_pool: Boolean(qs('[data-apply-field="talent_pool"]', form)?.checked),
         resume_filename: resume?.dataset.resumeFilename || '',
         resume_size: resume?.dataset.resumeSize || '',
@@ -1912,8 +1914,12 @@ function validateApplyForm(form) {
         setApplyFieldError(form, 'email', 'Enter a valid email address.');
         valid = false;
     }
-    if (!values.resume_filename) {
-        setApplyFieldError(form, 'resume', 'Attach or keep a resume on file.');
+    const cvRequired = form.getAttribute('data-cv-required') !== '0';
+    const aiConsentRequired = form.getAttribute('data-ai-consent-required') === '1';
+    const coverNoteRequired = form.getAttribute('data-cover-note-required') === '1';
+
+    if (cvRequired && !values.resume_filename) {
+        setApplyFieldError(form, 'resume', t('validation.resume_required') || 'Attach or keep a resume on file.');
         valid = false;
     }
     if (values.portfolio) {
@@ -1933,8 +1939,16 @@ function validateApplyForm(form) {
         setApplyFieldError(form, 'interest', t('validation.interest_min'));
         valid = false;
     }
+    if (coverNoteRequired && !values.cover_note) {
+        setApplyFieldError(form, 'cover_note', t('validation.cover_note') || 'Enter a cover note.');
+        valid = false;
+    }
     if (!values.consent) {
         setApplyFieldError(form, 'consent', t('validation.consent_continue'));
+        valid = false;
+    }
+    if (aiConsentRequired && qs('[data-apply-field="ai_consent"]', form) && !values.ai_consent) {
+        setApplyFieldError(form, 'ai_consent', t('validation.ai_consent') || 'Confirm AI processing consent to continue.');
         valid = false;
     }
 
@@ -1965,6 +1979,8 @@ function fillApplyReview(form, values) {
     setText('[data-review-hybrid]', values.hybrid || '—');
     setText('[data-review-interest]', values.interest || '—');
     setText('[data-review-salary]', values.salary || '—');
+    setText('[data-review-cover]', values.cover_note || '—');
+    setText('[data-review-ai-consent]', values.ai_consent ? 'Yes' : 'No');
 }
 
 function showApplyPanel(form, panel) {
@@ -2235,6 +2251,16 @@ function initCandidateInterviews() {
     rescheduleSubmit?.addEventListener('click', () => {
         const note = qs('[data-reschedule-note]')?.value?.trim();
         const status = qs('[data-reschedule-status]');
+        const eligibility = qs('[data-reschedule-eligibility]');
+        const canReschedule = eligibility?.getAttribute('data-can-reschedule') !== '0';
+        if (!canReschedule) {
+            if (status) {
+                status.textContent = t('status.reschedule_cutoff') || 'Reschedule is not available inside the 24-hour cutoff in this preview.';
+                status.classList.remove('hidden', 'text-hb-success');
+                status.classList.add('text-hb-error');
+            }
+            return;
+        }
         if (!note) {
             if (status) {
                 status.textContent = t('validation.reschedule_window');
@@ -2244,7 +2270,7 @@ function initCandidateInterviews() {
             return;
         }
         if (status) {
-            status.textContent = t('status.reschedule_unavailable');
+            status.textContent = t('status.reschedule_preview_ok') || 'Reschedule preview recorded on this device only. No booking was changed.';
             status.classList.remove('hidden', 'text-hb-error');
             status.classList.add('text-hb-success');
         }
@@ -2566,12 +2592,29 @@ function initAssessmentIntro() {
     start?.addEventListener('click', (event) => {
         const consent = qs('[data-assessment-consent]', root);
         const error = qs('[data-consent-error]', root);
+        const camera = qs('[data-assessment-camera-consent]', root);
+        const cameraError = qs('[data-camera-consent-error]', root);
+        let valid = true;
         if (!consent?.checked) {
-            event.preventDefault();
+            valid = false;
             if (error) {
                 error.textContent = t('validation.acknowledge');
                 error.classList.remove('hidden');
             }
+        } else if (error) {
+            error.classList.add('hidden');
+        }
+        if (camera && !camera.disabled && !camera.checked) {
+            valid = false;
+            if (cameraError) {
+                cameraError.textContent = t('validation.camera_consent') || 'Camera consent is required for this proctored assessment preview.';
+                cameraError.classList.remove('hidden');
+            }
+        } else if (cameraError) {
+            cameraError.classList.add('hidden');
+        }
+        if (!valid) {
+            event.preventDefault();
         }
     });
 }
@@ -3943,6 +3986,15 @@ function initInterviewerScorecard() {
             <p class="text-hb-muted">${escapeHtml(i18n.review_ok || '')}</p>`;
     };
 
+    qs('[data-feedback-share-toggle]', root)?.addEventListener('change', (event) => {
+        const status = qs('[data-feedback-share-status]', root);
+        if (!status) return;
+        status.textContent = event.target.checked
+            ? (i18n.feedback_share_preview_on || 'Candidate-visible feedback marked for share preview. Nothing was published.')
+            : (i18n.feedback_share_preview_off || 'Candidate-visible feedback share preview cleared. Private notes stay internal.');
+        status.classList.remove('hidden');
+    });
+
     root.addEventListener('change', (event) => {
         if (event.target.matches('[data-score-rating], [data-score-attest], [data-score-recommendation]')) {
             collectFromDom();
@@ -4404,16 +4456,25 @@ function initAdminUsers() {
             const fields = [
                 [i18n.preview_email || 'Email', row.getAttribute('data-email') || ''],
                 [i18n.preview_organization || 'Organization', row.getAttribute('data-org') || ''],
-                [i18n.preview_role || 'Role', row.getAttribute('data-role-label') || ''],
+                [i18n.preview_account_type || 'Account type', row.getAttribute('data-account-type') || ''],
+                [i18n.preview_platform_role || 'Platform role', row.getAttribute('data-platform-role') || ''],
+                [i18n.preview_company_role || 'Company role', row.getAttribute('data-company-role') || ''],
+                [i18n.preview_role || 'Directory role', row.getAttribute('data-role-label') || ''],
+                [i18n.preview_membership || 'Membership', row.getAttribute('data-membership') || ''],
                 [i18n.preview_state || 'State', row.getAttribute('data-state-label') || ''],
                 [i18n.preview_last_active || 'Last active', row.getAttribute('data-last-active') || ''],
             ];
-            previewDl.innerHTML = fields
-                .map(
-                    ([label, value]) =>
-                        `<div><dt class="text-xs font-semibold uppercase tracking-wide text-hb-muted">${label}</dt><dd class="mt-1 text-sm text-hb-navy" dir="auto">${value}</dd></div>`,
-                )
-                .join('');
+            const membershipNote = row.getAttribute('data-membership-note') || '';
+            previewDl.innerHTML =
+                fields
+                    .map(
+                        ([label, value]) =>
+                            `<div><dt class="text-xs font-semibold uppercase tracking-wide text-hb-muted">${label}</dt><dd class="mt-1 text-sm text-hb-navy" dir="auto">${value}</dd></div>`,
+                    )
+                    .join('') +
+                (membershipNote
+                    ? `<p class="mt-3 text-xs text-hb-muted" data-user-membership-note>${membershipNote}</p>`
+                    : '');
             const title = qs('#admin-users-preview-modal-title', previewModal);
             if (title) {
                 title.textContent = row.getAttribute('data-name') || title.textContent;
@@ -4986,12 +5047,18 @@ function initAdminSettings() {
             [i18n.preview_result || 'Result', row.getAttribute('data-result-label') || ''],
             [i18n.preview_description || 'Context', row.getAttribute('data-description') || ''],
         ];
-        eventDl.innerHTML = fields
-            .map(
-                ([label, value]) =>
-                    `<div><dt class="text-xs font-semibold uppercase tracking-wide text-hb-muted">${label}</dt><dd class="mt-1 text-sm text-hb-navy" dir="auto">${value}</dd></div>`,
-            )
-            .join('');
+        const sampleNote =
+            row.getAttribute('data-is-sample') === 'true'
+                ? `<p class="mb-3 text-xs font-semibold uppercase tracking-wide text-hb-pending">${row.getAttribute('data-sample-label') || i18n.preview_sample || 'Sample audit event'}</p>`
+                : '';
+        eventDl.innerHTML =
+            sampleNote +
+            fields
+                .map(
+                    ([label, value]) =>
+                        `<div><dt class="text-xs font-semibold uppercase tracking-wide text-hb-muted">${label}</dt><dd class="mt-1 text-sm text-hb-navy" dir="auto">${value}</dd></div>`,
+                )
+                .join('');
         const title = qs('#admin-settings-event-modal-title', eventModal);
         if (title) {
             title.textContent = row.getAttribute('data-action') || title.textContent;

@@ -19,6 +19,21 @@ class ProfileController extends Controller
             'uiRole' => 'candidate',
             'showMockBanner' => false,
             'profile' => MockCandidateData::profile(),
+            'membership' => MockCandidateData::membership(),
+            'frontendOnly' => true,
+        ]);
+    }
+
+    /**
+     * Optional company membership request (Workflow 2 / F9A) — presentation only.
+     */
+    public function membership(): View
+    {
+        return view('candidate.membership.index', [
+            'pageTitle' => __('candidate.membership.page_title'),
+            'uiRole' => 'candidate',
+            'showMockBanner' => false,
+            'membership' => MockCandidateData::membership(),
             'frontendOnly' => true,
         ]);
     }

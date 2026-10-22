@@ -26,6 +26,7 @@
     @php
         $scheduleI18n = [
             'confirm_feedback' => __('company.interviews.js.confirm_feedback'),
+            'conflict_feedback' => __('company.interviews.js.conflict_feedback'),
             'validation_required' => __('company.interviews.js.validation_required'),
             'summary_type' => __('company.interviews.js.summary_type'),
             'summary_interviewer' => __('company.interviews.js.summary_interviewer'),
@@ -43,6 +44,9 @@
         data-slots="{{ json_encode($schedule['slots'], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
         data-applicant-base="{{ route('company.interviews.schedule') }}"
     >
+        <x-alert variant="info" class="mb-6" data-schedule-authority>
+            <p class="text-sm text-hb-text">{{ $schedule['availability_authority'] ?? __('company.interviews.availability_authority') }}</p>
+        </x-alert>
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
             <div class="min-w-0 space-y-6">
                 <section class="hb-surface p-5 sm:p-6" aria-labelledby="schedule-form-heading">
@@ -228,7 +232,17 @@
                     if (!ok) {
                         if (feedback) {
                             feedback.textContent = i18n.validation_required || '';
-                            feedback.classList.remove('hidden');
+                            feedback.classList.remove('hidden', 'text-hb-error');
+                            feedback.classList.add('text-hb-blue');
+                        }
+                        return;
+                    }
+                    const slot = slots.find((s) => s.value === slotValue);
+                    if (slot?.conflict_on_confirm || slot?.state === 'conflict') {
+                        if (feedback) {
+                            feedback.textContent = i18n.conflict_feedback || '';
+                            feedback.classList.remove('hidden', 'text-hb-blue');
+                            feedback.classList.add('text-hb-error');
                         }
                         return;
                     }
@@ -236,7 +250,8 @@
                         feedback.textContent = replacePlaceholders(i18n.confirm_feedback, {
                             name: i18n.applicant_name || 'candidate',
                         });
-                        feedback.classList.remove('hidden');
+                        feedback.classList.remove('hidden', 'text-hb-error');
+                        feedback.classList.add('text-hb-blue');
                     }
                 });
 

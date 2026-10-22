@@ -24,6 +24,8 @@
             'question_type' => __('company.assessments.question_type'),
             'type_mc' => __('company.assessments.type_mc'),
             'type_short' => __('company.assessments.type_short'),
+            'approval_queued' => __('company.assessments.approval_queued'),
+            'approval_need_ai' => __('company.assessments.approval_need_ai'),
         ];
     @endphp
 
@@ -65,11 +67,28 @@
                     <h2 class="text-base font-semibold text-hb-navy">{{ __('company.assessments.questions_heading') }}</h2>
                     <button type="button" class="hb-btn-outline text-sm" data-add-question>{{ __('company.assessments.add_question') }}</button>
                 </div>
+                <fieldset class="mt-3 space-y-2">
+                    <legend class="hb-label">{{ __('company.assessments.question_source') }}</legend>
+                    <label class="flex items-start gap-2 text-sm text-hb-text">
+                        <input type="radio" name="question_source" value="manual" class="mt-0.5" data-question-source checked>
+                        <span>{{ __('company.assessments.source_manual') }}</span>
+                    </label>
+                    <label class="flex items-start gap-2 text-sm text-hb-text">
+                        <input type="radio" name="question_source" value="ai_assisted" class="mt-0.5" data-question-source>
+                        <span>{{ __('company.assessments.source_ai') }}</span>
+                    </label>
+                </fieldset>
+                <p class="mt-2 hidden text-sm text-hb-muted" data-ai-approval-note role="status">
+                    {{ __('company.assessments.ai_approval_gate') }}
+                </p>
                 <div class="mt-4 space-y-4" data-questions-list></div>
             </div>
 
             <div class="flex flex-wrap gap-2 border-t border-hb-border pt-5">
                 <button type="submit" class="hb-btn-primary">{{ __('company.assessments.save_draft') }}</button>
+                <button type="button" class="hb-btn-outline" data-submit-for-approval disabled title="{{ __('company.assessments.approval_disabled_hint') }}">
+                    {{ __('company.assessments.submit_for_approval') }}
+                </button>
                 <a href="{{ route('company.assessments.index') }}" class="hb-btn-outline">{{ __('company.assessments.cancel') }}</a>
             </div>
             <p class="hidden text-sm text-hb-blue" data-create-feedback role="status"></p>
@@ -163,6 +182,28 @@
                     questions = questions.filter((q) => q.id !== id);
                     if (!questions.length) questions = [{ id: Date.now(), type: 'mc', prompt: '' }];
                     renderQuestions();
+                });
+
+                function syncApprovalUi() {
+                    const ai = root.querySelector('[data-question-source][value="ai_assisted"]')?.checked;
+                    const note = root.querySelector('[data-ai-approval-note]');
+                    const approveBtn = root.querySelector('[data-submit-for-approval]');
+                    if (note) note.classList.toggle('hidden', !ai);
+                    if (approveBtn) {
+                        approveBtn.disabled = !ai;
+                        approveBtn.title = ai ? '' : (i18n.approval_need_ai || '');
+                    }
+                }
+                root.querySelectorAll('[data-question-source]').forEach((el) => {
+                    el.addEventListener('change', syncApprovalUi);
+                });
+                syncApprovalUi();
+
+                root.querySelector('[data-submit-for-approval]')?.addEventListener('click', () => {
+                    if (feedback) {
+                        feedback.textContent = i18n.approval_queued || '';
+                        feedback.classList.remove('hidden');
+                    }
                 });
 
                 root.querySelector('[data-create-form]')?.addEventListener('submit', (event) => {

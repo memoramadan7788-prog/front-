@@ -21,6 +21,7 @@ class JobController extends Controller
             'uiRole' => 'company',
             'showMockBanner' => false,
             'jobsPage' => MockCompanyData::jobsIndex(),
+            'organizationContext' => MockCompanyData::organizationContext(),
             'frontendOnly' => true,
         ]);
     }
@@ -34,6 +35,7 @@ class JobController extends Controller
             abort(404);
         }
 
+        $organizationContext = MockCompanyData::organizationContext();
         $wizard = MockCompanyData::jobWizard($jobId);
 
         return view('company.jobs.wizard.create', [
@@ -41,6 +43,7 @@ class JobController extends Controller
             'uiRole' => 'company',
             'showMockBanner' => false,
             'wizard' => $wizard,
+            'organizationContext' => $organizationContext,
             'frontendOnly' => true,
         ]);
     }

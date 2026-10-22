@@ -93,9 +93,11 @@ class MockInterviewerData
         $assigned = array_map([self::class, 'enrichInterview'], self::assignedInterviews());
         $maya = collect($assigned)->firstWhere('id', 'int-ns204-portfolio');
         $aisha = collect($assigned)->firstWhere('id', 'int-ns204-aisha-portfolio');
+        // Cancelled/reassigned samples stay out of active upcoming sessions (F9D).
         $thisWeek = array_values(array_filter(
             $assigned,
             static fn (array $row): bool => in_array($row['id'] ?? '', ['int-ns204-portfolio', 'int-ns204-aisha-portfolio'], true)
+                && ($row['status_key'] ?? '') !== 'cancelled'
         ));
 
         // Session-readiness checklist (logistics) — distinct from Preparation "role checklist".
@@ -696,20 +698,40 @@ class MockInterviewerData
      */
     private static function enrichInterview(array $interview): array
     {
-        $prep = match ($interview['id'] ?? '') {
+        $id = $interview['id'] ?? '';
+        $statusKey = $interview['status_key'] ?? 'confirmed';
+        $prep = match ($id) {
             'int-ns204-portfolio' => 'Resume reviewed · Portfolio review pending',
             'int-ns204-aisha-portfolio' => 'Brief ready',
             'int-ns204-luis-team' => 'Team brief pending',
+            'int-ns204-cancelled-sample' => 'Cancelled — preparation closed',
             default => 'Preparation not started',
         };
+        $evaluationStatus = $interview['evaluation_status'] ?? match ($id) {
+            'int-ns204-portfolio' => 'draft',
+            'int-ns204-luis-team' => 'pending',
+            'int-ns204-cancelled-sample' => 'not_applicable',
+            'scorecard-owen-ns205' => 'draft',
+            default => 'not_started',
+        };
+        $isCancelled = $statusKey === 'cancelled';
 
         return array_merge($interview, [
             'preparation' => $prep,
             'location' => ($interview['format'] ?? 'Video meeting') === 'Video meeting' ? 'Video' : ($interview['format'] ?? 'Video'),
-            'is_past' => false,
-            'prepare_route' => 'interviewer.interviews.prepare',
-            'live_route' => 'interviewer.interviews.live',
-            'scorecard_route' => 'interviewer.evaluations.create',
+            'is_past' => $isCancelled || ($interview['is_past'] ?? false),
+            'is_active_upcoming' => ! $isCancelled && $statusKey !== 'completed',
+            'evaluation_status' => $evaluationStatus,
+            'evaluation_status_label' => match ($evaluationStatus) {
+                'draft' => 'Scorecard draft · not submitted',
+                'submitted' => 'Evaluation submitted',
+                'pending' => 'Evaluation pending',
+                'not_applicable' => 'Evaluation not applicable',
+                default => 'Evaluation not started',
+            },
+            'prepare_route' => $isCancelled ? null : 'interviewer.interviews.prepare',
+            'live_route' => $isCancelled ? null : 'interviewer.interviews.live',
+            'scorecard_route' => $isCancelled ? null : 'interviewer.evaluations.create',
         ]);
     }
 }

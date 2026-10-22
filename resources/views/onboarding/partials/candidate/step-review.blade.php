@@ -34,4 +34,12 @@
             <dd class="font-medium text-hb-navy text-end">{{ __('onboarding.candidate.review.visibility_value') }}</dd>
         </div>
     </dl>
+
+    <div class="rounded-xl border border-hb-border bg-hb-page p-4" data-onboarding-membership-cta>
+        <h3 class="text-sm font-semibold text-hb-navy">{{ __('onboarding.candidate.review.membership_heading') }}</h3>
+        <p class="mt-1 text-sm text-hb-muted">{{ __('onboarding.candidate.review.membership_body') }}</p>
+        <a href="{{ route('candidate.membership') }}" class="mt-3 inline-flex text-sm font-semibold text-hb-blue hover:underline">
+            {{ __('onboarding.candidate.review.membership_cta') }} →
+        </a>
+    </div>
 </div>

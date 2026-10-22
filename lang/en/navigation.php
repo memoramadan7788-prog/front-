@@ -20,6 +20,7 @@ return [
         'messages' => 'Messages',
         'assessments' => 'Assessments',
         'profile' => 'Profile & resume',
+        'membership' => 'Company membership',
         'preferences' => 'Preferences & alerts',
         'offers' => 'Offers',
         'notifications' => 'Notifications',

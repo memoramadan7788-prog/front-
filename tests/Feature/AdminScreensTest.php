@@ -89,7 +89,8 @@ class AdminScreensTest extends TestCase
 
         $index = MockAdminData::organizationsIndex();
         $this->assertSame(12, $index['tabs'][0]['count']);
-        $this->assertSame(2, $index['tabs'][1]['count']);
+        // Pending tab includes Cedar, Orbit, and rejected Redwood Insights (verification_rejected sample).
+        $this->assertSame(3, $index['tabs'][1]['count']);
         $this->assertSame(1, $index['tabs'][2]['count']);
         $this->assertSame(2, $index['tabs'][3]['count']);
 

@@ -1,14 +1,20 @@
 @php
     /**
-     * MOCK notifications — frontend presentation only.
+     * MOCK notifications — frontend presentation only (F9E actor-scoped).
      * Not loaded from the database or notification service.
      */
-    $notifications = $mockNotifications ?? \App\Support\Frontend\MockCandidateData::notifications();
+    $notifActor = $uiRole ?? request()->query('role', 'candidate');
+    if (! in_array($notifActor, ['candidate', 'company', 'interviewer', 'admin'], true)) {
+        $notifActor = 'candidate';
+    }
+    $notifications = $mockNotifications ?? \App\Support\Frontend\MockNotificationData::forActor($notifActor);
     $unreadCount = collect($notifications)->where('unread', true)->count();
     $panelId = $panelId ?? 'notifications-panel';
+    $storageKey = \App\Support\Frontend\MockNotificationData::storageKey($notifActor);
+    $viewAllRoute = \App\Support\Frontend\MockNotificationData::viewAllRoute($notifActor);
 @endphp
 
-<div class="relative" data-notifications-dropdown data-storage-key="hb_candidate_notifications_v1">
+<div class="relative" data-notifications-dropdown data-storage-key="{{ $storageKey }}" data-notif-actor="{{ $notifActor }}">
     <button
         type="button"
         class="relative inline-flex h-10 items-center gap-2 rounded-lg px-2 text-sm font-medium text-hb-muted hover:bg-hb-page hover:text-hb-text"
@@ -34,11 +40,14 @@
         aria-labelledby="{{ $panelId }}-trigger"
         data-dropdown-panel
     >
-        <div class="flex items-center justify-between border-b border-hb-border px-4 py-3">
-            <p class="text-sm font-semibold text-hb-navy">{{ __('common.notifications.label') }}</p>
-            <span class="rounded-full bg-hb-pending-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-hb-pending">
-                {{ __('common.status.new') }}
-            </span>
+        <div class="border-b border-hb-border px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+                <p class="text-sm font-semibold text-hb-navy">{{ __('common.notifications.label') }}</p>
+                <span class="rounded-full bg-hb-pending-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-hb-pending">
+                    {{ __('common.status.new') }}
+                </span>
+            </div>
+            <p class="mt-2 text-[11px] text-hb-muted">{{ __('notifications.preview_note') }}</p>
         </div>
 
         @if (count($notifications) === 0)
@@ -49,9 +58,9 @@
         @else
             <ul class="max-h-80 divide-y divide-hb-border overflow-y-auto" data-dropdown-notification-list>
                 @foreach ($notifications as $item)
-                    <li role="menuitem" data-dropdown-item data-notification-id="{{ $item['id'] }}" data-unread="{{ ! empty($item['unread']) ? 'true' : 'false' }}">
+                    <li role="menuitem" data-dropdown-item data-notification-id="{{ $item['id'] }}" data-unread="{{ ! empty($item['unread']) ? 'true' : 'false' }}" data-notif-event="{{ $item['event'] ?? '' }}">
                         <a
-                            href="{{ $item['href'] ?? route('candidate.notifications.index') }}"
+                            href="{{ $item['href'] ?? '#' }}"
                             class="flex gap-3 px-4 py-3 hover:bg-hb-page {{ ! empty($item['unread']) ? 'bg-hb-info-soft/50' : 'bg-hb-surface' }}"
                             data-dropdown-item-link
                         >
@@ -71,10 +80,12 @@
             </ul>
         @endif
 
-        <div class="border-t border-hb-border px-4 py-2 text-center">
-            <a href="{{ route('candidate.notifications.index') }}" class="text-xs font-semibold text-hb-blue hover:underline">
-                {{ __('common.notifications.view_all') }}
-            </a>
-        </div>
+        @if ($viewAllRoute)
+            <div class="border-t border-hb-border px-4 py-2 text-center">
+                <a href="{{ route($viewAllRoute) }}" class="text-xs font-semibold text-hb-blue hover:underline">
+                    {{ __('common.notifications.view_all') }}
+                </a>
+            </div>
+        @endif
     </div>
 </div>

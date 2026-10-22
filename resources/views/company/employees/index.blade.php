@@ -18,6 +18,9 @@
 @endsection
 
 @section('content')
+    @include('partials.company-organization-banner', [
+        'organizationContext' => $organizationContext ?? \App\Support\Frontend\MockCompanyData::organizationContext(),
+    ])
     @php
         $teamI18n = [
             'invite_sent' => __('company.employees.js.invite_sent'),

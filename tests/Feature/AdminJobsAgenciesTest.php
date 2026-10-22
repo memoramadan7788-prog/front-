@@ -82,9 +82,14 @@ class AdminJobsAgenciesTest extends TestCase
     public function test_mock_moderation_and_agency_data_align_with_platform_records(): void
     {
         $jobs = MockAdminData::jobsModerationIndex();
-        $this->assertCount(3, $jobs['jobs']);
+        $this->assertCount(4, $jobs['jobs']);
         $this->assertSame('LF-091', $jobs['jobs'][0]['code']);
         $this->assertSame('org-lf-001', $jobs['jobs'][0]['org_id']);
+        $ns204 = collect($jobs['jobs'])->firstWhere('code', 'NS-204');
+        $this->assertNotNull($ns204);
+        $this->assertSame('org-ns-001', $ns204['org_id']);
+        $this->assertSame('ns-204', $ns204['job_id']);
+        $this->assertSame('approved', $ns204['status']);
 
         $agencies = MockAdminData::agenciesIndex();
         $this->assertCount(4, $agencies['engagements']);

@@ -51,13 +51,21 @@
                                         {{ $row['candidate'] }}
                                     @endif
                                 </th>
-                                <td class="px-5 py-3 text-hb-text" dir="ltr">{{ $row['score'] }}%</td>
+                                <td class="px-5 py-3 text-hb-text" dir="ltr">
+                                    {{ $row['score'] !== null ? $row['score'].'%' : '—' }}
+                                </td>
                                 <td class="px-5 py-3 text-hb-text" dir="ltr">{{ $row['attempt'] }}</td>
                                 <td class="px-5 py-3 text-hb-text">{{ $row['completed_at'] }}</td>
                                 <td class="px-5 py-3">
-                                    <x-badge :variant="$row['pass'] ? 'success' : 'error'" :dot="true">
-                                        {{ $row['pass'] ? __('company.assessments.pass') : __('company.assessments.fail') }}
-                                    </x-badge>
+                                    @if (($row['proctoring_review_status'] ?? '') === 'pending')
+                                        <x-badge variant="pending" :dot="true">{{ __('company.assessments.proctoring_pending') }}</x-badge>
+                                    @elseif ($row['pass'] === null)
+                                        <x-badge variant="neutral" :dot="true">{{ __('company.assessments.awaiting_grade') }}</x-badge>
+                                    @else
+                                        <x-badge :variant="$row['pass'] ? 'success' : 'error'" :dot="true">
+                                            {{ $row['pass'] ? __('company.assessments.pass') : __('company.assessments.fail') }}
+                                        </x-badge>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

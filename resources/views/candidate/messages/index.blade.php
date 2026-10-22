@@ -14,11 +14,15 @@
         $active = collect($threads)->firstWhere('selected', true) ?? ($threads[0] ?? null);
     @endphp
 
+    <x-alert variant="info" class="mb-6" data-messages-scope-note role="note">
+        <p class="text-sm text-hb-text">{{ __('candidate.messages.scope_note') }}</p>
+    </x-alert>
 
     <div
         class="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_260px]"
         data-candidate-messages
         data-active-thread="{{ $active['id'] ?? '' }}"
+        data-review-scope="candidate-messages"
     >
         {{-- Inbox --}}
         <section class="hb-surface flex flex-col overflow-hidden" aria-labelledby="inbox-heading">

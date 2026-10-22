@@ -61,8 +61,17 @@
             'preview_email' => __('admin.users.preview_email'),
             'preview_organization' => __('admin.users.preview_organization'),
             'preview_role' => __('admin.users.preview_role'),
+            'preview_account_type' => __('admin.users.preview_account_type'),
+            'preview_platform_role' => __('admin.users.preview_platform_role'),
+            'preview_company_role' => __('admin.users.preview_company_role'),
+            'preview_membership' => __('admin.users.preview_membership'),
             'preview_state' => __('admin.users.preview_state'),
             'preview_last_active' => __('admin.users.preview_last_active'),
+            'membership_none' => __('status_vocab.membership.none'),
+            'membership_pending' => __('status_vocab.membership.pending'),
+            'membership_approved' => __('status_vocab.membership.approved'),
+            'membership_rejected' => __('status_vocab.membership.rejected'),
+            'membership_restricted' => __('admin.users.membership_restricted'),
             'sort_name_asc' => __('admin.users.sort_name_asc'),
             'sort_name_desc' => __('admin.users.sort_name_desc'),
             'sort_active_asc' => __('admin.users.sort_active_asc'),
@@ -172,6 +181,25 @@
                                 $orgHref = ! empty($user['org_id'])
                                     ? route('admin.organizations.show', $user['org_id'])
                                     : null;
+                                $membershipKey = (string) ($user['membership_status'] ?? 'none');
+                                $membershipLabel = match ($membershipKey) {
+                                    'pending' => __('status_vocab.membership.pending'),
+                                    'approved' => __('status_vocab.membership.approved'),
+                                    'rejected' => __('status_vocab.membership.rejected'),
+                                    'restricted' => __('admin.users.membership_restricted'),
+                                    default => __('status_vocab.membership.none'),
+                                };
+                                $accountTypeLabel = match ($user['account_type'] ?? '') {
+                                    'candidate' => __('admin.users.account_type_candidate'),
+                                    'company' => __('admin.users.account_type_company'),
+                                    default => ($user['account_type'] ?? '—'),
+                                };
+                                $platformRoleLabel = ! empty($user['platform_role'])
+                                    ? ($roleLabels[$user['platform_role']] ?? $user['platform_role'])
+                                    : __('admin.users.platform_role_none');
+                                $companyRoleLabel = ! empty($user['company_role'])
+                                    ? ($roleLabels[$user['company_role']] ?? $user['company_role'])
+                                    : __('admin.users.company_role_none');
                             @endphp
                             <tr
                                 data-user-row
@@ -183,11 +211,17 @@
                                 data-name="{{ $user['name'] }}"
                                 data-email="{{ $user['email'] }}"
                                 data-role-label="{{ $roleLabel }}"
+                                data-account-type="{{ $accountTypeLabel }}"
+                                data-platform-role="{{ $platformRoleLabel }}"
+                                data-company-role="{{ $companyRoleLabel }}"
+                                data-membership="{{ $membershipLabel }}"
+                                data-membership-key="{{ $membershipKey }}"
                                 data-state-label="{{ $stateLabel }}"
                                 data-last-active="{{ $user['last_active'] }}"
                                 data-sort-name="{{ strtolower($user['name']) }}"
                                 data-sort-active="{{ $user['last_active'] }}"
                                 data-action-key="{{ $user['action_key'] }}"
+                                @if (! empty($user['membership_note'])) data-membership-note="{{ $user['membership_note'] }}" @endif
                                 hidden
                             >
                                 <td class="px-5 py-4">
@@ -202,8 +236,14 @@
                                     @else
                                         {{ $user['organization'] }}
                                     @endif
+                                    @if ($membershipKey === 'pending')
+                                        <p class="mt-1 text-xs text-hb-muted">{{ $membershipLabel }}</p>
+                                    @endif
                                 </td>
-                                <td class="px-4 py-4 text-hb-text">{{ $roleLabel }}</td>
+                                <td class="px-4 py-4 text-hb-text">
+                                    <p>{{ $roleLabel }}</p>
+                                    <p class="mt-1 text-xs text-hb-muted">{{ __('admin.users.account_type_line', ['type' => $accountTypeLabel]) }}</p>
+                                </td>
                                 <td class="px-4 py-4 text-hb-text">{{ $stateLine }}</td>
                                 <td class="px-5 py-4">
                                     @if (($user['action_key'] ?? '') === 'invite_actions')

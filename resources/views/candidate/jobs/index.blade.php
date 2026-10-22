@@ -15,11 +15,35 @@
 @endsection
 
 @section('content')
+    @php
+        $accessContext = $accessContext ?? ['membership_status' => 'none', 'is_nominated' => false, 'scenario' => 'none'];
+        $scenarioBase = route('candidate.jobs.index');
+    @endphp
     <div
         data-candidate-jobs
         data-candidate-jobs-mode="discover"
         data-default-saved='@json($defaultSavedIds)'
+        data-access-scenario="{{ $accessContext['scenario'] ?? 'none' }}"
     >
+        <aside class="mb-6 rounded-lg border border-hb-border bg-hb-page px-4 py-3" data-eligibility-scenarios aria-label="{{ __('jobs.scenario.heading') }}">
+            <p class="text-sm font-semibold text-hb-navy">{{ __('jobs.scenario.heading') }}</p>
+            <p class="mt-1 text-xs text-hb-muted">{{ __('jobs.scenario.intro') }}</p>
+            <p class="mt-2 text-xs text-hb-muted">{{ __('jobs.scenario.current', ['scenario' => $accessContext['scenario'] ?? 'none']) }}</p>
+            <ul class="mt-3 flex flex-wrap gap-3 text-sm">
+                <li>
+                    <a href="{{ $scenarioBase }}" class="font-semibold text-hb-blue hover:underline">{{ __('jobs.scenario.public_default') }}</a>
+                </li>
+                <li>
+                    <a href="{{ $scenarioBase }}?membership=approved" class="font-semibold text-hb-blue hover:underline">{{ __('jobs.scenario.approved_member') }}</a>
+                </li>
+                <li>
+                    <a href="{{ $scenarioBase }}?membership=pending" class="font-semibold text-hb-blue hover:underline">{{ __('jobs.scenario.pending_member') }}</a>
+                </li>
+                <li>
+                    <a href="{{ $scenarioBase }}?membership=approved&nomination=yes" class="font-semibold text-hb-blue hover:underline">{{ __('jobs.scenario.nominated_member') }}</a>
+                </li>
+            </ul>
+        </aside>
 
         {{-- Search / filter bar --}}
         <div class="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center">

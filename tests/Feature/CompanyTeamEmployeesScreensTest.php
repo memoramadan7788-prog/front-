@@ -29,7 +29,7 @@ class CompanyTeamEmployeesScreensTest extends TestCase
             ->assertSee('taylor@northstarlabs.example', false)
             ->assertSee('Permission boundaries', false)
             ->assertSee('Access changes are audited', false)
-            ->assertSee('Join requests (2)', false)
+            ->assertSee('Join requests (3)', false)
             ->assertDontSee('Frontend UI only', false);
     }
 
@@ -52,6 +52,9 @@ class CompanyTeamEmployeesScreensTest extends TestCase
             ->assertSee('Samira Hassan', false)
             ->assertSee('Chris Nguyen', false)
             ->assertSee('Mira Cohen', false)
+            ->assertSee('Maya Chen', false)
+            ->assertSee('Assign workspace role', false)
+            ->assertSee('Rejection reason', false)
             ->assertSee('Preview approve', false)
             ->assertSee('Preview decline', false)
             ->assertDontSee('Frontend UI only', false);

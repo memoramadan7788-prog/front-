@@ -67,6 +67,18 @@
                         <label class="block">
                             <span class="hb-label">{{ __('company.offers.salary') }} <span class="text-hb-error">*</span></span>
                             <input type="text" class="hb-input mt-1 w-full" data-offer-salary value="{{ $offer['salary'] }}" dir="ltr" required>
+                            @if (! empty($offer['job_salary_band']))
+                                <p class="mt-1 text-xs text-hb-muted" data-salary-band>{{ __('company.offers.salary_band', ['band' => $offer['job_salary_band']]) }}</p>
+                            @endif
+                            @if (! empty($offer['salary_range_hint']))
+                                <p class="mt-1 text-xs text-hb-blue" data-salary-range-hint>{{ $offer['salary_range_hint'] }}</p>
+                            @endif
+                            @if (! empty($offer['salary_benchmark_hint']))
+                                <p class="mt-1 text-xs text-hb-muted" data-salary-benchmark>{{ $offer['salary_benchmark_hint'] }}</p>
+                            @endif
+                            @if (! empty($offer['currency_note']))
+                                <p class="mt-1 text-xs text-hb-muted" data-currency-note>{{ $offer['currency_note'] }}</p>
+                            @endif
                         </label>
                         <label class="block">
                             <span class="hb-label">{{ __('company.offers.bonus') }}</span>

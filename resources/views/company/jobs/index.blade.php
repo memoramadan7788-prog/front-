@@ -9,10 +9,24 @@
 @endsection
 
 @section('page_actions')
-    <a href="{{ route('company.jobs.create') }}" class="hb-btn-primary">{{ __('company.jobs.create') }}</a>
+    @php
+        $organizationContext = $organizationContext ?? \App\Support\Frontend\MockCompanyData::organizationContext();
+        $canCreateJobs = (bool) ($organizationContext['capabilities']['can_create_jobs'] ?? true);
+    @endphp
+    @if ($canCreateJobs)
+        <a href="{{ route('company.jobs.create') }}" class="hb-btn-primary">{{ __('company.jobs.create') }}</a>
+    @else
+        <span
+            class="hb-btn-primary cursor-not-allowed opacity-50"
+            role="link"
+            aria-disabled="true"
+            title="{{ __('company.organization.create_jobs_unavailable') }}"
+        >{{ __('company.jobs.create') }}</span>
+    @endif
 @endsection
 
 @section('content')
+    @include('partials.company-organization-banner', ['organizationContext' => $organizationContext ?? null])
     @php
         $jobsI18n = [
             'view_workspace' => __('company.jobs.js.view_workspace'),
@@ -24,6 +38,8 @@
             'filter_count_many' => __('company.jobs.js.filter_count_many'),
             'previous' => __('common.actions.previous'),
             'next' => __('common.actions.next'),
+            'private_employees' => __('jobs.visibility.private').' · '.__('jobs.application_mode.all_employees'),
+            'private_nominated' => __('jobs.visibility.private').' · '.__('jobs.application_mode.nominated_only'),
         ];
     @endphp
     <div
@@ -259,6 +275,8 @@
                             </td>
                             <td class="px-5 py-4 align-top">
                                 <p class="text-hb-navy">${escapeHtml(job.status)}</p>
+                                ${job.closed_reason ? `<p class="mt-0.5 text-xs text-hb-muted">${escapeHtml(job.closed_reason)}</p>` : ''}
+                                ${job.visibility === 'private' ? `<p class="mt-0.5 text-xs text-hb-muted">${escapeHtml(job.application_mode === 'nominated_only' ? (i18n.private_nominated || '') : (i18n.private_employees || ''))}</p>` : ''}
                                 <a href="${showUrl(job.id)}" class="mt-1 inline-block text-sm font-semibold text-hb-blue hover:underline">${escapeHtml(i18n.view_workspace)}</a>
                             </td>
                         </tr>

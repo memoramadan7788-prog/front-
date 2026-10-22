@@ -162,6 +162,11 @@
                                                 </x-badge>
                                             </div>
                                         @endif
+                                        @if (! empty($card['ai_pipeline_label']))
+                                            <p class="mt-2 text-xs font-medium text-hb-muted" data-ai-pipeline-label>
+                                                {{ $card['ai_pipeline_label'] }}
+                                            </p>
+                                        @endif
                                     </a>
                                 </li>
                             @endforeach
@@ -195,7 +200,12 @@
                         <tbody class="divide-y divide-hb-border" data-pipeline-list-body>
                             @foreach ($pipeline['applicants'] as $row)
                                 <tr data-list-row data-id="{{ $row['id'] }}">
-                                    <td class="px-4 py-3 font-semibold text-hb-navy">{{ $row['name'] }}</td>
+                                    <td class="px-4 py-3 font-semibold text-hb-navy">
+                                        {{ $row['name'] }}
+                                        @if (! empty($row['ai_pipeline_label']))
+                                            <span class="mt-1 block text-xs font-medium text-hb-muted">{{ $row['ai_pipeline_label'] }}</span>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 text-hb-muted">{{ $row['stage'] }}</td>
                                     <td class="px-4 py-3 text-hb-muted">{{ $row['skills'] }}</td>
                                     <td class="px-4 py-3 text-hb-muted">{{ $row['source'] }}</td>

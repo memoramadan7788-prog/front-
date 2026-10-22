@@ -101,6 +101,8 @@ Route::get('/candidate/dashboard', CandidateDashboardController::class)
     ->name('candidate.dashboard');
 Route::get('/candidate/profile', [CandidateProfileController::class, 'index'])
     ->name('candidate.profile');
+Route::get('/candidate/membership', [CandidateProfileController::class, 'membership'])
+    ->name('candidate.membership');
 
 /*
 |--------------------------------------------------------------------------

@@ -51,6 +51,8 @@
             'strengths_label' => __('interviewer.evaluations.strengths_label'),
             'concerns_label' => __('interviewer.evaluations.concerns_label'),
             'overall_label' => __('interviewer.evaluations.overall_label'),
+            'feedback_share_preview_on' => __('js.status.feedback_share_preview_on'),
+            'feedback_share_preview_off' => __('js.status.feedback_share_preview_off'),
         ], JSON_UNESCAPED_UNICODE) }}"
     >
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -209,6 +211,17 @@
                     </div>
                     <p class="mt-3 text-sm text-hb-muted">{{ $scorecard['shared_with'] }}</p>
                     <p class="mt-2 text-sm text-hb-muted">{{ $scorecard['visibility_note'] }}</p>
+                    <fieldset class="mt-4 space-y-2 border-t border-hb-border pt-4">
+                        <legend class="text-sm font-semibold text-hb-navy">{{ __('interviewer.evaluations.feedback_share_heading') }}</legend>
+                        <label class="flex items-start gap-2 text-sm text-hb-text">
+                            <input type="checkbox" class="mt-0.5" data-feedback-share-toggle>
+                            <span>{{ __('interviewer.evaluations.feedback_share_toggle') }}</span>
+                        </label>
+                        <p class="text-xs text-hb-muted">{{ __('interviewer.evaluations.feedback_share_note') }}</p>
+                        <p class="text-xs text-hb-muted">{{ __('interviewer.evaluations.private_notes_note') }}</p>
+                        <p class="mt-2 hidden text-xs text-hb-blue" data-feedback-share-status role="status"></p>
+                    </fieldset>
+                    <p class="mt-3 text-xs text-hb-muted">{{ __('interviewer.evaluations.erd_score_note') }}</p>
                     <dl class="mt-4 space-y-2 text-sm">
                         <div>
                             <dt class="text-xs text-hb-muted">{{ __('interviewer.prepare.label_interview_id') }}</dt>

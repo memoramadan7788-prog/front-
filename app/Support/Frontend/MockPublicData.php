@@ -9,6 +9,8 @@ namespace App\Support\Frontend;
 class MockPublicData
 {
     /**
+     * Full mock catalog including private demo roles (not for public listing).
+     *
      * @return list<array<string, mixed>>
      */
     public static function jobs(): array
@@ -19,9 +21,12 @@ class MockPublicData
                 'title' => 'Senior Product Designer',
                 'company' => 'Northstar Labs',
                 'company_slug' => 'northstar-labs',
+                'organization_id' => 'org-ns-001',
                 'code' => 'NS-204',
                 'discipline' => 'Product & Design',
+                'category' => 'Product & Design',
                 'work_model' => 'Hybrid',
+                'work_mode' => 'hybrid',
                 'location' => 'Austin, TX',
                 'employment' => 'Full-time',
                 'salary_min' => 140000,
@@ -30,6 +35,22 @@ class MockPublicData
                 'source' => 'Direct hire',
                 'posted' => 'Posted this week',
                 'status' => 'Open',
+                'publication_status' => 'published',
+                'visibility' => 'public',
+                'private_apply_mode' => null,
+                'openings_count' => 2,
+                'deadline' => 'November 30, 2026',
+                'skills' => [
+                    ['label' => 'Figma', 'is_required' => true],
+                    ['label' => 'Design systems', 'is_required' => true],
+                    ['label' => 'User research', 'is_required' => false],
+                ],
+                'requirements_flags' => [
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => false,
+                ],
+                'employees_cannot_apply_public' => true,
                 'keyword' => 'product designer design systems research',
                 'summary' => 'Design tools that make complex work feel simple',
                 'description' => "Northstar Labs builds collaborative software for growing operations teams. We're looking for a senior product designer who can turn complex workflows into useful, accessible experiences.\n\nYou'll partner with product and engineering on the core workspace, own discovery through delivery, and help evolve a thoughtful design system.",
@@ -297,7 +318,121 @@ class MockPublicData
                 'hiring_contact' => 'Agency partner',
                 'hiring_manager' => 'Growth Lead',
             ],
+            // Private demo records — excluded from publicCatalog(); used by candidate/company eligibility demos.
+            [
+                'id' => 'ns-208',
+                'title' => 'Internal Design Systems Lead',
+                'company' => 'Northstar Labs',
+                'company_slug' => 'northstar-labs',
+                'organization_id' => 'org-ns-001',
+                'code' => 'NS-208',
+                'discipline' => 'Product & Design',
+                'category' => 'Product & Design',
+                'work_model' => 'Hybrid',
+                'work_mode' => 'hybrid',
+                'location' => 'Austin, TX',
+                'employment' => 'Full-time',
+                'salary_min' => 150000,
+                'salary_max' => 180000,
+                'salary_label' => '$150k–$180k',
+                'source' => 'Direct hire',
+                'posted' => 'Private · Employees',
+                'status' => 'Open',
+                'publication_status' => 'published',
+                'visibility' => 'private',
+                'private_apply_mode' => 'all_employees',
+                'openings_count' => 1,
+                'deadline' => 'December 15, 2026',
+                'skills' => [
+                    ['label' => 'Design systems', 'is_required' => true],
+                    ['label' => 'Figma', 'is_required' => true],
+                ],
+                'requirements_flags' => [
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => false,
+                ],
+                'keyword' => 'internal design systems lead northstar private',
+                'summary' => 'Lead internal design systems for approved Northstar employees.',
+                'description' => 'Private employee-eligible role for Northstar Labs members only. Not listed on the public job board.',
+                'responsibilities' => [
+                    'Own the internal design system roadmap.',
+                    'Coach product teams on component adoption.',
+                ],
+                'requirements' => [
+                    'Approved Northstar Labs employee membership.',
+                    '5+ years design systems experience.',
+                ],
+                'benefits' => 'Internal mobility benefits for Northstar employees.',
+                'process' => 'Internal screen → Portfolio → Offer.',
+                'posted_at' => 'October 18, 2026',
+                'reports_to' => 'Daniel Brooks',
+                'hiring_contact' => 'Olivia Bennett',
+                'hiring_manager' => 'Daniel Brooks',
+            ],
+            [
+                'id' => 'ns-209',
+                'title' => 'Nominated Product Designer',
+                'company' => 'Northstar Labs',
+                'company_slug' => 'northstar-labs',
+                'organization_id' => 'org-ns-001',
+                'code' => 'NS-209',
+                'discipline' => 'Product & Design',
+                'category' => 'Product & Design',
+                'work_model' => 'Hybrid',
+                'work_mode' => 'hybrid',
+                'location' => 'Austin, TX',
+                'employment' => 'Full-time',
+                'salary_min' => 130000,
+                'salary_max' => 155000,
+                'salary_label' => '$130k–$155k',
+                'source' => 'Direct hire',
+                'posted' => 'Private · Nominated',
+                'status' => 'Open',
+                'publication_status' => 'published',
+                'visibility' => 'private',
+                'private_apply_mode' => 'nominated_only',
+                'openings_count' => 1,
+                'deadline' => 'December 1, 2026',
+                'nominations' => [
+                    ['id' => 'nom-maya-chen', 'candidate_id' => 'maya-chen', 'name' => 'Maya Chen', 'email' => 'maya.chen@example.com', 'nominated_by' => 'Olivia Bennett', 'nominated_at' => 'October 19, 2026'],
+                ],
+                'skills' => [
+                    ['label' => 'Product design', 'is_required' => true],
+                    ['label' => 'Prototyping', 'is_required' => false],
+                ],
+                'requirements_flags' => [
+                    'cv_required' => true,
+                    'ai_consent_required' => true,
+                    'cover_note_required' => true,
+                ],
+                'keyword' => 'nominated product designer northstar private',
+                'summary' => 'Nomination-only private role for selected Northstar employees.',
+                'description' => 'Private nomination-only role. Approved members still need an explicit nomination to apply.',
+                'responsibilities' => [
+                    'Deliver nominated product design initiatives.',
+                ],
+                'requirements' => [
+                    'Approved membership plus active nomination.',
+                ],
+                'benefits' => 'Internal Northstar package.',
+                'process' => 'Nomination → Apply → Interview.',
+                'posted_at' => 'October 19, 2026',
+                'reports_to' => 'Daniel Brooks',
+                'hiring_contact' => 'Olivia Bennett',
+                'hiring_manager' => 'Daniel Brooks',
+            ],
         ];
+    }
+
+    /**
+     * Public discovery catalog — private jobs excluded (presentation filter only).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function publicCatalog(): array
+    {
+        return JobAccessPresentation::publicCatalog(self::jobs());
     }
 
     /**
@@ -307,7 +442,7 @@ class MockPublicData
     {
         foreach (self::jobs() as $job) {
             if ($job['id'] === $id) {
-                return $job;
+                return JobAccessPresentation::normalizeJob($job);
             }
         }
 

@@ -9,6 +9,11 @@
     <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
         <x-badge variant="info" :dot="true">{{ $applicant['stage'] }}</x-badge>
         <x-badge variant="neutral" :dot="true">{{ $applicant['source'] }}</x-badge>
+        @if (! empty($applicant['ai_screening']))
+            <x-badge :variant="$applicant['ai_screening']['badge_variant'] ?? 'neutral'" :dot="true">
+                {{ $applicant['ai_screening']['badge_label'] }}
+            </x-badge>
+        @endif
         <span class="text-hb-muted">
             {{ __('company.applicants.meta_line', [
                 'code' => $applicant['job_code'],
@@ -59,8 +64,11 @@
             'note_saved' => __('company.applicants.js.note_saved'),
             'note_empty' => __('company.applicants.js.note_empty'),
             'move_feedback' => __('company.applicants.js.move_feedback'),
+            'override_reason_required' => __('company.applicants.ai.reason_validation'),
+            'override_preview_ok' => __('company.applicants.ai.override_preview_ok'),
         ];
         $noteKey = 'hb_applicant_note_'.$applicant['id'];
+        $ai = $applicant['ai_screening'] ?? null;
     @endphp
 
     <div
@@ -139,6 +147,23 @@
                             @endif
                         </div>
                     </section>
+
+                    @if (! empty($ai))
+                        <div class="mt-6">
+                            @include('partials.ai-screening-panel', [
+                                'ai' => $ai,
+                                'applicantName' => $applicant['name'],
+                            ])
+                        </div>
+                    @endif
+
+                    @if (! empty($applicant['assessment_id']))
+                        <p class="mt-4 text-sm">
+                            <a href="{{ route('company.assessments.show', $applicant['assessment_id']) }}" class="font-semibold text-hb-blue hover:underline">
+                                {{ __('company.applicants.open_linked_assessment') }}
+                            </a>
+                        </p>
+                    @endif
 
                     <section class="hb-surface mt-6 p-5 sm:p-6" aria-labelledby="screening-heading">
                         <h2 id="screening-heading" class="text-lg font-semibold text-hb-navy">{{ __('company.applicants.screening_heading') }}</h2>
@@ -315,6 +340,16 @@
         'modalFooter' => '<button type="button" class="hb-btn-outline" data-hb-modal-close>'.e(__('company.applicants.modal_close')).'</button>',
     ])
 
+    @if (! empty($ai))
+        @include('layouts.modal', [
+            'modalId' => 'ai-override-modal',
+            'modalTitle' => __('company.applicants.ai.override_title'),
+            'modalSize' => 'md',
+            'modalBody' => view('company.applicants._ai-override-modal-body', ['applicant' => $applicant])->render(),
+            'modalFooter' => '<button type="button" class="hb-btn-outline" data-hb-modal-close>'.e(__('common.actions.cancel')).'</button><button type="button" class="hb-btn-primary" data-override-preview-confirm>'.e(__('company.applicants.ai.confirm_preview')).'</button>',
+        ])
+    @endif
+
     @push('scripts')
         <script>
             (() => {
@@ -395,6 +430,27 @@
                     const feedback = document.querySelector('[data-move-feedback]');
                     if (feedback) {
                         feedback.textContent = replacePlaceholders(i18n.move_feedback, { name: applicantName });
+                        feedback.classList.remove('hidden');
+                    }
+                });
+
+                document.querySelector('[data-override-preview-confirm]')?.addEventListener('click', () => {
+                    const form = document.querySelector('[data-ai-override-form]');
+                    if (!form) return;
+                    const reason = (form.querySelector('[data-override-reason]')?.value || '').trim();
+                    const error = form.querySelector('[data-override-reason-error]');
+                    const feedback = form.querySelector('[data-override-feedback]');
+                    if (!reason) {
+                        if (error) {
+                            error.textContent = i18n.override_reason_required || '';
+                            error.classList.remove('hidden');
+                        }
+                        form.querySelector('[data-override-reason]')?.focus();
+                        return;
+                    }
+                    if (error) error.classList.add('hidden');
+                    if (feedback) {
+                        feedback.textContent = i18n.override_preview_ok || '';
                         feedback.classList.remove('hidden');
                     }
                 });

@@ -90,12 +90,56 @@
                     </ul>
                 @endif
             </section>
+
+            @if (! empty($assessment['proctoring_queue']))
+                <section class="hb-surface p-5 sm:p-6" aria-labelledby="proctoring-queue-heading" data-proctoring-review-queue>
+                    <h2 id="proctoring-queue-heading" class="text-lg font-semibold text-hb-navy">{{ __('company.assessments.proctoring_queue_heading') }}</h2>
+                    <p class="mt-1 text-sm text-hb-muted">{{ __('company.assessments.proctoring_queue_intro') }}</p>
+                    <ul class="mt-4 space-y-3">
+                        @foreach ($assessment['proctoring_queue'] as $flag)
+                            <li class="rounded-lg border border-hb-border bg-hb-page px-4 py-3 text-sm" data-proctoring-flag="{{ $flag['id'] }}">
+                                <div class="flex flex-wrap items-start justify-between gap-2">
+                                    <div>
+                                        <p class="font-semibold text-hb-navy">{{ $flag['candidate'] }}</p>
+                                        <p class="mt-0.5 text-hb-text">{{ $flag['label'] }}</p>
+                                        <p class="mt-1 text-xs text-hb-muted">{{ $flag['recorded_at'] }} · {{ $flag['note'] }}</p>
+                                    </div>
+                                    <x-badge variant="pending" :dot="true">{{ __('company.assessments.proctoring_pending') }}</x-badge>
+                                </div>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <a href="{{ route('company.applicants.show', $flag['candidate_id']) }}" class="text-sm font-semibold text-hb-blue hover:underline">
+                                        {{ __('company.assessments.open_applicant') }}
+                                    </a>
+                                    <button
+                                        type="button"
+                                        class="text-sm font-semibold text-hb-blue hover:underline"
+                                        data-proctoring-review-preview
+                                        data-flag-id="{{ $flag['id'] }}"
+                                    >
+                                        {{ __('company.assessments.proctoring_review_preview') }}
+                                    </button>
+                                </div>
+                                <p class="mt-2 hidden text-xs text-hb-muted" data-proctoring-review-status role="status"></p>
+                            </li>
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
         </div>
 
         <aside class="hb-surface h-fit p-5">
-            <x-badge :variant="$assessment['status_key'] === 'active' ? 'success' : 'pending'" :dot="true">
+            <x-badge :variant="match ($assessment['status_key'] ?? '') {
+                'active' => 'success',
+                'pending_approval' => 'pending',
+                default => 'neutral',
+            }" :dot="true">
                 {{ $assessment['status'] }}
             </x-badge>
+            @if (($assessment['approval_status'] ?? '') === 'pending_review')
+                <p class="mt-3 text-sm text-hb-muted" data-ai-question-approval>
+                    {{ $assessment['approval_note'] ?? __('company.assessments.ai_approval_required') }}
+                </p>
+            @endif
             <p class="mt-4 text-sm text-hb-muted">
                 {{ __('company.assessments.assigned', ['count' => $assessment['assigned_count']]) }} ·
                 {{ __('company.assessments.completed', ['count' => $assessment['completed_count']]) }}
@@ -106,5 +150,22 @@
         </aside>
     </div>
 
-    <p class="mt-8 text-center text-xs text-hb-muted">{{ $catalog['footer'] }}</p>
+    <p class="mt-8 text-center text-xs text-hb-muted">{{ $catalog['footer'] ?? 'Hirebridge · Private workspace · All times Central unless noted · October 20, 2026' }}</p>
 @endsection
+
+@push('scripts')
+    <script>
+        (() => {
+            document.querySelectorAll('[data-proctoring-review-preview]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const row = btn.closest('[data-proctoring-flag]');
+                    const status = row?.querySelector('[data-proctoring-review-status]');
+                    if (status) {
+                        status.textContent = @json(__('company.assessments.proctoring_preview_only'));
+                        status.classList.remove('hidden');
+                    }
+                });
+            });
+        })();
+    </script>
+@endpush

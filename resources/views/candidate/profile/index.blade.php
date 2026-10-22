@@ -183,6 +183,30 @@
                 </div>
             </section>
 
+            {{-- Optional company membership (Workflow 2 / F9A) --}}
+            @php
+                $membership = $membership ?? [];
+                $membershipRequest = $membership['request'] ?? null;
+                $membershipStatus = $membershipRequest['status'] ?? null;
+                $membershipStatusLabel = match ($membershipStatus) {
+                    'pending' => __('candidate.membership.status_pending'),
+                    'approved' => __('candidate.membership.status_approved'),
+                    'rejected' => __('candidate.membership.status_rejected'),
+                    default => __('candidate.membership.profile_status_none'),
+                };
+            @endphp
+            <section class="hb-surface p-5" aria-labelledby="membership-aside-heading" data-profile-membership-card>
+                <h2 id="membership-aside-heading" class="text-base font-semibold text-hb-navy">{{ __('candidate.membership.profile_card_title') }}</h2>
+                <p class="mt-2 text-sm text-hb-muted">{{ __('candidate.membership.profile_card_body') }}</p>
+                <p class="mt-3 text-sm font-medium text-hb-navy">{{ $membershipStatusLabel }}</p>
+                @if (! empty($membershipRequest['company_name']))
+                    <p class="mt-1 text-sm text-hb-muted">{{ $membershipRequest['company_name'] }} · {{ $membershipRequest['job_title'] ?? '' }}</p>
+                @endif
+                <a href="{{ route('candidate.membership') }}" class="hb-btn-outline mt-4 inline-flex w-full justify-center">
+                    {{ __('candidate.membership.profile_card_cta') }}
+                </a>
+            </section>
+
             {{-- Visibility & consent --}}
             <section class="hb-surface p-5" aria-labelledby="visibility-heading">
                 <h2 id="visibility-heading" class="text-base font-semibold text-hb-navy">{{ __('candidate.profile.visibility_consent') }}</h2>

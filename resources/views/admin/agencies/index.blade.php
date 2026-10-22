@@ -50,8 +50,21 @@
         data-default-status="{{ $defaultStatus }}"
         data-default-engagement="{{ $agenciesPage['default_engagement_id'] }}"
         data-initial-q="{{ $initialQuery }}"
+        data-review-scope="partner-engagements"
         data-i18n="{{ json_encode($agenciesI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
     >
+        <x-alert variant="warning" class="mb-6" data-agency-scope-banner role="note">
+            <p class="text-sm font-semibold text-hb-navy">{{ $agenciesPage['scope_banner_title'] ?? __('admin.agencies.scope_banner_title') }}</p>
+            <p class="mt-1 text-sm text-hb-text">{{ $agenciesPage['scope_banner_body'] ?? __('admin.agencies.scope_banner_body') }}</p>
+            @if (! empty($agenciesPage['scope_unsupported']))
+                <ul class="mt-2 list-disc space-y-1 ps-5 text-xs text-hb-muted">
+                    @foreach ($agenciesPage['scope_unsupported'] as $item)
+                        <li>{{ $item }}</li>
+                    @endforeach
+                </ul>
+            @endif
+        </x-alert>
+
         <div class="grid gap-4 sm:grid-cols-3">
             <div class="hb-surface p-5">
                 <p class="text-xs font-semibold tracking-wide text-hb-muted uppercase">{{ __('admin.agencies.stat_active') }}</p>

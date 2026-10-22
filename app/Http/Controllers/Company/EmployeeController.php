@@ -20,6 +20,7 @@ class EmployeeController extends Controller
             'uiRole' => 'company',
             'showMockBanner' => false,
             'team' => MockCompanyData::team(),
+            'organizationContext' => MockCompanyData::organizationContext(),
             'frontendOnly' => true,
         ]);
     }
@@ -31,6 +32,7 @@ class EmployeeController extends Controller
             'uiRole' => 'company',
             'showMockBanner' => false,
             'requestsPage' => MockCompanyData::joinRequests(),
+            'organizationContext' => MockCompanyData::organizationContext(),
             'frontendOnly' => true,
         ]);
     }

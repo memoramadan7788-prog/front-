@@ -20,6 +20,7 @@ return [
         'messages' => 'الرسائل',
         'assessments' => 'التقييمات',
         'profile' => 'الملف والسيرة',
+        'membership' => 'عضوية الشركة',
         'preferences' => 'التفضيلات والتنبيهات',
         'offers' => 'العروض',
         'notifications' => 'الإشعارات',

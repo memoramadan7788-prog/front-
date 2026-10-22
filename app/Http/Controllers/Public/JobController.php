@@ -13,7 +13,7 @@ class JobController extends Controller
     {
         return view('public.jobs.index', [
             'pageTitle' => 'Find your next role · Hirebridge',
-            'jobs' => MockPublicData::jobs(),
+            'jobs' => MockPublicData::publicCatalog(),
             'isMockData' => true,
         ]);
     }
@@ -22,7 +22,11 @@ class JobController extends Controller
     {
         $record = MockPublicData::job($job);
 
-        if ($record === null) {
+        if ($record === null || ($record['visibility'] ?? 'public') !== 'public') {
+            throw new NotFoundHttpException('Demo job not found.');
+        }
+
+        if (($record['publication_status'] ?? 'published') !== 'published') {
             throw new NotFoundHttpException('Demo job not found.');
         }
 

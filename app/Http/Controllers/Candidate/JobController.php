@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Candidate;
 
 use App\Http\Controllers\Controller;
+use App\Support\Frontend\JobAccessPresentation;
 use App\Support\Frontend\MockCandidateData;
 use Illuminate\Contracts\View\View;
 
@@ -14,13 +15,15 @@ class JobController extends Controller
 {
     public function index(): View
     {
-        $jobs = MockCandidateData::jobs();
+        $context = JobAccessPresentation::candidateContext();
+        $jobs = JobAccessPresentation::enrichCandidateJobs(MockCandidateData::jobs(), $context);
 
         return view('candidate.jobs.index', [
             'pageTitle' => 'Discover jobs · Hirebridge',
             'uiRole' => 'candidate',
             'showMockBanner' => false,
             'jobs' => $jobs,
+            'accessContext' => $context,
             'preferences' => MockCandidateData::discoverPreferences(),
             'defaultSavedIds' => MockCandidateData::defaultSavedJobIds(),
             'applyFlow' => MockCandidateData::applyFlow('gc-041'),
@@ -30,7 +33,8 @@ class JobController extends Controller
 
     public function saved(): View
     {
-        $jobs = MockCandidateData::jobs();
+        $context = JobAccessPresentation::candidateContext();
+        $jobs = JobAccessPresentation::enrichCandidateJobs(MockCandidateData::jobs(), $context);
         $defaultSavedIds = MockCandidateData::defaultSavedJobIds();
         $savedJobs = array_values(array_filter(
             $jobs,
@@ -43,6 +47,7 @@ class JobController extends Controller
             'showMockBanner' => false,
             'jobs' => $jobs,
             'savedJobs' => $savedJobs,
+            'accessContext' => $context,
             'defaultSavedIds' => $defaultSavedIds,
             'savedSearch' => MockCandidateData::savedSearchAlert(),
             'frontendOnly' => true,

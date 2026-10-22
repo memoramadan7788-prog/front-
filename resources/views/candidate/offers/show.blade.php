@@ -9,8 +9,11 @@
         {{ __('candidate.offers.offer_meta', ['title' => $offer['title'], 'code' => $offer['code'], 'date' => $offer['received_on']]) }}
     </p>
     <div class="mt-3 flex flex-wrap items-center gap-2">
-        <x-badge variant="pending" :dot="true">{{ $offer['status'] }}</x-badge>
+        <x-badge :variant="\App\Support\Frontend\OfferLifecyclePresentation::badgeVariant($offer['status_key'] ?? 'awaiting')" :dot="true">{{ $offer['status'] }}</x-badge>
         <x-badge variant="neutral" :dot="true">{{ $offer['source'] }}</x-badge>
+        @if (! empty($offer['currency']))
+            <x-badge variant="neutral" :dot="true">{{ $offer['currency'] }}</x-badge>
+        @endif
     </div>
 @endsection
 
@@ -20,7 +23,20 @@
         {{ $offer['banner'] }}
     </div>
 
-    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]" data-candidate-offer data-offer-id="{{ $offer['id'] }}">
+    @if (($offer['status_key'] ?? '') === 'expired')
+        <x-alert variant="warning" class="mb-6" data-offer-expired>
+            <p class="font-semibold text-hb-navy">{{ __('candidate.offers.expired_title') }}</p>
+            <p class="mt-1 text-hb-text">{{ __('candidate.offers.expired_body', ['date' => $offer['deadline'] ?? '']) }}</p>
+        </x-alert>
+    @endif
+
+    <div
+        class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]"
+        data-candidate-offer
+        data-offer-id="{{ $offer['id'] }}"
+        data-can-respond="{{ ! empty($offer['can_accept']) ? '1' : '0' }}"
+        data-blocked-reason="{{ $offer['response_blocked_reason'] ?? '' }}"
+    >
         <div class="space-y-6">
             <section class="hb-surface p-5 sm:p-6" aria-labelledby="offer-details-heading">
                 <p class="text-sm text-hb-muted">{{ $offer['headline'] }}</p>
@@ -62,15 +78,28 @@
                 <p class="hb-field-error hidden" data-offer-reviewed-error role="alert"></p>
 
                 <div class="mt-5 flex flex-wrap items-center gap-3">
-                    <button type="button" class="hb-btn-primary" data-open-modal="offer-accept-modal">{{ __('candidate.offers.accept') }}</button>
+                    @if (! empty($offer['can_accept']))
+                        <button type="button" class="hb-btn-primary" data-open-modal="offer-accept-modal">{{ __('candidate.offers.accept') }}</button>
+                        <button type="button" class="text-sm font-semibold text-hb-blue hover:underline" data-open-modal="offer-decline-modal">
+                            {{ __('candidate.offers.decline') }}
+                        </button>
+                    @else
+                        <button type="button" class="hb-btn-primary" disabled data-offer-accept-blocked title="{{ $offer['response_blocked_reason'] ?? '' }}">
+                            {{ __('candidate.offers.accept_unavailable_short') }}
+                        </button>
+                        <button type="button" class="text-sm font-semibold text-hb-muted" disabled data-offer-decline-blocked>
+                            {{ __('candidate.offers.decline_unavailable_short') }}
+                        </button>
+                    @endif
                     <a href="{{ route('candidate.messages.index') }}" class="hb-btn-outline text-hb-blue">{{ __('candidate.offers.ask') }}</a>
-                    <button type="button" class="text-sm font-semibold text-hb-blue hover:underline" data-open-modal="offer-decline-modal">
-                        {{ __('candidate.offers.decline') }}
-                    </button>
                 </div>
+                @if (! empty($offer['response_blocked_reason']))
+                    <p class="mt-3 text-sm text-hb-text" data-offer-blocked-reason>{{ $offer['response_blocked_reason'] }}</p>
+                @endif
                 <p class="mt-3 text-xs text-hb-muted">
                     {{ __('candidate.offers.accept_note') }}
                 </p>
+                <p class="mt-2 text-xs text-hb-muted">{{ $offer['decision_authority_note'] ?? __('candidate.offers.decision_authority') }}</p>
                 <p class="mt-3 hidden text-sm text-hb-success" data-offer-decision-status role="status"></p>
             </section>
         </div>
