@@ -38,14 +38,14 @@
             </span>
         </button>
 
-        <label class="relative hidden min-w-0 max-w-md flex-1 sm:block">
+        <label class="relative hidden min-w-0 max-w-md flex-1 pointer-events-none sm:block">
             <span class="sr-only">{{ __('common.search_label') }}</span>
             <span class="pointer-events-none absolute inset-y-0 start-3 flex items-center text-hb-muted" aria-hidden="true">⌕</span>
             <input
                 type="search"
                 name="q"
                 placeholder="{{ __('common.search_placeholder') }}"
-                class="w-full rounded-lg border border-hb-border bg-hb-page py-2.5 ps-9 pe-3 text-sm text-hb-text placeholder:text-hb-muted focus:border-hb-blue focus:bg-hb-surface"
+                class="pointer-events-auto w-full min-h-11 rounded-md border border-hb-border bg-hb-page py-2.5 ps-9 pe-3 text-sm text-hb-text placeholder:text-hb-muted focus:border-hb-blue focus:bg-hb-surface"
                 autocomplete="off"
                 aria-describedby="search-contract-note"
                 readonly

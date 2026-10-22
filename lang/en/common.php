@@ -94,6 +94,20 @@ return [
         'default_body' => 'Check back soon for updates.',
         'no_results' => 'No results match your filters.',
     ],
+    'loading' => 'Loading',
+    'lifecycle' => [
+        'applied' => 'Applied',
+        'screening' => 'Screening',
+        'interview' => 'Interview',
+        'offer' => 'Offer',
+        'hired' => 'Hired',
+        'rejected' => 'Rejected',
+        'withdrawn' => 'Withdrawn',
+    ],
+    'sources' => [
+        'direct_hire' => 'Direct hire',
+        'agency_managed' => 'Agency-managed',
+    ],
     'validation' => [
         'required' => 'This field is required.',
         'fix_highlighted' => 'Fix the highlighted fields before continuing.',

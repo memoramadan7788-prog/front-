@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\AgencyController as AdminAgencyController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\JobModerationController as AdminJobModerationController;
+use App\Http\Controllers\Admin\OrganizationController as AdminOrganizationController;
+use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -269,6 +275,27 @@ Route::get('/interviewer/interviews/{interview}/prepare', [InterviewerInterviewC
     ->name('interviewer.interviews.prepare');
 Route::get('/interviewer/interviews/{interview}/live', [InterviewerInterviewController::class, 'live'])
     ->name('interviewer.interviews.live');
+
+/*
+|--------------------------------------------------------------------------
+| Super Admin workspace UI (Stage 7 · Batches 7A–7D — frontend presentation only)
+|--------------------------------------------------------------------------
+| GET page routes only. Frames 44–50. No admin write APIs or persistence.
+*/
+Route::get('/admin/dashboard', AdminDashboardController::class)
+    ->name('admin.dashboard');
+Route::get('/admin/organizations', [AdminOrganizationController::class, 'index'])
+    ->name('admin.organizations.index');
+Route::get('/admin/organizations/{organization}', [AdminOrganizationController::class, 'show'])
+    ->name('admin.organizations.show');
+Route::get('/admin/users', [AdminUserController::class, 'index'])
+    ->name('admin.users.index');
+Route::get('/admin/jobs', [AdminJobModerationController::class, 'index'])
+    ->name('admin.jobs.index');
+Route::get('/admin/agencies', [AdminAgencyController::class, 'index'])
+    ->name('admin.agencies.index');
+Route::get('/admin/settings', [AdminSettingsController::class, 'index'])
+    ->name('admin.settings.index');
 
 /*
 |--------------------------------------------------------------------------

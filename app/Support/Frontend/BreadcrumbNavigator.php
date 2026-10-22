@@ -77,8 +77,44 @@ class BreadcrumbNavigator
             'company' => self::companyMap(),
             'candidate' => self::candidateMap(),
             'interviewer' => self::interviewerMap(),
+            'admin' => self::adminMap(),
             default => [],
         };
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function adminMap(): array
+    {
+        return [
+            'Platform' => 'admin.dashboard',
+            'المنصة' => 'admin.dashboard',
+            __('navigation.admin.overview') => 'admin.dashboard',
+            __('navigation.admin.organizations') => 'admin.organizations.index',
+            __('navigation.admin.users') => 'admin.users.index',
+            __('navigation.admin.moderation') => 'admin.jobs.index',
+            __('navigation.admin.agency') => 'admin.agencies.index',
+            __('navigation.admin.settings') => 'admin.settings.index',
+            'Overview' => 'admin.dashboard',
+            'نظرة عامة' => 'admin.dashboard',
+            'Organizations' => 'admin.organizations.index',
+            'المؤسسات' => 'admin.organizations.index',
+            'Users & access' => 'admin.users.index',
+            'المستخدمون والوصول' => 'admin.users.index',
+            'Job moderation' => 'admin.jobs.index',
+            'مراجعة الوظائف' => 'admin.jobs.index',
+            'Agency operations' => 'admin.agencies.index',
+            'عمليات الوكالة' => 'admin.agencies.index',
+            'Settings & audit' => 'admin.settings.index',
+            'الإعدادات والتدقيق' => 'admin.settings.index',
+            __('admin.dashboard.breadcrumb') => 'admin.dashboard',
+            __('admin.organizations.breadcrumb') => 'admin.organizations.index',
+            __('admin.users.breadcrumb') => 'admin.users.index',
+            __('admin.jobs.breadcrumb') => 'admin.jobs.index',
+            __('admin.agencies.breadcrumb') => 'admin.agencies.index',
+            __('admin.settings.breadcrumb') => 'admin.settings.index',
+        ];
     }
 
     /**

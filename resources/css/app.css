@@ -15,6 +15,7 @@
  |--------------------------------------------------------------------------
  */
 :root {
+    /* Frame 51 · Color roles (exact reference) */
     --hb-navy: #142b4a;
     --hb-blue: #2457c5;
     --hb-teal: #14b8a6;
@@ -25,10 +26,10 @@
     --hb-border: #e2e8f0;
     --hb-success: #276749;
     --hb-success-soft: #edf7f0;
-    --hb-pending: #8a5b16;
+    --hb-pending: #a85b18;
     --hb-pending-soft: #fff7e8;
-    --hb-error: #b04040;
-    --hb-error-soft: #fdf0f0;
+    --hb-error: #b04a40;
+    --hb-error-soft: #fde0d0;
     --hb-info-soft: #edf3ff;
     --hb-sidebar: #142b4a;
     --hb-nav-muted: #b8c6d9;
@@ -83,7 +84,8 @@
 
     --shadow-hb-sm: var(--hb-shadow-sm);
     --shadow-hb-md: var(--hb-shadow-md);
-    --radius-hb: 0.75rem;
+    /* Frame 51 · Cards ≈ 10px; buttons/inputs use rounded-md (6–8px) */
+    --radius-hb: 0.625rem;
 }
 
 @layer base {
@@ -138,19 +140,49 @@
     }
 
     .hb-btn-primary {
-        @apply inline-flex items-center justify-center rounded-lg bg-hb-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-hb-blue/90;
+        @apply inline-flex min-h-11 items-center justify-center rounded-md bg-hb-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1e4aad] focus-visible:outline-hb-blue;
     }
 
     .hb-btn-ghost {
-        @apply inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-hb-text hover:bg-hb-page;
+        @apply inline-flex min-h-11 items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold text-hb-text hover:bg-hb-page;
     }
 
+    /* Frame 51 · Secondary: surface + blue border + blue text */
     .hb-btn-outline {
-        @apply inline-flex items-center justify-center rounded-lg border border-hb-border bg-hb-surface px-4 py-2.5 text-sm font-semibold text-hb-text hover:bg-hb-page;
+        @apply inline-flex min-h-11 items-center justify-center rounded-md border border-hb-blue bg-hb-surface px-4 py-2.5 text-sm font-semibold text-hb-blue hover:bg-hb-info-soft;
+    }
+
+    .hb-btn-destructive {
+        @apply inline-flex min-h-11 items-center justify-center rounded-md bg-hb-error px-4 py-2.5 text-sm font-semibold text-white hover:bg-hb-error/90 focus-visible:outline-hb-error;
+    }
+
+    .hb-btn-tertiary {
+        @apply inline-flex min-h-11 items-center justify-center rounded-md px-2 py-2 text-sm font-semibold text-hb-blue hover:underline;
     }
 
     .hb-surface {
         @apply rounded-hb border border-hb-border bg-hb-surface shadow-hb-sm;
+    }
+
+    /* Frame 51 · Typography hierarchy helpers */
+    .hb-page-title {
+        @apply text-[1.875rem] font-semibold tracking-tight text-hb-navy;
+    }
+
+    .hb-section-title {
+        @apply text-xl font-semibold text-hb-navy;
+    }
+
+    .hb-lead {
+        @apply text-base font-normal leading-normal text-hb-text;
+    }
+
+    .hb-body {
+        @apply text-sm font-normal leading-normal text-hb-text;
+    }
+
+    .hb-meta {
+        @apply text-xs font-normal text-hb-muted;
     }
 
     .hb-mock-banner {
@@ -162,10 +194,11 @@
     }
 
     .hb-input {
-        @apply w-full rounded-lg border border-hb-border bg-hb-surface px-3 py-2.5 text-sm text-hb-text placeholder:text-hb-muted/70;
+        @apply w-full min-h-11 rounded-md border border-hb-border bg-hb-surface px-3 py-2.5 text-sm text-hb-text placeholder:text-hb-muted/70;
         @apply transition-[border-color,box-shadow] focus:border-hb-blue focus:outline-none focus:ring-2 focus:ring-hb-blue/20;
         @apply disabled:cursor-not-allowed disabled:bg-hb-page disabled:opacity-60;
         @apply aria-[invalid=true]:border-hb-error aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-hb-error/20;
+        @apply read-only:bg-hb-page read-only:text-hb-muted;
     }
 
     .hb-checkbox {
@@ -237,9 +270,21 @@ html:has(header.sticky) {
  | Sticky topbar must not paint an invisible hit layer beyond its box.
  | isolate keeps stacking local; overflow clip prevents children from extending
  | the pointer target below the 72px bar.
+ | pointer-events: none on the sticky shell lets clicks reach scrolled content
+ | that sits under empty header chrome; interactive children re-enable hits.
  */
 header.sticky.top-0 {
     overflow: clip;
+    pointer-events: none;
+}
+
+header.sticky.top-0 :is(a, button, input, select, textarea, [role='button'], [data-dropdown-trigger], [data-mobile-sidebar-toggle]) {
+    pointer-events: auto;
+}
+
+header.sticky.top-0 [data-dropdown-panel],
+header.sticky.top-0 [role='menu'] {
+    pointer-events: auto;
 }
 
 /* Closed off-canvas panels must not intercept pointer/keyboard or linger in a11y. */

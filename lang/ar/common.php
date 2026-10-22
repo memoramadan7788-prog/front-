@@ -94,6 +94,20 @@ return [
         'default_body' => 'عد لاحقًا للاطلاع على التحديثات.',
         'no_results' => 'لا توجد نتائج مطابقة لعوامل التصفية.',
     ],
+    'loading' => 'جارٍ التحميل',
+    'lifecycle' => [
+        'applied' => 'مقدَّم',
+        'screening' => 'فرز',
+        'interview' => 'مقابلة',
+        'offer' => 'عرض',
+        'hired' => 'مُوظَّف',
+        'rejected' => 'مرفوض',
+        'withdrawn' => 'منسحب',
+    ],
+    'sources' => [
+        'direct_hire' => 'توظيف مباشر',
+        'agency_managed' => 'بإدارة وكالة',
+    ],
     'validation' => [
         'required' => 'هذا الحقل مطلوب.',
         'fix_highlighted' => 'صحّح الحقول المميزة قبل المتابعة.',

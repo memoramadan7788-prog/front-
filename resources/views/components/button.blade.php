@@ -9,18 +9,18 @@
 
 @php
     $variants = [
-        'primary' => 'bg-hb-blue text-white hover:bg-hb-blue/90 focus-visible:outline-hb-blue',
-        'secondary' => 'border border-hb-border bg-hb-surface text-hb-text hover:bg-hb-page',
-        'outline' => 'border border-hb-border bg-hb-surface text-hb-text hover:bg-hb-page',
+        'primary' => 'bg-hb-blue text-white hover:bg-[#1e4aad] focus-visible:outline-hb-blue',
+        'secondary' => 'border border-hb-blue bg-hb-surface text-hb-blue hover:bg-hb-info-soft focus-visible:outline-hb-blue',
+        'outline' => 'border border-hb-blue bg-hb-surface text-hb-blue hover:bg-hb-info-soft focus-visible:outline-hb-blue',
         'ghost' => 'bg-transparent text-hb-text hover:bg-hb-page',
         'tertiary' => 'bg-transparent text-hb-blue hover:underline',
         'destructive' => 'bg-hb-error text-white hover:bg-hb-error/90 focus-visible:outline-hb-error',
     ];
 
     $sizes = [
-        'sm' => 'rounded-md px-3 py-1.5 text-xs font-semibold',
-        'md' => 'rounded-lg px-4 py-2.5 text-sm font-semibold',
-        'lg' => 'rounded-lg px-5 py-3 text-base font-semibold',
+        'sm' => 'min-h-9 rounded-md px-3 py-1.5 text-xs font-semibold',
+        'md' => 'min-h-11 rounded-md px-4 py-2.5 text-sm font-semibold',
+        'lg' => 'min-h-12 rounded-md px-5 py-3 text-base font-semibold',
     ];
 
     $isDisabled = $disabled || $loading;

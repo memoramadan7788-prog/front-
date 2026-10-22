@@ -5,9 +5,9 @@
 @section('breadcrumb', 'Stage 2 / Frontend / Component showcase')
 
 @section('page_header')
-    <h1 class="text-2xl font-semibold text-hb-navy">Component showcase</h1>
-    <p class="mt-1 text-sm text-hb-muted">
-        Reusable Blade components and shared partials. Mock data only — no backend operations.
+    <h1 class="hb-page-title">Component showcase</h1>
+    <p class="mt-1 hb-body text-hb-muted">
+        Reusable Blade components and shared partials aligned to Frame 51. Mock data only — no backend operations.
     </p>
 @endsection
 
@@ -35,7 +35,7 @@
 
         <x-card>
             <x-slot:header>
-                <h2 class="font-semibold text-hb-navy">Badges</h2>
+                <h2 class="hb-section-title">Badges & lifecycle</h2>
             </x-slot:header>
             <div class="flex flex-wrap gap-2">
                 <x-badge variant="success" :dot="true">Hired</x-badge>
@@ -43,6 +43,29 @@
                 <x-badge variant="error" :dot="true">Rejected</x-badge>
                 <x-badge variant="info" :dot="true">Interview</x-badge>
                 <x-badge variant="neutral">Neutral</x-badge>
+                <x-status-badge status="applied" />
+                <x-status-badge status="screening" />
+                <x-status-badge status="withdrawn" />
+                <x-badge variant="neutral">{{ __('common.sources.direct_hire') }}</x-badge>
+                <x-badge variant="pending" :dot="true">{{ __('common.sources.agency_managed') }}</x-badge>
+            </div>
+        </x-card>
+
+        <x-card>
+            <x-slot:header>
+                <h2 class="hb-section-title">Feedback & empty</h2>
+            </x-slot:header>
+            <div class="space-y-4">
+                <x-alert variant="success">Preferences saved</x-alert>
+                <x-alert variant="warning">You have unsaved changes</x-alert>
+                <x-empty-state
+                    title="No saved roles yet"
+                    action-label="Discover jobs"
+                    :action-href="route('jobs.index')"
+                >
+                    Saved roles will appear here when you bookmark openings.
+                </x-empty-state>
+                <x-skeleton :lines="3" />
             </div>
         </x-card>
 

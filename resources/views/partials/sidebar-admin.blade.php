@@ -4,14 +4,33 @@
     'items' => [
         [
             'label' => __('navigation.admin.overview'),
-            'route' => 'frontend.layouts.app',
-            'params' => ['role' => 'admin'],
-            'active' => ($uiRole ?? null) === 'admin' && request()->routeIs('frontend.layouts.app'),
+            'route' => 'admin.dashboard',
+            'active' => request()->routeIs('admin.dashboard'),
         ],
-        ['label' => __('navigation.admin.organizations'), 'pending' => true],
-        ['label' => __('navigation.admin.users'), 'pending' => true],
-        ['label' => __('navigation.admin.moderation'), 'pending' => true],
-        ['label' => __('navigation.admin.agency'), 'pending' => true],
-        ['label' => __('navigation.admin.settings'), 'pending' => true],
+        [
+            'label' => __('navigation.admin.organizations'),
+            'route' => 'admin.organizations.index',
+            'active' => request()->routeIs('admin.organizations.*'),
+        ],
+        [
+            'label' => __('navigation.admin.users'),
+            'route' => 'admin.users.index',
+            'active' => request()->routeIs('admin.users.*'),
+        ],
+        [
+            'label' => __('navigation.admin.moderation'),
+            'route' => 'admin.jobs.index',
+            'active' => request()->routeIs('admin.jobs.*'),
+        ],
+        [
+            'label' => __('navigation.admin.agency'),
+            'route' => 'admin.agencies.index',
+            'active' => request()->routeIs('admin.agencies.*'),
+        ],
+        [
+            'label' => __('navigation.admin.settings'),
+            'route' => 'admin.settings.index',
+            'active' => request()->routeIs('admin.settings.*'),
+        ],
     ],
 ])

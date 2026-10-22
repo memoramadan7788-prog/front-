@@ -3988,6 +3988,1097 @@ function initInterviewerScorecard() {
     setMode('edit');
 }
 
+function initAdminOrganizations() {
+    const root = qs('[data-admin-organizations]');
+    if (!root) return;
+
+    let i18n = {};
+    try {
+        i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+    } catch {
+        i18n = {};
+    }
+
+    const pageSize = Math.max(1, Number(root.getAttribute('data-page-size') || 7));
+    let tab = root.getAttribute('data-default-tab') || 'active';
+    let page = 1;
+    const qInput = qs('[data-orgs-q]', root);
+    const typeSelect = qs('[data-orgs-type]', root);
+    const planSelect = qs('[data-orgs-plan]', root);
+    const emptyEl = qs('[data-orgs-empty]', root);
+    const pagination = qs('[data-orgs-pagination]', root);
+    const pageStatus = qs('[data-orgs-page-status]', root);
+    const pageNumbers = qs('[data-orgs-page-numbers]', root);
+    const prevBtn = qs('[data-orgs-page-prev]', root);
+    const nextBtn = qs('[data-orgs-page-next]', root);
+
+    const initialQ = root.getAttribute('data-initial-q') || '';
+    if (qInput && initialQ && !qInput.value) {
+        qInput.value = initialQ;
+    }
+
+    const rows = () => qsa('[data-org-row]', root);
+
+    const setTabUi = (nextTab) => {
+        tab = nextTab;
+        qsa('[data-orgs-tab]', root).forEach((btn) => {
+            const active = btn.getAttribute('data-orgs-tab') === tab;
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+            btn.classList.toggle('border-hb-blue', active);
+            btn.classList.toggle('text-hb-blue', active);
+            btn.classList.toggle('border-transparent', !active);
+            btn.classList.toggle('text-hb-muted', !active);
+        });
+    };
+
+    const labelForTab = () => {
+        const key = `label_${tab}`;
+        return i18n[key] || i18n.label_filtered || '';
+    };
+
+    const filteredRows = () => {
+        const q = (qInput?.value || '').trim().toLowerCase();
+        const type = typeSelect?.value || 'all';
+        const plan = planSelect?.value || 'all';
+        return rows().filter((row) => {
+            if (row.getAttribute('data-tab') !== tab) return false;
+            if (type !== 'all' && row.getAttribute('data-type') !== type) return false;
+            if (plan !== 'all' && row.getAttribute('data-plan') !== plan) return false;
+            if (q) {
+                const hay = (row.getAttribute('data-search') || '').toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
+            return true;
+        });
+    };
+
+    const renderPagination = (visibleCount) => {
+        if (!pagination) return;
+        const totalPages = Math.max(1, Math.ceil(visibleCount / pageSize));
+        if (page > totalPages) page = totalPages;
+        const showPager = visibleCount > 0;
+        pagination.hidden = !showPager;
+        pagination.classList.toggle('hidden', !showPager);
+
+        const from = visibleCount === 0 ? 0 : (page - 1) * pageSize + 1;
+        const to = Math.min(visibleCount, page * pageSize);
+        if (pageStatus) {
+            if (visibleCount === 0) {
+                pageStatus.textContent = i18n.showing_zero || '';
+            } else {
+                const template = pagination.getAttribute('data-status-template') || i18n.showing_range || '';
+                pageStatus.textContent = template
+                    .replace(':from', String(from))
+                    .replace(':to', String(to))
+                    .replace(':total', String(visibleCount))
+                    .replace(':label', labelForTab());
+            }
+        }
+
+        if (prevBtn) prevBtn.disabled = page <= 1 || visibleCount === 0;
+        if (nextBtn) nextBtn.disabled = page >= totalPages || visibleCount === 0;
+
+        if (pageNumbers) {
+            pageNumbers.innerHTML = '';
+            if (visibleCount === 0) return;
+            for (let i = 1; i <= totalPages; i += 1) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = String(i);
+                btn.className =
+                    i === page
+                        ? 'inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-hb-blue px-2 text-sm font-semibold text-white'
+                        : 'inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-hb-border bg-hb-surface px-2 text-sm font-semibold text-hb-navy hover:border-hb-blue/40';
+                if (i === page) {
+                    btn.setAttribute('aria-current', 'page');
+                }
+                btn.addEventListener('click', () => {
+                    page = i;
+                    render();
+                });
+                pageNumbers.appendChild(btn);
+            }
+        }
+    };
+
+    const render = () => {
+        const matched = filteredRows();
+        rows().forEach((row) => {
+            row.hidden = true;
+        });
+        const start = (page - 1) * pageSize;
+        matched.forEach((row, index) => {
+            row.hidden = index < start || index >= start + pageSize;
+        });
+        if (emptyEl) {
+            emptyEl.classList.toggle('hidden', matched.length > 0);
+        }
+        renderPagination(matched.length);
+    };
+
+    const resetAndRender = () => {
+        page = 1;
+        render();
+    };
+
+    qsa('[data-orgs-tab]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            setTabUi(btn.getAttribute('data-orgs-tab') || 'active');
+            resetAndRender();
+        });
+    });
+
+    qsa('[data-orgs-goto-tab]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            setTabUi(btn.getAttribute('data-orgs-goto-tab') || 'active');
+            if (qInput) qInput.value = '';
+            if (typeSelect) typeSelect.value = 'all';
+            if (planSelect) planSelect.value = 'all';
+            resetAndRender();
+            qs(`[data-orgs-tab="${tab}"]`, root)?.focus();
+        });
+    });
+
+    qInput?.addEventListener('input', resetAndRender);
+    typeSelect?.addEventListener('change', resetAndRender);
+    planSelect?.addEventListener('change', resetAndRender);
+    prevBtn?.addEventListener('click', () => {
+        if (page > 1) {
+            page -= 1;
+            render();
+        }
+    });
+    nextBtn?.addEventListener('click', () => {
+        page += 1;
+        render();
+    });
+
+    setTabUi(tab);
+    render();
+}
+
+function initAdminOrganizationShow() {
+    const root = qs('[data-admin-org-show]');
+    if (!root) return;
+
+    const activateTab = (key) => {
+        const tab = qs(`#admin-org-detail-tabs-tab-${key}`, root);
+        if (!tab) return;
+        tab.click();
+        tab.focus();
+    };
+
+    qsa('[data-org-goto-tab]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            activateTab(btn.getAttribute('data-org-goto-tab') || 'overview');
+        });
+    });
+
+    const reason = qs('[data-org-suspend-reason]', root);
+    const ack = qs('[data-org-suspend-ack]', root);
+    const reviewBtn = qs('[data-org-suspend-review]', root);
+    const hint = qs('[data-org-suspend-hint]', root);
+    const suspendModal = document.getElementById('admin-org-suspend-modal');
+
+    const syncSuspend = () => {
+        if (!reviewBtn) return;
+        const ready = Boolean(reason?.value) && Boolean(ack?.checked);
+        reviewBtn.disabled = !ready;
+        if (hint && !ready) {
+            hint.hidden = false;
+        }
+    };
+
+    reason?.addEventListener('change', syncSuspend);
+    ack?.addEventListener('change', syncSuspend);
+    reviewBtn?.addEventListener('click', () => {
+        if (reviewBtn.disabled || !suspendModal) return;
+        if (typeof openModal === 'function') {
+            openModal(suspendModal, reviewBtn);
+        }
+    });
+    syncSuspend();
+}
+
+function initAdminUsers() {
+    const root = qs('[data-admin-users]');
+    if (!root) return;
+
+    let i18n = {};
+    try {
+        i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+    } catch {
+        i18n = {};
+    }
+
+    const pageSize = Math.max(1, Number(root.getAttribute('data-page-size') || 8));
+    let tab = root.getAttribute('data-default-tab') || 'all';
+    let page = 1;
+    const qInput = qs('[data-users-q]', root);
+    const roleSelect = qs('[data-users-role]', root);
+    const orgSelect = qs('[data-users-org]', root);
+    const sortSelect = qs('[data-users-sort]', root);
+    const emptyEl = qs('[data-users-empty]', root);
+    const pagination = qs('[data-users-pagination]', root);
+    const pageStatus = qs('[data-users-page-status]', root);
+    const pageNumbers = qs('[data-users-page-numbers]', root);
+    const prevBtn = qs('[data-users-page-prev]', root);
+    const nextBtn = qs('[data-users-page-next]', root);
+    const tbody = qs('[data-users-tbody]', root);
+    const previewModal = document.getElementById('admin-users-preview-modal');
+    const previewDl = previewModal ? qs('[data-user-preview-dl]', previewModal) : null;
+    const previewOrgLink = previewModal ? qs('[data-user-preview-org]', previewModal) : null;
+
+    const initialQ = root.getAttribute('data-initial-q') || '';
+    if (qInput && initialQ && !qInput.value) {
+        qInput.value = initialQ;
+    }
+
+    const rows = () => qsa('[data-user-row]', root);
+
+    const setTabUi = (nextTab) => {
+        tab = nextTab;
+        qsa('[data-users-tab]', root).forEach((btn) => {
+            const active = btn.getAttribute('data-users-tab') === tab;
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+            btn.classList.toggle('border-hb-blue', active);
+            btn.classList.toggle('text-hb-blue', active);
+            btn.classList.toggle('border-transparent', !active);
+            btn.classList.toggle('text-hb-muted', !active);
+        });
+    };
+
+    const labelForTab = () => {
+        const key = `label_${tab}`;
+        return i18n[key] || i18n.label_filtered || '';
+    };
+
+    const sortRows = (list) => {
+        const mode = sortSelect?.value || 'name_asc';
+        return [...list].sort((a, b) => {
+            if (mode === 'name_desc') {
+                return (b.getAttribute('data-sort-name') || '').localeCompare(a.getAttribute('data-sort-name') || '');
+            }
+            if (mode === 'active_asc') {
+                return (a.getAttribute('data-sort-active') || '').localeCompare(b.getAttribute('data-sort-active') || '');
+            }
+            if (mode === 'active_desc') {
+                return (b.getAttribute('data-sort-active') || '').localeCompare(a.getAttribute('data-sort-active') || '');
+            }
+            return (a.getAttribute('data-sort-name') || '').localeCompare(b.getAttribute('data-sort-name') || '');
+        });
+    };
+
+    const filteredRows = () => {
+        const q = (qInput?.value || '').trim().toLowerCase();
+        const role = roleSelect?.value || 'all';
+        const org = orgSelect?.value || 'all';
+        const matched = rows().filter((row) => {
+            if (tab !== 'all' && row.getAttribute('data-state') !== tab) return false;
+            if (role !== 'all' && row.getAttribute('data-role') !== role) return false;
+            if (org !== 'all' && row.getAttribute('data-org') !== org) return false;
+            if (q) {
+                const hay = (row.getAttribute('data-search') || '').toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
+            return true;
+        });
+        return sortRows(matched);
+    };
+
+    const renderPagination = (visibleCount) => {
+        if (!pagination) return;
+        const totalPages = Math.max(1, Math.ceil(visibleCount / pageSize));
+        if (page > totalPages) page = totalPages;
+        const showPager = visibleCount > 0;
+        pagination.hidden = !showPager;
+        pagination.classList.toggle('hidden', !showPager);
+
+        const from = visibleCount === 0 ? 0 : (page - 1) * pageSize + 1;
+        const to = Math.min(visibleCount, page * pageSize);
+        if (pageStatus) {
+            if (visibleCount === 0) {
+                pageStatus.textContent = i18n.showing_zero || '';
+            } else {
+                const template = pagination.getAttribute('data-status-template') || i18n.showing_range || '';
+                pageStatus.textContent = template
+                    .replace(':from', String(from))
+                    .replace(':to', String(to))
+                    .replace(':total', String(visibleCount))
+                    .replace(':label', labelForTab());
+            }
+        }
+
+        if (prevBtn) prevBtn.disabled = page <= 1 || visibleCount === 0;
+        if (nextBtn) nextBtn.disabled = page >= totalPages || visibleCount === 0;
+
+        if (pageNumbers) {
+            pageNumbers.innerHTML = '';
+            if (visibleCount === 0) return;
+            for (let i = 1; i <= totalPages; i += 1) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = String(i);
+                btn.className =
+                    i === page
+                        ? 'inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-hb-blue px-2 text-sm font-semibold text-white'
+                        : 'inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-hb-border bg-hb-surface px-2 text-sm font-semibold text-hb-navy hover:border-hb-blue/40';
+                if (i === page) {
+                    btn.setAttribute('aria-current', 'page');
+                }
+                btn.addEventListener('click', () => {
+                    page = i;
+                    render();
+                });
+                pageNumbers.appendChild(btn);
+            }
+        }
+    };
+
+    const render = () => {
+        const matched = filteredRows();
+        rows().forEach((row) => {
+            row.hidden = true;
+        });
+        if (tbody) {
+            matched.forEach((row) => tbody.appendChild(row));
+        }
+        const start = (page - 1) * pageSize;
+        matched.forEach((row, index) => {
+            row.hidden = index < start || index >= start + pageSize;
+        });
+        if (emptyEl) {
+            emptyEl.classList.toggle('hidden', matched.length > 0);
+        }
+        renderPagination(matched.length);
+    };
+
+    const resetAndRender = () => {
+        page = 1;
+        render();
+    };
+
+    qsa('[data-users-tab]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            setTabUi(btn.getAttribute('data-users-tab') || 'all');
+            resetAndRender();
+        });
+    });
+
+    qs('[data-users-reset]', root)?.addEventListener('click', () => {
+        if (qInput) qInput.value = '';
+        if (roleSelect) roleSelect.value = 'all';
+        if (orgSelect) orgSelect.value = 'all';
+        if (sortSelect) sortSelect.value = 'name_asc';
+        setTabUi('all');
+        resetAndRender();
+        qInput?.focus();
+    });
+
+    qInput?.addEventListener('input', resetAndRender);
+    roleSelect?.addEventListener('change', resetAndRender);
+    orgSelect?.addEventListener('change', resetAndRender);
+    sortSelect?.addEventListener('change', resetAndRender);
+    prevBtn?.addEventListener('click', () => {
+        if (page > 1) {
+            page -= 1;
+            render();
+        }
+    });
+    nextBtn?.addEventListener('click', () => {
+        page += 1;
+        render();
+    });
+
+    qsa('[data-user-preview]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const row = btn.closest('[data-user-row]');
+            if (!row || !previewModal || !previewDl) return;
+            const fields = [
+                [i18n.preview_email || 'Email', row.getAttribute('data-email') || ''],
+                [i18n.preview_organization || 'Organization', row.getAttribute('data-org') || ''],
+                [i18n.preview_role || 'Role', row.getAttribute('data-role-label') || ''],
+                [i18n.preview_state || 'State', row.getAttribute('data-state-label') || ''],
+                [i18n.preview_last_active || 'Last active', row.getAttribute('data-last-active') || ''],
+            ];
+            previewDl.innerHTML = fields
+                .map(
+                    ([label, value]) =>
+                        `<div><dt class="text-xs font-semibold uppercase tracking-wide text-hb-muted">${label}</dt><dd class="mt-1 text-sm text-hb-navy" dir="auto">${value}</dd></div>`,
+                )
+                .join('');
+            const title = qs('#admin-users-preview-modal-title', previewModal);
+            if (title) {
+                title.textContent = row.getAttribute('data-name') || title.textContent;
+            }
+            const orgHref = row.getAttribute('data-org-href') || '';
+            if (previewOrgLink) {
+                if (orgHref) {
+                    previewOrgLink.href = orgHref;
+                    previewOrgLink.classList.remove('hidden');
+                } else {
+                    previewOrgLink.classList.add('hidden');
+                }
+            }
+            if (typeof openModal === 'function') {
+                openModal(previewModal, btn);
+            }
+        });
+    });
+
+    setTabUi(tab);
+    render();
+}
+
+function initAdminJobs() {
+    const root = qs('[data-admin-jobs]');
+    if (!root) return;
+
+    let i18n = {};
+    try {
+        i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+    } catch {
+        i18n = {};
+    }
+
+    const qInput = qs('[data-jobs-q]', root);
+    const statusSelect = qs('[data-jobs-status]', root);
+    const reasonSelect = qs('[data-jobs-reason]', root);
+    const sortSelect = qs('[data-jobs-sort]', root);
+    const emptyEl = qs('[data-jobs-empty]', root);
+    const list = qs('[data-jobs-list]', root);
+    const detailEmpty = qs('[data-jobs-detail-empty]', root);
+    const detailBody = qs('[data-jobs-detail-body]', root);
+    const noteInput = qs('[data-jobs-note]', root);
+    const noteError = qs('[data-jobs-note-error]', root);
+    const reviewModal = document.getElementById('admin-jobs-review-modal');
+    const reviewBody = reviewModal ? qs('[data-jobs-review-body]', reviewModal) : null;
+
+    const initialQ = root.getAttribute('data-initial-q') || '';
+    if (qInput && initialQ && !qInput.value) {
+        qInput.value = initialQ;
+    }
+
+    let selectedId = root.getAttribute('data-default-job') || '';
+
+    const items = () => qsa('[data-job-item]', root);
+
+    const policyTitle = (key) => {
+        if (key === 'employer_verification' || key === 'verification') return i18n.verification || '';
+        if (key === 'employment_type') return i18n.employment_type || '';
+        return i18n.salary || '';
+    };
+
+    const filtered = () => {
+        const q = (qInput?.value || '').trim().toLowerCase();
+        const status = statusSelect?.value || 'pending';
+        const reason = reasonSelect?.value || 'all';
+        let matched = items().filter((item) => {
+            if (status !== 'all' && item.getAttribute('data-status') !== status) return false;
+            if (reason !== 'all' && item.getAttribute('data-reason') !== reason) return false;
+            if (q) {
+                const hay = (item.getAttribute('data-search') || '').toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
+            return true;
+        });
+        const mode = sortSelect?.value || 'newest';
+        matched = [...matched].sort((a, b) => {
+            if (mode === 'oldest') {
+                return (a.getAttribute('data-sort-time') || '').localeCompare(b.getAttribute('data-sort-time') || '');
+            }
+            if (mode === 'code') {
+                return (a.getAttribute('data-code') || '').localeCompare(b.getAttribute('data-code') || '');
+            }
+            return (b.getAttribute('data-sort-time') || '').localeCompare(a.getAttribute('data-sort-time') || '');
+        });
+        return matched;
+    };
+
+    const paintSelection = () => {
+        items().forEach((item) => {
+            const active = item.getAttribute('data-id') === selectedId && !item.hidden;
+            item.setAttribute('aria-selected', active ? 'true' : 'false');
+            item.classList.toggle('bg-hb-info-soft/50', active);
+            item.classList.toggle('border-s-2', active);
+            item.classList.toggle('border-hb-blue', active);
+        });
+    };
+
+    const fillDetail = (item) => {
+        if (!item || !detailBody || !detailEmpty) return;
+        detailEmpty.classList.add('hidden');
+        detailBody.classList.remove('hidden');
+        const code = item.getAttribute('data-code') || '';
+        const heading = qs('[data-jobs-detail-heading]', detailBody);
+        if (heading) {
+            heading.textContent = (i18n.review_heading || 'Review · :code').replace(':code', code);
+        }
+        const title = qs('[data-jobs-detail-title]', detailBody);
+        if (title) title.textContent = item.getAttribute('data-title') || '';
+        const orgLink = qs('[data-jobs-detail-org-link]', detailBody);
+        if (orgLink) {
+            orgLink.textContent = item.getAttribute('data-organization') || '';
+            orgLink.href = item.getAttribute('data-org-href') || '#';
+        }
+        const location = qs('[data-jobs-detail-location]', detailBody);
+        if (location) {
+            location.textContent = ` · ${item.getAttribute('data-location') || ''}`;
+        }
+        const meta = qs('[data-jobs-detail-meta]', detailBody);
+        if (meta) {
+            meta.textContent = `${item.getAttribute('data-employment') || ''} · ${item.getAttribute('data-salary') || ''}`;
+        }
+        const submitted = qs('[data-jobs-detail-submitted]', detailBody);
+        if (submitted) {
+            submitted.textContent = (i18n.submitted_by || 'Submitted by :name · :when')
+                .replace(':name', item.getAttribute('data-submitted-by') || '')
+                .replace(':when', item.getAttribute('data-submitted-at') || '');
+        }
+        const policyTitleEl = qs('[data-jobs-detail-policy-title]', detailBody);
+        if (policyTitleEl) {
+            const prefix = i18n.policy_prefix || 'Policy:';
+            policyTitleEl.textContent = `${prefix} ${policyTitle(item.getAttribute('data-policy-key') || '')}`;
+        }
+        const policyBody = qs('[data-jobs-detail-policy-body]', detailBody);
+        if (policyBody) policyBody.textContent = item.getAttribute('data-policy-body') || '';
+        if (noteInput) {
+            noteInput.value = item.getAttribute('data-note') || '';
+        }
+        if (noteError) {
+            noteError.textContent = '';
+            noteError.classList.add('hidden');
+        }
+    };
+
+    const clearDetail = () => {
+        detailEmpty?.classList.remove('hidden');
+        detailBody?.classList.add('hidden');
+    };
+
+    const render = () => {
+        const matched = filtered();
+        items().forEach((item) => {
+            item.hidden = true;
+            const row = item.closest('li');
+            if (row) row.hidden = true;
+        });
+        if (list) {
+            matched.forEach((item) => {
+                const row = item.closest('li') || item;
+                list.appendChild(row);
+            });
+        }
+        matched.forEach((item) => {
+            item.hidden = false;
+            const row = item.closest('li');
+            if (row) row.hidden = false;
+        });
+        if (emptyEl) {
+            emptyEl.classList.toggle('hidden', matched.length > 0);
+        }
+        if (!matched.some((item) => item.getAttribute('data-id') === selectedId)) {
+            selectedId = matched[0]?.getAttribute('data-id') || '';
+        }
+        const selected = matched.find((item) => item.getAttribute('data-id') === selectedId);
+        paintSelection();
+        if (selected) {
+            fillDetail(selected);
+        } else {
+            clearDetail();
+        }
+    };
+
+    items().forEach((item) => {
+        item.addEventListener('click', () => {
+            selectedId = item.getAttribute('data-id') || '';
+            paintSelection();
+            fillDetail(item);
+        });
+    });
+
+    const openReview = (action, trigger) => {
+        const note = (noteInput?.value || '').trim();
+        if (!note) {
+            if (noteError) {
+                noteError.textContent = i18n.note_required || '';
+                noteError.classList.remove('hidden');
+            }
+            noteInput?.focus();
+            return;
+        }
+        if (noteError) {
+            noteError.textContent = '';
+            noteError.classList.add('hidden');
+        }
+        if (reviewBody) {
+            reviewBody.textContent = i18n.review_modal_body || '';
+        }
+        if (reviewModal && typeof openModal === 'function') {
+            openModal(reviewModal, trigger);
+        }
+    };
+
+    qsa('[data-jobs-action]', root).forEach((btn) => {
+        btn.addEventListener('click', () => openReview(btn.getAttribute('data-jobs-action') || '', btn));
+    });
+
+    qs('[data-jobs-reset]', root)?.addEventListener('click', () => {
+        if (qInput) qInput.value = '';
+        if (statusSelect) statusSelect.value = 'pending';
+        if (reasonSelect) reasonSelect.value = 'all';
+        if (sortSelect) sortSelect.value = 'newest';
+        selectedId = root.getAttribute('data-default-job') || '';
+        render();
+        qInput?.focus();
+    });
+
+    qInput?.addEventListener('input', render);
+    statusSelect?.addEventListener('change', render);
+    reasonSelect?.addEventListener('change', render);
+    sortSelect?.addEventListener('change', render);
+
+    render();
+}
+
+function initAdminAgencies() {
+    const root = qs('[data-admin-agencies]');
+    if (!root) return;
+
+    let i18n = {};
+    try {
+        i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+    } catch {
+        i18n = {};
+    }
+
+    const qInput = qs('[data-agencies-q]', root);
+    const statusSelect = qs('[data-agencies-status]', root);
+    const agencySelect = qs('[data-agencies-agency]', root);
+    const sortSelect = qs('[data-agencies-sort]', root);
+    const emptyEl = qs('[data-agencies-empty]', root);
+    const list = qs('[data-agencies-list]', root);
+    const candidatesBody = qs('[data-agencies-candidates]', root);
+    const heading = qs('[data-agencies-detail-heading]', root);
+    const badges = qs('[data-agencies-detail-badges]', root);
+    const scope = qs('[data-agencies-detail-scope]', root);
+    const recruiterName = qs('[data-agencies-recruiter-name]', root);
+    const ownerName = qs('[data-agencies-owner-name]', root);
+    const agencyLink = qs('[data-agencies-agency-link]', root);
+    const clientLink = qs('[data-agencies-client-link]', root);
+    const statusLog = qs('[data-agencies-status-log]', root);
+
+    const initialQ = root.getAttribute('data-initial-q') || '';
+    if (qInput && initialQ && !qInput.value) {
+        qInput.value = initialQ;
+    }
+
+    let selectedId = root.getAttribute('data-default-engagement') || '';
+
+    const items = () => qsa('[data-engagement-item]', root);
+
+    const parsePayload = (item) => {
+        try {
+            return JSON.parse(item.getAttribute('data-payload') || '{}');
+        } catch {
+            return {};
+        }
+    };
+
+    const filtered = () => {
+        const q = (qInput?.value || '').trim().toLowerCase();
+        const status = statusSelect?.value || 'active';
+        const agency = agencySelect?.value || 'all';
+        let matched = items().filter((item) => {
+            if (status !== 'all' && item.getAttribute('data-status') !== status) return false;
+            if (agency !== 'all' && item.getAttribute('data-agency') !== agency) return false;
+            if (q) {
+                const hay = (item.getAttribute('data-search') || '').toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
+            return true;
+        });
+        const mode = sortSelect?.value || 'code_asc';
+        matched = [...matched].sort((a, b) => {
+            if (mode === 'code_desc') {
+                return (b.getAttribute('data-sort-code') || '').localeCompare(a.getAttribute('data-sort-code') || '');
+            }
+            if (mode === 'client') {
+                return (a.getAttribute('data-client') || '').localeCompare(b.getAttribute('data-client') || '');
+            }
+            return (a.getAttribute('data-sort-code') || '').localeCompare(b.getAttribute('data-sort-code') || '');
+        });
+        return matched;
+    };
+
+    const paintSelection = () => {
+        items().forEach((item) => {
+            const active = item.getAttribute('data-id') === selectedId && !item.hidden;
+            item.setAttribute('aria-selected', active ? 'true' : 'false');
+            item.classList.toggle('bg-hb-info-soft/50', active);
+            item.classList.toggle('border-s-2', active);
+            item.classList.toggle('border-hb-blue', active);
+        });
+    };
+
+    const fillDetail = (item) => {
+        if (!item) return;
+        const data = parsePayload(item);
+        if (heading) {
+            heading.textContent = (i18n.selected || 'Selected · :code / :client')
+                .replace(':code', data.code || '')
+                .replace(':client', data.client || '');
+        }
+        badges?.classList.remove('hidden');
+        if (scope) scope.textContent = data.scope || '';
+        if (recruiterName) recruiterName.textContent = data.recruiter || '—';
+        if (ownerName) ownerName.textContent = data.client_owner || '—';
+        if (agencyLink) {
+            agencyLink.textContent = data.agency || '—';
+            agencyLink.href = item.getAttribute('data-agency-href') || '#';
+        }
+        if (clientLink) {
+            clientLink.textContent = data.client || '—';
+            clientLink.href = item.getAttribute('data-client-href') || '#';
+        }
+        if (statusLog) {
+            statusLog.innerHTML = (data.status_log || [])
+                .map((line) => `<li>${line}</li>`)
+                .join('');
+        }
+        if (candidatesBody) {
+            const rows = data.candidates || [];
+            if (rows.length === 0) {
+                candidatesBody.innerHTML = `<tr><td colspan="3" class="px-5 py-8 text-center text-hb-muted">${i18n.select_prompt || ''}</td></tr>`;
+            } else {
+                candidatesBody.innerHTML = rows
+                    .map(
+                        (row) =>
+                            `<tr><td class="px-5 py-3 font-semibold text-hb-navy">${row.name || ''}</td><td class="px-4 py-3 text-hb-text">${row.stage || ''}</td><td class="px-5 py-3 text-hb-muted">${row.next || ''}</td></tr>`,
+                    )
+                    .join('');
+            }
+        }
+    };
+
+    const render = () => {
+        const matched = filtered();
+        items().forEach((item) => {
+            item.hidden = true;
+            const row = item.closest('li');
+            if (row) row.hidden = true;
+        });
+        if (list) {
+            matched.forEach((item) => {
+                const row = item.closest('li') || item;
+                list.appendChild(row);
+            });
+        }
+        matched.forEach((item) => {
+            item.hidden = false;
+            const row = item.closest('li');
+            if (row) row.hidden = false;
+        });
+        if (emptyEl) {
+            emptyEl.classList.toggle('hidden', matched.length > 0);
+        }
+        if (!matched.some((item) => item.getAttribute('data-id') === selectedId)) {
+            selectedId = matched[0]?.getAttribute('data-id') || '';
+        }
+        const selected = matched.find((item) => item.getAttribute('data-id') === selectedId);
+        paintSelection();
+        if (selected) {
+            fillDetail(selected);
+        }
+    };
+
+    items().forEach((item) => {
+        item.addEventListener('click', () => {
+            selectedId = item.getAttribute('data-id') || '';
+            paintSelection();
+            fillDetail(item);
+        });
+    });
+
+    qs('[data-agencies-reset]', root)?.addEventListener('click', () => {
+        if (qInput) qInput.value = '';
+        if (statusSelect) statusSelect.value = 'active';
+        if (agencySelect) agencySelect.value = 'all';
+        if (sortSelect) sortSelect.value = 'code_asc';
+        selectedId = root.getAttribute('data-default-engagement') || '';
+        render();
+        qInput?.focus();
+    });
+
+    qInput?.addEventListener('input', render);
+    statusSelect?.addEventListener('change', render);
+    agencySelect?.addEventListener('change', render);
+    sortSelect?.addEventListener('change', render);
+
+    render();
+}
+
+function initAdminSettings() {
+    const root = qs('[data-admin-settings]');
+    if (!root) return;
+
+    let i18n = {};
+    try {
+        i18n = JSON.parse(root.getAttribute('data-i18n') || '{}');
+    } catch {
+        i18n = {};
+    }
+
+    const pageSize = Math.max(1, Number(root.getAttribute('data-page-size') || 8));
+    let page = 1;
+    const qInput = qs('[data-settings-q]', root);
+    const rangeSelect = qs('[data-settings-range]', root);
+    const resultSelect = qs('[data-settings-result]', root);
+    const typeSelect = qs('[data-settings-type]', root);
+    const sortSelect = qs('[data-settings-sort]', root);
+    const emptyEl = qs('[data-settings-empty]', root);
+    const pagination = qs('[data-settings-pagination]', root);
+    const pageStatus = qs('[data-settings-page-status]', root);
+    const pageNumbers = qs('[data-settings-page-numbers]', root);
+    const prevBtn = qs('[data-settings-page-prev]', root);
+    const nextBtn = qs('[data-settings-page-next]', root);
+    const tbody = qs('[data-settings-tbody]', root);
+    const eventModal = document.getElementById('admin-settings-event-modal');
+    const eventDl = eventModal ? qs('[data-settings-event-dl]', eventModal) : null;
+    const policyModal = document.getElementById('admin-settings-policy-modal');
+    const roleModal = document.getElementById('admin-settings-role-modal');
+    const integrationModal = document.getElementById('admin-settings-integration-modal');
+
+    const initialQ = root.getAttribute('data-initial-q') || '';
+    if (qInput && initialQ && !qInput.value) {
+        qInput.value = initialQ;
+    }
+    if (rangeSelect) {
+        rangeSelect.value = root.getAttribute('data-default-range') || 'oct19_20';
+    }
+    if (resultSelect) {
+        resultSelect.value = root.getAttribute('data-default-result') || 'all';
+    }
+    if (sortSelect) {
+        sortSelect.value = root.getAttribute('data-default-sort') || 'newest';
+    }
+
+    const rows = () => qsa('[data-audit-row]', root);
+
+    const activateTab = (key) => {
+        const tab = qs(`[data-settings-tab="${key}"]`, root);
+        if (tab) {
+            tab.click();
+            tab.focus();
+        }
+    };
+
+    const filteredRows = () => {
+        const q = (qInput?.value || '').trim().toLowerCase();
+        const range = rangeSelect?.value || 'all';
+        const result = resultSelect?.value || 'all';
+        const type = typeSelect?.value || 'all';
+        let matched = rows().filter((row) => {
+            if (range !== 'all' && row.getAttribute('data-range') !== range) return false;
+            if (result !== 'all' && row.getAttribute('data-result') !== result) return false;
+            if (type !== 'all' && row.getAttribute('data-type') !== type) return false;
+            if (q) {
+                const hay = (row.getAttribute('data-search') || '').toLowerCase();
+                if (!hay.includes(q)) return false;
+            }
+            return true;
+        });
+        const mode = sortSelect?.value || 'newest';
+        matched = [...matched].sort((a, b) => {
+            const aTime = a.getAttribute('data-sort-time') || '';
+            const bTime = b.getAttribute('data-sort-time') || '';
+            return mode === 'oldest' ? aTime.localeCompare(bTime) : bTime.localeCompare(aTime);
+        });
+        return matched;
+    };
+
+    const renderPagination = (visibleCount) => {
+        if (!pagination) return;
+        const totalPages = Math.max(1, Math.ceil(visibleCount / pageSize));
+        if (page > totalPages) page = totalPages;
+        const showPager = visibleCount > 0;
+        pagination.hidden = !showPager;
+        pagination.classList.toggle('hidden', !showPager);
+
+        const from = visibleCount === 0 ? 0 : (page - 1) * pageSize + 1;
+        const to = Math.min(visibleCount, page * pageSize);
+        if (pageStatus) {
+            if (visibleCount === 0) {
+                pageStatus.textContent = i18n.showing_zero || '';
+            } else {
+                const template = pagination.getAttribute('data-status-template') || i18n.showing_range || '';
+                pageStatus.textContent = template
+                    .replace(':from', String(from))
+                    .replace(':to', String(to))
+                    .replace(':total', String(visibleCount));
+            }
+        }
+
+        if (prevBtn) prevBtn.disabled = page <= 1 || visibleCount === 0;
+        if (nextBtn) nextBtn.disabled = page >= totalPages || visibleCount === 0;
+
+        if (pageNumbers) {
+            pageNumbers.innerHTML = '';
+            if (visibleCount === 0) return;
+            for (let i = 1; i <= totalPages; i += 1) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = String(i);
+                btn.className =
+                    i === page
+                        ? 'inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-hb-blue px-2 text-sm font-semibold text-white'
+                        : 'inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-hb-border bg-hb-surface px-2 text-sm font-semibold text-hb-navy hover:border-hb-blue/40';
+                if (i === page) {
+                    btn.setAttribute('aria-current', 'page');
+                }
+                btn.addEventListener('click', () => {
+                    page = i;
+                    render();
+                });
+                pageNumbers.appendChild(btn);
+            }
+        }
+    };
+
+    const render = () => {
+        const matched = filteredRows();
+        rows().forEach((row) => {
+            row.hidden = true;
+        });
+        if (tbody) {
+            matched.forEach((row) => tbody.appendChild(row));
+        }
+        const start = (page - 1) * pageSize;
+        matched.forEach((row, index) => {
+            row.hidden = index < start || index >= start + pageSize;
+        });
+        if (emptyEl) {
+            emptyEl.classList.toggle('hidden', matched.length > 0);
+        }
+        renderPagination(matched.length);
+    };
+
+    const resetAndRender = () => {
+        page = 1;
+        render();
+    };
+
+    const openEvent = (row, trigger) => {
+        if (!row || !eventModal || !eventDl) return;
+        const fields = [
+            [i18n.preview_id || 'Event ID', row.getAttribute('data-id') || ''],
+            [i18n.preview_time || 'Time', row.getAttribute('data-time') || ''],
+            [i18n.preview_actor || 'Actor', row.getAttribute('data-actor') || ''],
+            [i18n.preview_action || 'Action', row.getAttribute('data-action') || ''],
+            [i18n.preview_object || 'Affected object', row.getAttribute('data-object') || ''],
+            [i18n.preview_result || 'Result', row.getAttribute('data-result-label') || ''],
+            [i18n.preview_description || 'Context', row.getAttribute('data-description') || ''],
+        ];
+        eventDl.innerHTML = fields
+            .map(
+                ([label, value]) =>
+                    `<div><dt class="text-xs font-semibold uppercase tracking-wide text-hb-muted">${label}</dt><dd class="mt-1 text-sm text-hb-navy" dir="auto">${value}</dd></div>`,
+            )
+            .join('');
+        const title = qs('#admin-settings-event-modal-title', eventModal);
+        if (title) {
+            title.textContent = row.getAttribute('data-action') || title.textContent;
+        }
+        if (typeof openModal === 'function') {
+            openModal(eventModal, trigger || row);
+        }
+    };
+
+    qsa('[data-settings-goto-tab]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            activateTab(btn.getAttribute('data-settings-goto-tab') || 'audit');
+        });
+    });
+
+    rows().forEach((row) => {
+        row.addEventListener('click', () => openEvent(row, row));
+        row.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openEvent(row, row);
+            }
+        });
+    });
+
+    qsa('[data-open-modal="admin-settings-policy-modal"]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const title = policyModal ? qs('#admin-settings-policy-modal-title', policyModal) : null;
+            if (title) {
+                title.textContent = btn.getAttribute('data-policy-title') || title.textContent;
+            }
+        });
+    });
+
+    qsa('[data-open-modal="admin-settings-role-modal"]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const body = roleModal ? qs('[data-settings-role-body]', roleModal) : null;
+            const title = roleModal ? qs('#admin-settings-role-modal-title', roleModal) : null;
+            if (title) {
+                title.textContent = btn.getAttribute('data-role-name') || title.textContent;
+            }
+            if (body) {
+                body.textContent = btn.getAttribute('data-role-notes') || '';
+            }
+        });
+    });
+
+    qsa('[data-open-modal="admin-settings-integration-modal"]', root).forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const body = integrationModal ? qs('[data-settings-integration-body]', integrationModal) : null;
+            const title = integrationModal ? qs('#admin-settings-integration-modal-title', integrationModal) : null;
+            const name = btn.getAttribute('data-integration-name') || '';
+            const provider = btn.getAttribute('data-integration-provider') || '';
+            const status = btn.getAttribute('data-integration-status') || '';
+            const statusLabel =
+                status === 'connected' ? i18n.status_connected || 'Connected' : i18n.status_unavailable || 'Unavailable';
+            if (title) {
+                title.textContent = name || title.textContent;
+            }
+            if (body) {
+                body.textContent = `${provider} · ${statusLabel}`;
+            }
+        });
+    });
+
+    qs('[data-settings-reset]', root)?.addEventListener('click', () => {
+        if (qInput) qInput.value = '';
+        if (rangeSelect) rangeSelect.value = root.getAttribute('data-default-range') || 'oct19_20';
+        if (resultSelect) resultSelect.value = 'all';
+        if (typeSelect) typeSelect.value = 'all';
+        if (sortSelect) sortSelect.value = 'newest';
+        resetAndRender();
+        qInput?.focus();
+    });
+
+    qInput?.addEventListener('input', resetAndRender);
+    rangeSelect?.addEventListener('change', resetAndRender);
+    resultSelect?.addEventListener('change', resetAndRender);
+    typeSelect?.addEventListener('change', resetAndRender);
+    sortSelect?.addEventListener('change', resetAndRender);
+    prevBtn?.addEventListener('click', () => {
+        if (page > 1) {
+            page -= 1;
+            render();
+        }
+    });
+    nextBtn?.addEventListener('click', () => {
+        page += 1;
+        render();
+    });
+
+    render();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initDropdowns();
     initMobileSidebar();
@@ -4023,6 +5114,12 @@ document.addEventListener('DOMContentLoaded', () => {
     initInterviewerPrepare();
     initInterviewerLive();
     initInterviewerScorecard();
+    initAdminOrganizations();
+    initAdminOrganizationShow();
+    initAdminUsers();
+    initAdminJobs();
+    initAdminAgencies();
+    initAdminSettings();
 });
 
 
