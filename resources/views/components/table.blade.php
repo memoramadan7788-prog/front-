@@ -2,18 +2,18 @@
     'empty' => null,
 ])
 
-<div {{ $attributes->merge(['class' => 'overflow-hidden rounded-hb border border-hb-border bg-hb-surface']) }}>
+<div {{ $attributes->merge(['class' => 'overflow-hidden rounded-hb border border-hb-border bg-hb-surface shadow-hb-sm']) }}>
     <div class="w-full overflow-x-auto">
         <table class="min-w-full divide-y divide-hb-border text-start text-sm">
             @isset($head)
-                <thead class="bg-hb-page/80 text-xs font-semibold tracking-wide text-hb-muted uppercase">
+                <thead class="bg-hb-page text-xs font-semibold tracking-wide text-hb-muted uppercase [&_th]:whitespace-nowrap">
                     <tr>
                         {{ $head }}
                     </tr>
                 </thead>
             @endisset
 
-            <tbody class="divide-y divide-hb-border bg-hb-surface text-hb-text">
+            <tbody class="divide-y divide-hb-border bg-hb-surface text-hb-text [&_tr]:transition-colors [&_tr:hover]:bg-hb-page/70">
                 {{ $slot }}
             </tbody>
         </table>

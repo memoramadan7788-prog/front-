@@ -36,7 +36,7 @@ return [
         'location' => 'Enter your location.',
         'years_experience' => 'Enter years of experience.',
         'resume_file' => 'Select a CV / resume file to continue.',
-        'resume_size' => 'Choose a file under 5 MB for this frontend check.',
+        'resume_size' => 'Choose a file under 10 MB for this frontend check.',
         'preferred_roles' => 'Enter at least one preferred role.',
         'home_location' => 'Enter your home location.',
         'work_model' => 'Select a work model.',
@@ -102,6 +102,14 @@ return [
         'finish_candidate_next' => 'Explore candidate workspace →',
         'finish_company_next' => 'View review status →',
     ],
+    'resume' => [
+        'choose_file' => 'No file selected yet',
+        'required' => 'Select a resume file to continue.',
+        'invalid_type' => 'Use a PDF, DOC, or DOCX file.',
+        'too_large' => 'Choose a file under :max MB.',
+        'selected' => 'Selected: :name (:size)',
+    ],
+
     'status' => [
         'please_wait' => 'Please wait…',
         'draft_saved' => 'Draft saved on this device.',

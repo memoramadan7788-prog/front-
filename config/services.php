@@ -2,17 +2,21 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Third Party Services
-    |--------------------------------------------------------------------------
-    |
-    | This file is for storing the credentials for third party services such
-    | as Resend, Postmark, AWS, and more. This file provides the de facto
-    | location for this type of information, allowing packages to have
-    | a conventional file to locate the various service credentials.
-    |
-    */
+   
+    'backend' => [
+        'url'     => env('API_URL', 'http://localhost:8000/api'),
+        'timeout' => (int) env('API_TIMEOUT', 30),
+        // Proposed Candidate-safe paths (Backend approval required). Leave null until wired.
+        // Example proposals: '/companies/approved', '/candidate/membership'
+        'company_discovery_path' => env('API_COMPANY_DISCOVERY_PATH'),
+        'candidate_membership_path' => env('API_CANDIDATE_MEMBERSHIP_PATH'),
+        // Proposed avatar / notifications (see PROFILE_AVATAR_NOTIFICATIONS_BACKEND_REQUIREMENTS.md)
+        'profile_avatar_path' => env('API_PROFILE_AVATAR_PATH'),
+        'notifications_path' => env('API_NOTIFICATIONS_PATH'),
+        'notifications_unread_path' => env('API_NOTIFICATIONS_UNREAD_PATH'),
+    ],
+
+    
 
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),

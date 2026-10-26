@@ -2,320 +2,195 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
-@custom-variant dark (&:where(.dark, .dark *));
-
-/*
- |--------------------------------------------------------------------------
- | Hirebridge design tokens (Figma · 51 · Shared visual system)
- | Light mode is the Figma baseline. Dark mode is a derived semantic theme.
- | Primary Navy #142B4A · Primary Blue #2457C5 · Accent Teal #14B8A6
- |--------------------------------------------------------------------------
- */
-:root {
-    /* Frame 51 · Color roles (exact reference) */
-    --hb-navy: #142b4a;
-    --hb-blue: #2457c5;
-    --hb-teal: #14b8a6;
-    --hb-page: #f5f7fa;
-    --hb-surface: #ffffff;
-    --hb-text: #1f2937;
-    --hb-muted: #64748b;
-    --hb-border: #e2e8f0;
-    --hb-success: #276749;
-    --hb-success-soft: #edf7f0;
-    --hb-pending: #a85b18;
-    --hb-pending-soft: #fff7e8;
-    --hb-error: #b04a40;
-    --hb-error-soft: #fde0d0;
-    --hb-info-soft: #edf3ff;
-    --hb-sidebar: #142b4a;
-    --hb-nav-muted: #b8c6d9;
-    --hb-shadow-sm: 0 1px 2px rgb(20 43 74 / 0.06);
-    --hb-shadow-md: 0 8px 24px rgb(20 43 74 / 0.08);
-}
-
-.dark {
-    --hb-navy: #e8eef7;
-    --hb-blue: #6b9aff;
-    --hb-teal: #2dd4bf;
-    --hb-page: #0b1220;
-    --hb-surface: #121a2b;
-    --hb-text: #e5eaf2;
-    --hb-muted: #94a3b8;
-    --hb-border: #243247;
-    --hb-success: #4ade80;
-    --hb-success-soft: #12301f;
-    --hb-pending: #fbbf24;
-    --hb-pending-soft: #3a2a0f;
-    --hb-error: #f87171;
-    --hb-error-soft: #3a1515;
-    --hb-info-soft: #152238;
-    --hb-sidebar: #080e18;
-    --hb-nav-muted: #9db0c9;
-    --hb-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35);
-    --hb-shadow-md: 0 12px 28px rgb(0 0 0 / 0.45);
-}
 
 @theme {
-    --font-sans: 'Inter', 'Noto Sans Arabic', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-sans: 'Inter', 'Cairo', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
 
-    --color-hb-navy: var(--hb-navy);
+    /* design tokens (same palette as the Figma screens) */
+    --color-brand-50: #e6edfb;
+    --color-brand-500: #3b6be0;
+    --color-brand-600: #1d4ed8;
+    --color-brand-700: #1a43bd;
+    --color-accent-600: #0ea5e9; /* sky-500: same as the landing page */
+    --color-accent-700: #0284c7; /* sky-600 */
+    --color-ink: #0f1b33;
+    --color-muted: #64748b;
+    --color-line: #d9e1ee;
+}
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ===== TalentBridge design system (hb-*) ===== */
+:root {
+    --hb-blue: #1d4ed8;
+    --hb-accent: #1d4ed8;
+    --hb-accent-dark: #1a43bd;
+    --hb-navy: #0f1b33;
+    --hb-text: #1e293b;
+    --hb-muted: #64748b;
+    --hb-border: #d9e1ee;
+    --hb-surface: #ffffff;
+    --hb-page: #f4f7fc;
+    --hb-info-soft: #e6edfb;
+    --hb-success: #15803d;
+    --hb-success-soft: #dcfce7;
+    --hb-error: #dc2626;
+    --hb-error-soft: #fee2e2;
+    --hb-pending: #b45309;
+    --hb-pending-soft: #fef3c7;
+    --hb-teal: #0d9488;
+    --hb-sidebar: #0f1b33;
+    --hb-nav-muted: #b6c3dd;
+}
+.dark {
+    --hb-blue: #6f94f0;
+    --hb-accent: #3b6be0;
+    --hb-accent-dark: #2f58c4;
+    --hb-navy: #eaf0fc;
+    --hb-text: #dbe4f5;
+    --hb-muted: #94a3bd;
+    --hb-border: #26334f;
+    --hb-surface: #111b30;
+    --hb-page: #0b1324;
+    --hb-info-soft: #1a2b52;
+    --hb-success: #4ade80;
+    --hb-success-soft: #12301f;
+    --hb-error: #f87171;
+    --hb-error-soft: #3a1818;
+    --hb-pending: #fbbf24;
+    --hb-pending-soft: #3a2a0c;
+    --hb-teal: #2dd4bf;
+    --hb-sidebar: #0a1120;
+    --hb-nav-muted: #9fb0d0;
+}
+
+@theme inline {
     --color-hb-blue: var(--hb-blue);
-    --color-hb-teal: var(--hb-teal);
-    --color-hb-page: var(--hb-page);
-    --color-hb-surface: var(--hb-surface);
+    --color-hb-accent: var(--hb-accent);
+    --color-hb-accent-dark: var(--hb-accent-dark);
+    --color-hb-navy: var(--hb-navy);
     --color-hb-text: var(--hb-text);
     --color-hb-muted: var(--hb-muted);
     --color-hb-border: var(--hb-border);
+    --color-hb-surface: var(--hb-surface);
+    --color-hb-page: var(--hb-page);
+    --color-hb-info-soft: var(--hb-info-soft);
     --color-hb-success: var(--hb-success);
     --color-hb-success-soft: var(--hb-success-soft);
-    --color-hb-pending: var(--hb-pending);
-    --color-hb-pending-soft: var(--hb-pending-soft);
     --color-hb-error: var(--hb-error);
     --color-hb-error-soft: var(--hb-error-soft);
-    --color-hb-info-soft: var(--hb-info-soft);
+    --color-hb-pending: var(--hb-pending);
+    --color-hb-pending-soft: var(--hb-pending-soft);
+    --color-hb-teal: var(--hb-teal);
     --color-hb-sidebar: var(--hb-sidebar);
     --color-hb-nav-muted: var(--hb-nav-muted);
-
-    --shadow-hb-sm: var(--hb-shadow-sm);
-    --shadow-hb-md: var(--hb-shadow-md);
-    /* Frame 51 · Cards ≈ 10px; buttons/inputs use rounded-md (6–8px) */
-    --radius-hb: 0.625rem;
+    --radius-hb: 1.25rem;
+    --shadow-hb-sm: 0 1px 2px rgb(15 27 51 / .06);
+    --shadow-hb-md: 0 8px 24px -8px rgb(15 27 51 / .14);
+    --shadow-hb-lg: 0 24px 48px -16px rgb(15 27 51 / .22);
 }
 
 @layer base {
-    html {
-        @apply scroll-smooth antialiased;
-        color-scheme: light;
-    }
-
-    html.dark {
-        color-scheme: dark;
-    }
-
-    body {
-        @apply bg-hb-page font-sans text-hb-text;
-    }
-
-    [dir='rtl'] body {
-        font-family: 'Noto Sans Arabic', 'Inter', ui-sans-serif, system-ui, sans-serif;
-    }
-
-    a {
-        @apply transition-colors;
-    }
-
-    :focus-visible {
-        @apply outline-2 outline-offset-2 outline-hb-blue;
-    }
-
-    /* Keep emails, URLs, phones, and codes readable in RTL. */
-    [dir='rtl'] .hb-ltr,
-    [dir='rtl'] a[href^='mailto:'],
-    [dir='rtl'] a[href^='http'],
-    [dir='rtl'] a[href^='tel:'],
-    [dir='rtl'] code,
-    [dir='rtl'] kbd {
-        direction: ltr;
-        unicode-bidi: isolate;
-    }
+    body { font-family: var(--font-sans); }
+    html { scroll-behavior: smooth; }
 }
 
 @layer components {
-    .hb-container {
-        @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-16;
-    }
-
-    .hb-brand-mark {
-        @apply inline-flex h-8 w-8 items-center justify-center rounded-full bg-hb-blue text-sm font-semibold text-white;
-    }
-
-    .hb-nav-link {
-        @apply text-sm font-medium text-hb-text/80 hover:text-hb-blue;
-    }
-
-    .hb-btn-primary {
-        @apply inline-flex min-h-11 items-center justify-center rounded-md bg-hb-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1e4aad] focus-visible:outline-hb-blue;
-    }
-
-    .hb-btn-ghost {
-        @apply inline-flex min-h-11 items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold text-hb-text hover:bg-hb-page;
-    }
-
-    /* Frame 51 · Secondary: surface + blue border + blue text */
-    .hb-btn-outline {
-        @apply inline-flex min-h-11 items-center justify-center rounded-md border border-hb-blue bg-hb-surface px-4 py-2.5 text-sm font-semibold text-hb-blue hover:bg-hb-info-soft;
-    }
-
-    .hb-btn-destructive {
-        @apply inline-flex min-h-11 items-center justify-center rounded-md bg-hb-error px-4 py-2.5 text-sm font-semibold text-white hover:bg-hb-error/90 focus-visible:outline-hb-error;
-    }
-
-    .hb-btn-tertiary {
-        @apply inline-flex min-h-11 items-center justify-center rounded-md px-2 py-2 text-sm font-semibold text-hb-blue hover:underline;
-    }
+    .hb-container { width: 100%; max-width: 76rem; margin-inline: auto; padding-inline: 1.25rem; }
+    @media (min-width: 1024px) { .hb-container { padding-inline: 2rem; } }
 
     .hb-surface {
-        @apply rounded-hb border border-hb-border bg-hb-surface shadow-hb-sm;
+        background: var(--hb-surface);
+        border: 1px solid var(--hb-border);
+        border-radius: var(--radius-hb);
+        box-shadow: var(--shadow-hb-sm);
     }
 
-    /* Frame 51 · Typography hierarchy helpers */
-    .hb-page-title {
-        @apply text-[1.875rem] font-semibold tracking-tight text-hb-navy;
-    }
+    .hb-nav-link { font-size: .875rem; font-weight: 500; color: var(--hb-text); transition: color .15s; }
+    .hb-nav-link:hover { color: var(--hb-blue); }
 
-    .hb-section-title {
-        @apply text-xl font-semibold text-hb-navy;
+    .hb-btn-primary, .hb-btn-outline, .hb-btn-ghost {
+        display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+        min-height: 2.5rem; padding: .5rem 1.1rem; border-radius: 9999px;
+        font-size: .875rem; font-weight: 600; transition: background .15s, box-shadow .15s, transform .15s;
     }
+    .hb-btn-primary { background: var(--hb-accent); color: #fff; box-shadow: var(--shadow-hb-sm); }
+    .hb-btn-primary:hover { background: var(--hb-accent-dark); box-shadow: var(--shadow-hb-md); }
+    .hb-btn-outline { border: 1px solid var(--hb-blue); color: var(--hb-blue); background: var(--hb-surface); }
+    .hb-btn-outline:hover { background: var(--hb-info-soft); }
+    .hb-btn-ghost { color: var(--hb-text); }
+    .hb-btn-ghost:hover { background: var(--hb-page); }
 
-    .hb-lead {
-        @apply text-base font-normal leading-normal text-hb-text;
-    }
-
-    .hb-body {
-        @apply text-sm font-normal leading-normal text-hb-text;
-    }
-
-    .hb-meta {
-        @apply text-xs font-normal text-hb-muted;
-    }
-
-    .hb-mock-banner {
-        @apply border-b border-hb-pending/30 bg-hb-pending-soft px-4 py-2 text-center text-xs font-medium text-hb-pending;
-    }
-
-    .hb-label {
-        @apply mb-1.5 block text-sm font-medium text-hb-text;
-    }
-
+    .hb-label { display: block; margin-bottom: .375rem; font-size: .875rem; font-weight: 500; color: var(--hb-navy); }
     .hb-input {
-        @apply w-full min-h-11 rounded-md border border-hb-border bg-hb-surface px-3 py-2.5 text-sm text-hb-text placeholder:text-hb-muted/70;
-        @apply transition-[border-color,box-shadow] focus:border-hb-blue focus:outline-none focus:ring-2 focus:ring-hb-blue/20;
-        @apply disabled:cursor-not-allowed disabled:bg-hb-page disabled:opacity-60;
-        @apply aria-[invalid=true]:border-hb-error aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-hb-error/20;
-        @apply read-only:bg-hb-page read-only:text-hb-muted;
+        width: 100%; min-height: 2.75rem; padding: .5rem .875rem;
+        background: var(--hb-surface); color: var(--hb-text);
+        border: 1px solid var(--hb-border); border-radius: .75rem; font-size: .875rem;
+        transition: border-color .15s, box-shadow .15s;
     }
+    .hb-input:focus { outline: none; border-color: var(--hb-blue); box-shadow: 0 0 0 3px var(--hb-info-soft); }
+    .hb-field-error { margin-top: .25rem; font-size: .8125rem; color: var(--hb-error); }
+    .hb-checkbox { width: 1rem; height: 1rem; accent-color: var(--hb-accent); }
 
-    .hb-checkbox {
-        @apply h-4 w-4 rounded border-hb-border text-hb-blue focus:ring-hb-blue/30;
+    .hb-modal-overlay, .hb-modal-static-overlay { background: rgb(15 27 51 / .55); backdrop-filter: blur(2px); }
+    .hb-modal, .hb-modal-static {
+        background: var(--hb-surface); color: var(--hb-text);
+        border: 1px solid var(--hb-border); border-radius: var(--radius-hb); box-shadow: var(--shadow-hb-lg);
     }
-
-    .hb-field-error {
-        @apply mt-1.5 text-xs font-medium text-hb-error;
-    }
+    .hb-modal-close { color: var(--hb-muted); }
+    .hb-modal-close:hover { color: var(--hb-navy); }
+    .hb-tabs { border-bottom: 1px solid var(--hb-border); }
 }
 
-/*
- | Sticky workspace (72px) and public (≈88px) headers steal clicks when
- | scroll-into-view parks controls under the bar. App layout nests <header>
- | inside a flex column (not body > header), so :has must match descendants.
- */
-html {
-    scroll-padding-top: 5.5rem;
+@keyframes ring {
+  0%   { transform: scale(.92); opacity: .9; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+.hotspot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  border: 3px solid #fff;
+  animation: ring 1.8s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .hotspot::before { animation: none; } }
+
+/* ===== Enter-the-hall transition (zoom into the entrance) ===== */
+.scene-img { transform: scale(1); will-change: transform; }
+
+.scene-entering .scene-img {
+  transform: scale(var(--enter-scale, 4.5));
+  transform-origin: var(--enter-x, 50%) var(--enter-y, 50%);
+  transition: transform 2.6s cubic-bezier(.65, 0, .35, 1);
+}
+/* hide all overlay UI (text cards, hotspots) while zooming */
+.scene-entering .scene-ui { opacity: 0 !important; transition: opacity .5s ease; pointer-events: none; }
+
+/* white-sky flash at the end, as if we step through the door */
+.scene-fade { position: absolute; inset: 0; z-index: 40; background: #fff; opacity: 0; pointer-events: none; }
+.scene-entering .scene-fade { opacity: 1; transition: opacity .9s ease 1.7s; }
+
+/* arrival on the next scene: settle from slightly zoomed-in */
+@keyframes scene-arrive { from { transform: scale(1.18); opacity: .0; } to { transform: scale(1); opacity: 1; } }
+.scene-arrive .scene-img { animation: scene-arrive 1.4s cubic-bezier(.22, 1, .36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-entering .scene-img, .scene-entering .scene-fade, .scene-arrive .scene-img { transition: none; animation: none; }
 }
 
-html:has(header.sticky) {
-    scroll-padding-top: 6.5rem;
+/* ===== Chevron indicators (sidebar nav + account menu) =====
+   SVG path is chevron-down. Rotate 180° for the opposite state. */
+[data-sidebar-nav-toggle][aria-expanded="false"] [data-chevron] {
+    transform: rotate(180deg); /* collapsed → chevron up */
 }
 
-/*
- | Every focusable / clickable control in main needs clearance under the sticky
- | topbar — not only links and primary buttons (Batch 6B prep/live regressions).
- */
-#main-content :is(
-    a,
-    button,
-    input,
-    textarea,
-    select,
-    summary,
-    label,
-    [role='tab'],
-    [role='button'],
-    [role='checkbox'],
-    [role='radio'],
-    [data-select-interview],
-    [data-save-job],
-    [data-public-apply],
-    [data-prep-expand],
-    [data-live-expand],
-    [data-open-modal],
-    [data-checklist-item],
-    [data-prep-checklist-item],
-    [data-live-agenda],
-    [data-live-question],
-    [data-score-rating]
-) {
-    scroll-margin-top: 6.5rem;
-}
-
-/*
- | Inline anchors inside padded table cells report a tall line-box that is larger
- | than the painted text; center clicks miss the <a> and hit the <td>. Prefer
- | .hb-link-hit on critical table/action links for a reliable flex hit box.
- */
-.hb-link-hit {
-    display: inline-flex;
-    max-width: 100%;
-    min-height: 2.5rem;
-    align-items: center;
-}
-
-/*
- | Sticky topbar must not paint an invisible hit layer beyond its box.
- | isolate keeps stacking local; overflow clip prevents children from extending
- | the pointer target below the 72px bar.
- | pointer-events: none on the sticky shell lets clicks reach scrolled content
- | that sits under empty header chrome; interactive children re-enable hits.
- */
-header.sticky.top-0 {
-    overflow: clip;
-    pointer-events: none;
-}
-
-header.sticky.top-0 :is(a, button, input, select, textarea, [role='button'], [data-dropdown-trigger], [data-mobile-sidebar-toggle]) {
-    pointer-events: auto;
-}
-
-header.sticky.top-0 [data-dropdown-panel],
-header.sticky.top-0 [role='menu'] {
-    pointer-events: auto;
-}
-
-/* Closed off-canvas panels must not intercept pointer/keyboard or linger in a11y. */
-[data-mobile-sidebar]:not(.is-open),
-[data-jobs-filters]:not(.is-open),
-[data-mobile-sidebar-backdrop][hidden],
-[data-mobile-sidebar-backdrop].hidden {
-    pointer-events: none;
-    visibility: hidden;
-}
-
-[data-mobile-sidebar].is-open,
-[data-jobs-filters].is-open {
-    visibility: visible;
-}
-
-@media (min-width: 1024px) {
-    /* Desktop filter rail is always visible — restore interaction. */
-    [data-jobs-filters] {
-        pointer-events: auto;
-        visibility: visible;
-    }
+[data-dropdown-trigger][aria-expanded="true"] [data-chevron] {
+    transform: rotate(180deg); /* menu open → chevron up */
 }
 
 @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
+    [data-chevron] {
+        transition: none !important;
     }
 }

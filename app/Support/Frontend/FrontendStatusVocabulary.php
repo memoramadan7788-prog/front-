@@ -54,6 +54,7 @@ class FrontendStatusVocabulary
      */
     public static function membership(): array
     {
+        // Backend company_employees.status enum: pending | approved | rejected | removed
         return [
             'none' => [
                 'label' => __('status_vocab.membership.none'),
@@ -70,6 +71,10 @@ class FrontendStatusVocabulary
             'rejected' => [
                 'label' => __('status_vocab.membership.rejected'),
                 'variant' => 'error',
+            ],
+            'removed' => [
+                'label' => __('status_vocab.membership.removed'),
+                'variant' => 'neutral',
             ],
         ];
     }

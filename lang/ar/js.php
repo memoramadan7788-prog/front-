@@ -36,7 +36,7 @@ return [
         'location' => 'أدخل موقعك.',
         'years_experience' => 'أدخل سنوات الخبرة.',
         'resume_file' => 'اختر ملف سيرة ذاتية للمتابعة.',
-        'resume_size' => 'اختر ملفًا أقل من ٥ ميغابايت لهذا الفحص.',
+        'resume_size' => 'اختر ملفًا أقل من ١٠ ميغابايت لهذا الفحص.',
         'preferred_roles' => 'أدخل دورًا مفضلًا واحدًا على الأقل.',
         'home_location' => 'أدخل موقع الإقامة.',
         'work_model' => 'اختر نموذج العمل.',
@@ -102,6 +102,14 @@ return [
         'finish_candidate_next' => 'استكشف مساحة عمل المرشح ←',
         'finish_company_next' => 'عرض حالة المراجعة ←',
     ],
+    'resume' => [
+        'choose_file' => 'لم يُختر ملف بعد',
+        'required' => 'اختر ملف سيرة ذاتية للمتابعة.',
+        'invalid_type' => 'استخدم ملف PDF أو DOC أو DOCX.',
+        'too_large' => 'اختر ملفًا أقل من :max ميجابايت.',
+        'selected' => 'المحدد: :name (:size)',
+    ],
+
     'status' => [
         'please_wait' => 'يرجى الانتظار…',
         'draft_saved' => 'تم حفظ المسودة على هذا الجهاز.',

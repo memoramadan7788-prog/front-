@@ -21,7 +21,7 @@
 @endphp
 
 <span {{ $attributes->merge([
-    'class' => 'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium '.($variants[$variant] ?? $variants['neutral']),
+    'class' => 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium '.($variants[$variant] ?? $variants['neutral']),
 ]) }}>
     @if ($dot)
         <span class="h-1.5 w-1.5 rounded-full {{ $dotColors[$variant] ?? $dotColors['neutral'] }}" aria-hidden="true"></span>

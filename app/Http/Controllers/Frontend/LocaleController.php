@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetFrontendLocale;
+use App\Support\Frontend\SafeInternalRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 
 /**
- * Presentation-only locale switch — sets a cookie and redirects back.
- * No authentication or profile persistence.
+ * Sets the frontend presentation locale cookie and returns the user to a safe in-app URL.
+ * Does not alter authentication, roles, permissions, or theme preference.
  */
 class LocaleController extends Controller
 {
@@ -20,9 +21,7 @@ class LocaleController extends Controller
             $locale = config('app.fallback_locale', 'en');
         }
 
-        $redirectTo = url()->previous() !== url()->current()
-            ? url()->previous()
-            : route('home');
+        $redirectTo = SafeInternalRedirect::fromRequest($request);
 
         return redirect()
             ->to($redirectTo)

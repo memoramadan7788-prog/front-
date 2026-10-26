@@ -10,9 +10,10 @@ return [
     ],
     'membership' => [
         'none' => 'لا عضوية شركة',
-        'pending' => 'العضوية بانتظار المراجعة',
-        'approved' => 'العضوية معتمدة',
-        'rejected' => 'رُفضت العضوية',
+        'pending' => 'بانتظار المراجعة',
+        'approved' => 'معتمد',
+        'rejected' => 'مرفوض',
+        'removed' => 'تمت الإزالة',
     ],
     'account' => [
         'active' => 'نشط',

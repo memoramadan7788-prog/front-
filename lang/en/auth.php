@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'back_home' => 'Back to home',
+    'pitch' => [
+        'headline' => 'Where talent meets opportunity.',
+        'body' => 'Discover roles, take part in timed exams, book interviews and move your career forward, all in one place.',
+        'points' => [
+            'AI-assisted CV matching',
+            'Proctored online exams',
+            'Easy interview scheduling',
+        ],
+        'rights' => 'All rights reserved.',
+    ],
     'eyebrow' => 'Account access',
     'brand_tagline' => 'One connection. Your next chapter.',
     'brand_headline' => 'Good work starts with the right connection.',
@@ -11,11 +22,11 @@ return [
         'Thoughtful hiring journeys',
         'Your information, in your control',
     ],
-    'brand_footer' => 'Hirebridge · Privacy · Help',
+    'brand_footer' => 'TalentBridge · Privacy · Help',
     'login' => [
         'eyebrow' => 'Account access',
         'title' => 'Welcome back',
-        'page_title' => 'Sign in · Hirebridge',
+        'page_title' => 'Sign in · TalentBridge',
         'subtitle' => 'Sign in to continue your hiring journey.',
         'sso_google' => 'Continue with Google',
         'sso_company' => 'Continue with company SSO',
@@ -31,7 +42,7 @@ return [
         'submit' => 'Sign in',
         'continue_workspace' => 'Continue to candidate workspace',
         'continue_hint' => 'Your account determines your available workspaces. If you have multiple roles, you can switch after signing in.',
-        'new_here' => 'New to Hirebridge?',
+        'new_here' => 'New to TalentBridge?',
         'create_account' => 'Create an account',
         'need_help' => 'Need help?',
         'note_ready' => 'Your sign-in details look valid for this preview. Sign-in is not connected yet — explore a workspace when you are ready.',
@@ -41,7 +52,7 @@ return [
     'register' => [
         'eyebrow' => 'Account access',
         'title' => 'Create your account',
-        'page_title' => 'Create account · Hirebridge',
+        'page_title' => 'Create account · TalentBridge',
         'subtitle' => 'A clear next step for your career or your team.',
         'account_type_aria' => 'Account type',
         'form_aria' => 'Create account',
@@ -77,9 +88,9 @@ return [
     'forgot' => [
         'eyebrow' => 'Account access',
         'title' => 'Forgot your password?',
-        'page_title' => 'Forgot password · Hirebridge',
+        'page_title' => 'Forgot password · TalentBridge',
         'intro' => 'Enter the email associated with your account and we’ll help you continue.',
-        'intro_hirebridge' => 'Enter the email associated with your Hirebridge account to continue password recovery.',
+        'intro_hirebridge' => 'Enter the email associated with your TalentBridge account to continue password recovery.',
         'form_aria' => 'Request password reset',
         'email' => 'Email',
         'email_address' => 'Email address',
@@ -93,7 +104,7 @@ return [
     'verify' => [
         'eyebrow' => 'Account access',
         'title' => 'Check your inbox',
-        'page_title' => 'Verify email · Hirebridge',
+        'page_title' => 'Verify email · TalentBridge',
         'intro' => 'Enter the verification code we sent to confirm your email.',
         'intro_before' => 'Enter a six-digit code as you would after we send one to',
         'intro_after' => '.',
@@ -125,7 +136,7 @@ return [
     'reset' => [
         'eyebrow' => 'Account access',
         'title' => 'Set a new password',
-        'page_title' => 'Reset password · Hirebridge',
+        'page_title' => 'Reset password · TalentBridge',
         'subtitle' => 'Choose a strong password you haven’t used for this account.',
         'preview_title' => 'Password reset form',
         'preview_before' => 'Preview for',
@@ -146,5 +157,11 @@ return [
         'continue_sign_in' => 'Return to sign in →',
         'after_reset' => 'When reset is connected, you’ll return to sign in. Applications and workspace data won’t change.',
         'back_sign_in' => 'Back to sign in',
+    ],
+    'flash' => [
+        'register_candidate' => 'Your account was created successfully.',
+        'register_company_pending' => 'Company registered successfully. Your account is pending admin review.',
+        'login_success' => 'Signed in successfully.',
+        'login_company_pending' => 'Your account is pending admin review. You cannot publish jobs until approval.',
     ],
 ];

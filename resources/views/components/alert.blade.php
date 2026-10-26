@@ -13,7 +13,7 @@
 
 <div
     {{ $attributes->merge([
-        'class' => 'rounded-lg border px-4 py-3 text-sm '.($variants[$variant] ?? $variants['info']),
+        'class' => 'rounded-xl border px-4 py-3 text-sm shadow-hb-sm '.($variants[$variant] ?? $variants['info']),
         'role' => $attributes->get('role', 'status'),
     ]) }}
 >

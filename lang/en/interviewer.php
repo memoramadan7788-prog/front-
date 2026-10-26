@@ -2,7 +2,7 @@
 
 return [
     'dashboard' => [
-        'page_title' => 'Overview · Hirebridge',
+        'page_title' => 'Overview · TalentBridge',
         'breadcrumb' => 'Interviewer workspace / Overview',
         'greeting' => 'Good morning, Alex',
         'intro' => 'Your upcoming conversations and the preparation that makes them count.',
@@ -57,7 +57,7 @@ return [
         'availability_note' => 'Central Time · Calendar connection preview. Last checked today at 8:30 AM.',
     ],
     'schedule' => [
-        'page_title' => 'My interview schedule · Hirebridge',
+        'page_title' => 'My interview schedule · TalentBridge',
         'breadcrumb' => 'Interviewer workspace / My schedule',
         'title' => 'My interview schedule',
         'edit_availability' => 'Edit availability',
@@ -111,7 +111,7 @@ return [
         ],
     ],
     'prepare' => [
-        'page_title' => 'Prepare · :name · Hirebridge',
+        'page_title' => 'Prepare · :name · TalentBridge',
         'breadcrumb' => 'Interviewer workspace / Interview preparation',
         'title' => 'Prepare to meet :name',
         'meta_maya' => 'Thursday, Oct 22 · 10:00–10:45 AM Central',
@@ -190,7 +190,7 @@ return [
         'meeting_soon' => 'Meeting links are not available in this preview.',
     ],
     'live' => [
-        'page_title' => 'Live interview · :name · Hirebridge',
+        'page_title' => 'Live interview · :name · TalentBridge',
         'breadcrumb' => 'Interviewer workspace / Live interview',
         'status_in_progress' => 'In progress · Local session',
         'open_meeting' => 'Open meeting',
@@ -251,12 +251,12 @@ return [
         'context_heading' => 'Session context',
     ],
     'evaluations' => [
-        'index_page_title' => 'Scorecards · Hirebridge',
+        'index_page_title' => 'Scorecards · TalentBridge',
         'index_breadcrumb' => 'Interviewer workspace / Scorecards',
         'index_title' => 'Scorecards',
         'index_intro' => 'Draft and complete feedback for interviews assigned to you. Drafts stay on this device until backend submission exists.',
         'breadcrumb' => 'Interviewer workspace / Scorecards',
-        'page_title' => 'Scorecard · :name · Hirebridge',
+        'page_title' => 'Scorecard · :name · TalentBridge',
         'title' => 'Submit scorecard · :name',
         'draft_saved_meta' => 'Draft saved on this device',
         'col_candidate' => 'Candidate',

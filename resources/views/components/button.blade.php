@@ -9,7 +9,10 @@
 
 @php
     $variants = [
-        'primary' => 'bg-hb-blue text-white hover:bg-[#1e4aad] focus-visible:outline-hb-blue',
+        'primary' => 'bg-hb-accent text-white shadow-sm hover:bg-hb-accent-dark focus-visible:outline-hb-blue',
+        'cta' => 'bg-hb-accent text-white shadow-sm hover:bg-hb-accent-dark focus-visible:outline-hb-blue',
+        'light' => 'border border-hb-border bg-white text-hb-navy hover:bg-hb-page',
+        'hall-ghost' => 'border border-white/70 bg-white/10 text-white backdrop-blur hover:bg-white/25',
         'secondary' => 'border border-hb-blue bg-hb-surface text-hb-blue hover:bg-hb-info-soft focus-visible:outline-hb-blue',
         'outline' => 'border border-hb-blue bg-hb-surface text-hb-blue hover:bg-hb-info-soft focus-visible:outline-hb-blue',
         'ghost' => 'bg-transparent text-hb-text hover:bg-hb-page',
@@ -18,9 +21,9 @@
     ];
 
     $sizes = [
-        'sm' => 'min-h-9 rounded-md px-3 py-1.5 text-xs font-semibold',
-        'md' => 'min-h-11 rounded-md px-4 py-2.5 text-sm font-semibold',
-        'lg' => 'min-h-12 rounded-md px-5 py-3 text-base font-semibold',
+        'sm' => 'min-h-9 rounded-full px-3 py-1.5 text-xs font-semibold',
+        'md' => 'min-h-11 rounded-full px-4 py-2.5 text-sm font-semibold',
+        'lg' => 'min-h-12 rounded-full px-5 py-3 text-base font-semibold',
     ];
 
     $isDisabled = $disabled || $loading;

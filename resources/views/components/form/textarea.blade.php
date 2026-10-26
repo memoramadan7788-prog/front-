@@ -3,6 +3,7 @@
     'name' => null,
     'required' => false,
     'error' => null,
+    'hint' => null,
     'rows' => 4,
 ])
 
@@ -27,6 +28,9 @@
         @if ($error) aria-invalid="true" aria-describedby="{{ $id }}-error" @endif
         {{ $attributes->merge(['class' => 'hb-input']) }}
     >{{ $slot }}</textarea>
+    @if ($hint && ! $error)
+        <p class="mt-1.5 text-xs text-hb-muted">{{ $hint }}</p>
+    @endif
     @if ($error)
         <p id="{{ $id }}-error" class="hb-field-error" role="alert">{{ $error }}</p>
     @endif

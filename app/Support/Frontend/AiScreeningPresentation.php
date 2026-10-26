@@ -2,11 +2,7 @@
 
 namespace App\Support\Frontend;
 
-/**
- * Frontend-only AI CV match / HR review presentation (F9C / WF4).
- * Proposed mock contract aligned to ERD cv_match_results + ai_review_decisions.
- * Not a real AI score or hiring decision.
- */
+
 class AiScreeningPresentation
 {
     public const RUN_PENDING = 'pending';

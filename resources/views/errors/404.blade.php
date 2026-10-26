@@ -1,6 +1,6 @@
-@extends('layouts.public')
+@extends('frontend.layouts.public')
 
-@section('title', 'Page not found · Hirebridge')
+@section('title', 'Page not found · TalentBridge')
 
 @section('content')
     <section class="bg-hb-page">
@@ -11,8 +11,8 @@
                 The demo link may be incorrect, or the screen isn’t available yet.
             </p>
             <div class="mt-8 flex flex-wrap justify-center gap-3">
-                <x-button variant="primary" :href="route('home')">Back to home</x-button>
-                <x-button variant="secondary" :href="route('jobs.index')">Browse jobs</x-button>
+                <x-button variant="primary" :href="route('frontend.home')">Back to home</x-button>
+                <x-button variant="secondary" :href="route('frontend.jobs.index')">Browse jobs</x-button>
             </div>
         </div>
     </section>

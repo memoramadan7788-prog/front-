@@ -4,12 +4,12 @@
 
 <div {{ $attributes->merge(['class' => 'hb-surface overflow-hidden']) }}>
     @isset($header)
-        <div class="border-b border-hb-border px-5 py-4">
+        <div class="border-b border-hb-border bg-hb-page/50 px-6 py-4">
             {{ $header }}
         </div>
     @endisset
 
-    <div @class(['px-5 py-4' => $padding])>
+    <div @class(['px-6 py-5' => $padding])>
         {{ $slot }}
     </div>
 

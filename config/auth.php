@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\User;
 
 return [
 
@@ -38,9 +37,9 @@ return [
     */
 
     'guards' => [
+        // Not Eloquent: the user lives in the session (see App\Frontend\Auth\ApiSession + AppServiceProvider)
         'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
+            'driver' => 'api-session',
         ],
     ],
 
@@ -64,7 +63,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', User::class),
+            'model' => env('AUTH_MODEL', 'App\\Models\\User'),
         ],
 
         // 'users' => [

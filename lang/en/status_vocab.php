@@ -10,9 +10,10 @@ return [
     ],
     'membership' => [
         'none' => 'No company membership',
-        'pending' => 'Membership pending review',
-        'approved' => 'Membership approved',
-        'rejected' => 'Membership rejected',
+        'pending' => 'Pending review',
+        'approved' => 'Approved',
+        'rejected' => 'Rejected',
+        'removed' => 'Removed',
     ],
     'account' => [
         'active' => 'Active',

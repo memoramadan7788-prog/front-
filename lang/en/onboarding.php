@@ -2,7 +2,7 @@
 
 return [
     'candidate' => [
-        'page_title' => 'Build a profile that feels like you · Hirebridge',
+        'page_title' => 'Build a profile that feels like you · TalentBridge',
         'breadcrumb' => 'My workspace / Profile & resume',
         'title' => 'Build a profile that feels like you',
         'eyebrow' => 'Candidate onboarding',
@@ -34,7 +34,7 @@ return [
         'years_experience_suffix' => 'years’ experience',
         'in_control' => 'You’re in control',
         'salary_privacy' => 'Salary preferences aren’t shown publicly. Recruiters only see your profile according to the visibility settings you choose.',
-        'ready_review' => 'Your profile details are ready to review on this device. Nothing was saved to Hirebridge yet.',
+        'ready_review' => 'Your profile details are ready to review on this device. Nothing was saved to TalentBridge yet.',
         'explore_workspace' => 'Explore candidate workspace →',
         'saved_hint' => 'Draft saved on this device · You can update these preferences at any time.',
         'photo_hint' => 'PNG, JPG, or WebP · Square photo preferred.',
@@ -107,7 +107,7 @@ return [
         ],
     ],
     'company' => [
-        'page_title' => 'Set up your hiring workspace · Hirebridge',
+        'page_title' => 'Set up your hiring workspace · TalentBridge',
         'breadcrumb' => 'Company workspace / Overview',
         'title' => 'Set up your hiring workspace',
         'eyebrow' => 'Company onboarding',
@@ -200,7 +200,7 @@ return [
                 ],
                 'agency' => [
                     'title' => 'Agency support',
-                    'copy' => 'Partner with Hirebridge specialists for sourced shortlists.',
+                    'copy' => 'Partner with TalentBridge specialists for sourced shortlists.',
                 ],
                 'both' => [
                     'title' => 'Direct hiring and agency support',
@@ -224,7 +224,7 @@ return [
         ],
     ],
     'company_status' => [
-        'page_title' => 'Company review status · Hirebridge',
+        'page_title' => 'Company review status · TalentBridge',
         'breadcrumb' => 'Company workspace / Overview',
         'title' => 'Review in progress',
         'title_approved' => 'Organization approved',
