@@ -51,6 +51,9 @@ Route::prefix('/')->name('frontend.')->group(function () {
     Route::prefix('account')->middleware('guest')->name('account.')->group(function () {
         Route::get('/login', [AuthController::class, 'login'])->name('login');
         Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+        // Platform Super Admin (Admin model) — separate from Candidate/Company /auth/login.
+        Route::get('/admin-login', [AuthController::class, 'adminLogin'])->name('admin-login');
+        Route::post('/admin-login', [AuthController::class, 'adminLogin'])->name('admin-login.submit');
         Route::get('/register', [AuthController::class, 'register'])->name('register');
         Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
     });

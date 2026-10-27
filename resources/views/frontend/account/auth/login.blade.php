@@ -45,4 +45,9 @@
         Don't have an account?
         <a href="{{ route('frontend.account.register') }}" class="font-bold text-sky-600 hover:underline">Sign up</a>
     </p>
+
+    <p class="mt-4 text-center text-sm text-slate-500">
+        {{ __('auth.admin_login.portal_hint') }}
+        <a href="{{ route('frontend.account.admin-login') }}" class="font-bold text-sky-600 hover:underline">{{ __('auth.admin_login.portal_link') }}</a>
+    </p>
 @endsection

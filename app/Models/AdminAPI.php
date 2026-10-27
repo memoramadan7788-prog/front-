@@ -17,6 +17,102 @@ class AdminAPI
         );
     }
 
+    /**
+     * POST /api/admin/login — platform Admin (Admin model) only.
+     * Never log plaintext passwords.
+     *
+     * @param  array{email: string, password: string}  $data
+     * @return array{message: string, data: mixed, errors: array<string, mixed>|null, statusCode: int}
+     */
+    public function login(array $data): array
+    {
+        $payload = [
+            'email' => (string) ($data['email'] ?? ''),
+            'password' => (string) ($data['password'] ?? ''),
+        ];
+
+        $res = $this->api->reset()->method('POST')
+            ->url('/admin/login')
+            ->body($payload)
+            ->send();
+
+        unset($payload, $data);
+
+        if ($res->ok()) {
+            return [
+                'message' => $res->message ?: 'Login successful.',
+                'data' => is_array($res->data) ? $res->data : null,
+                'errors' => null,
+                'statusCode' => 200,
+            ];
+        }
+
+        return [
+            'message' => $res->message ?: "HTTP {$res->statusCode}",
+            'data' => is_array($res->data) ? $res->data : null,
+            'errors' => is_array($res->errors) ? $res->errors : null,
+            'statusCode' => (int) $res->statusCode,
+        ];
+    }
+
+    /**
+     * GET /api/admin/me — platform Admin identity (not GET /auth/me).
+     *
+     * @return array{message: string, data: mixed, errors: array<string, mixed>|null, statusCode: int}
+     */
+    public function me(): array
+    {
+        $res = $this->api->reset()->method('GET')
+            ->url('/admin/me')
+            ->bearer(ApiSession::token() ?? '')
+            ->send();
+
+        if ($res->ok()) {
+            return [
+                'message' => $res->message ?: 'OK',
+                'data' => $res->data,
+                'errors' => null,
+                'statusCode' => 200,
+            ];
+        }
+
+        return [
+            'message' => $res->message ?: "HTTP {$res->statusCode}",
+            'data' => null,
+            'errors' => is_array($res->errors) ? $res->errors : null,
+            'statusCode' => (int) $res->statusCode,
+        ];
+    }
+
+    /**
+     * POST /api/admin/logout — revokes current platform Admin Sanctum token.
+     *
+     * @return array{message: string, data: mixed, errors: array<string, mixed>|null, statusCode: int}
+     */
+    public function logout(): array
+    {
+        $res = $this->api->reset()->method('POST')
+            ->url('/admin/logout')
+            ->bearer(ApiSession::token() ?? '')
+            ->send();
+
+        if ($res->ok()) {
+            return [
+                'message' => $res->message ?: 'Logout successful.',
+                'data' => $res->data,
+                'errors' => null,
+                'statusCode' => 200,
+            ];
+        }
+
+        return [
+            'message' => $res->message ?: "HTTP {$res->statusCode}",
+            'data' => null,
+            'errors' => is_array($res->errors) ? $res->errors : null,
+            'statusCode' => (int) $res->statusCode,
+        ];
+    }
+
     public function getCompanies($filters = [])
     {
         $message = '';

@@ -4,6 +4,7 @@ namespace App\Frontend\Account;
 
 use App\Frontend\Auth\ApiSession;
 use App\Models\AccountAPI;
+use App\Models\AdminAPI;
 use App\Models\CandidateAPI;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -13,7 +14,9 @@ use Illuminate\Routing\Controller;
 /**
  * Shared account pages (profile settings, change password).
  *
- * Profile: GET /auth/me (read-only). No authenticated profile-update API exists on Backend.
+ * Profile:
+ * - User realm → GET /auth/me
+ * - Platform Admin realm → GET /admin/me (never /auth/me with Admin tokens)
  * Password (Candidate): PUT /api/candidate/change-password — Company/Admin remain unavailable.
  */
 class AccountController extends Controller
@@ -21,17 +24,24 @@ class AccountController extends Controller
     public function __construct(
         private readonly AccountAPI $accounts,
         private readonly CandidateAPI $candidates,
+        private readonly AdminAPI $admins,
     ) {}
 
     public function profile(Request $request): View|RedirectResponse
     {
-        $response = $this->accounts->getProfile();
+        $loginRoute = ApiSession::isPlatformAdmin()
+            ? 'frontend.account.admin-login'
+            : 'frontend.account.login';
+
+        $response = ApiSession::isPlatformAdmin()
+            ? $this->admins->me()
+            : $this->accounts->getProfile();
         $status = (int) ($response['statusCode'] ?? $response['httpStatus'] ?? 500);
 
         if ($status === 401) {
             ApiSession::forget();
 
-            return redirect()->route('frontend.account.login')
+            return redirect()->route($loginRoute)
                 ->withErrors(['error' => __('Your session has expired. Please sign in again.')]);
         }
 
@@ -49,7 +59,9 @@ class AccountController extends Controller
             ]);
         }
 
-        $user = $this->extractUser($response['data'] ?? null) ?? (ApiSession::user() ?? []);
+        $user = ApiSession::isPlatformAdmin()
+            ? ($this->extractPlatformAdmin($response['data'] ?? null) ?? (ApiSession::user() ?? []))
+            : ($this->extractUser($response['data'] ?? null) ?? (ApiSession::user() ?? []));
 
         if ($user !== []) {
             ApiSession::refreshUser($user);
@@ -168,5 +180,35 @@ class AccountController extends Controller
         }
 
         return null;
+    }
+
+    /** @param  mixed  $data */
+    private function extractPlatformAdmin(mixed $data): ?array
+    {
+        if (! is_array($data)) {
+            return null;
+        }
+
+        if (isset($data['data']) && is_array($data['data']) && ! isset($data['email'])) {
+            $data = $data['data'];
+        }
+
+        if (! isset($data['email'])) {
+            return null;
+        }
+
+        $roles = is_array($data['roles'] ?? null) ? array_values($data['roles']) : [];
+        $permissions = is_array($data['permissions'] ?? null) ? array_values($data['permissions']) : [];
+
+        return [
+            'id' => $data['id'] ?? $data['email'],
+            'name' => $data['name'] ?? '',
+            'email' => $data['email'],
+            'account_type' => 'admin',
+            'identity' => ApiSession::REALM_PLATFORM_ADMIN,
+            'roles' => $roles,
+            'permissions' => $permissions,
+            'account_status_id' => $data['account_status_id'] ?? null,
+        ];
     }
 }
