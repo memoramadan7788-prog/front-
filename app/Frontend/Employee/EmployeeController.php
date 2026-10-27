@@ -60,13 +60,8 @@ class EmployeeController extends Controller
                 ->withInput();
         }
 
-        $companyQuery = trim((string) $request->query('q', ''));
-        $companyPage = max(1, (int) $request->query('page', 1));
-
-        $discovery = $this->membership->searchCompanies(
-            $companyQuery !== '' ? $companyQuery : null,
-            $companyPage,
-        );
+        // Dropdown is populated from discovery page 1 (names only; IDs stay internal).
+        $discovery = $this->membership->searchCompanies(null, 1);
         $mine = $this->membership->myMembership();
 
         if ((int) ($discovery['statusCode'] ?? 0) === 401 || (int) ($mine['statusCode'] ?? 0) === 401) {
@@ -106,9 +101,9 @@ class EmployeeController extends Controller
             'discoveryLoading' => false,
             'companies' => $companies,
             'companiesMeta' => $companiesMeta,
-            'companyQuery' => $companyQuery,
-            'companyPage' => $companyPage,
-            'canSubmit' => $this->membership->canSubmitJoinRequest() && $discoveryError === null,
+            'canSubmit' => $this->membership->canSubmitJoinRequest()
+                && $discoveryError === null
+                && $companies !== [],
             'membershipAvailable' => (bool) ($mine['available'] ?? false),
             'membershipError' => $membershipError,
             'membershipRows' => $membershipRows,

@@ -28,7 +28,7 @@ class CandidateCompanyMembershipTest extends TestCase
         ])->assertRedirect(route('frontend.account.login'));
     }
 
-    public function test_page_shows_list_unavailable_and_disables_submit_without_visible_company_ids(): void
+    public function test_page_shows_dropdown_unavailable_and_disables_submit(): void
     {
         $this->actingAsCandidate();
         $this->bindUnavailableGateway();
@@ -42,7 +42,7 @@ class CandidateCompanyMembershipTest extends TestCase
         $this->assertStringContainsString(__('candidate.membership.list_unavailable_title'), $html);
         $this->assertStringContainsString(__('candidate.membership.status_unavailable_title'), $html);
         $this->assertStringContainsString(__('candidate.membership.requests_title'), $html);
-        $this->assertStringContainsString(__('candidate.membership.company_list_label'), $html);
+        $this->assertStringContainsString(__('candidate.membership.company'), $html);
         $this->assertStringContainsString(__('candidate.membership.job_title'), $html);
         $this->assertStringContainsString(__('candidate.membership.department'), $html);
         $this->assertStringContainsString(__('candidate.membership.approval_note'), $html);
@@ -55,6 +55,7 @@ class CandidateCompanyMembershipTest extends TestCase
         $this->assertStringContainsString('data-discovery-unavailable', $html);
         $this->assertStringNotContainsString('name="company_id"', $html);
         $this->assertStringNotContainsString('Acme Technologies', $html);
+        $this->assertStringNotContainsString('data-company-card', $html);
         $this->assertStringNotContainsString('data-company-list', $html);
         $this->assertMatchesRegularExpression('/type="submit"[^>]*\bdisabled\b|disabled[^>]*type="submit"/', $html);
     }
@@ -84,7 +85,7 @@ class CandidateCompanyMembershipTest extends TestCase
         $this->assertSame(__('candidate.membership.submit_disabled'), session('errors')->first('error'));
     }
 
-    public function test_list_first_companies_render_as_selectable_cards_without_showing_ids_as_labels(): void
+    public function test_companies_render_as_single_select_dropdown_without_showing_ids_as_labels(): void
     {
         $this->actingAsCandidate();
 
@@ -98,7 +99,6 @@ class CandidateCompanyMembershipTest extends TestCase
                     'id' => 12,
                     'name' => 'Northstar Labs',
                     'industry' => 'Technology',
-                    'location' => 'Amman',
                 ],
                 [
                     'id' => 15,
@@ -108,9 +108,9 @@ class CandidateCompanyMembershipTest extends TestCase
             ],
             'meta' => [
                 'current_page' => 1,
-                'last_page' => 2,
-                'per_page' => 15,
-                'total' => 16,
+                'last_page' => 1,
+                'per_page' => 100,
+                'total' => 2,
             ],
             'errors' => null,
         ]);
@@ -126,35 +126,34 @@ class CandidateCompanyMembershipTest extends TestCase
 
         $html = $this->get(route('frontend.candidate.join-company'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('data-company-list', $html);
+        $this->assertStringContainsString('name="company_id"', $html);
+        $this->assertStringContainsString('<select', $html);
         $this->assertStringContainsString('Northstar Labs', $html);
         $this->assertStringContainsString('Meridian Studio', $html);
-        $this->assertStringContainsString('Technology', $html);
-        $this->assertStringContainsString('type="radio"', $html);
-        $this->assertStringContainsString('name="company_id"', $html);
         $this->assertStringContainsString('value="12"', $html);
-        $this->assertStringContainsString(__('candidate.membership.company_filter_placeholder'), $html);
-        $this->assertStringContainsString(__('candidate.membership.company_load_more'), $html);
-        $this->assertStringContainsString(__('candidate.membership.company_page_status', ['current' => 1, 'last' => 2]), $html);
+        $this->assertStringContainsString('value="15"', $html);
+        $this->assertStringContainsString(__('candidate.membership.company'), $html);
+        $this->assertStringContainsString(__('candidate.membership.company_placeholder'), $html);
+        $this->assertStringNotContainsString('type="radio"', $html);
+        $this->assertStringNotContainsString('data-company-card', $html);
+        $this->assertStringNotContainsString(__('candidate.membership.company_load_more'), $html);
         $this->assertStringNotContainsString(__('candidate.membership.list_unavailable_title'), $html);
-        // Numeric IDs are only radio values — never visible labels/text nodes.
         $this->assertStringNotContainsString('>12<', $html);
         $this->assertStringNotContainsString('>15<', $html);
         $this->assertDoesNotMatchRegularExpression('/type="submit"[^>]*\bdisabled\b|disabled[^>]*type="submit"/', $html);
-        $this->assertStringContainsString('data-membership-submit', $html);
     }
 
-    public function test_company_filter_query_is_passed_to_gateway(): void
+    public function test_empty_company_list_disables_submit(): void
     {
         $this->actingAsCandidate();
 
         $gateway = Mockery::mock(CompanyMembershipGateway::class);
-        $gateway->shouldReceive('searchCompanies')->once()->with('north', 2)->andReturn([
+        $gateway->shouldReceive('searchCompanies')->once()->with(null, 1)->andReturn([
             'available' => true,
             'statusCode' => 200,
             'message' => 'OK',
             'data' => [],
-            'meta' => ['current_page' => 2, 'last_page' => 2, 'total' => 0],
+            'meta' => ['current_page' => 1, 'last_page' => 1, 'total' => 0],
             'errors' => null,
         ]);
         $gateway->shouldReceive('myMembership')->once()->andReturn([
@@ -167,12 +166,10 @@ class CandidateCompanyMembershipTest extends TestCase
         $gateway->shouldReceive('canSubmitJoinRequest')->once()->andReturn(true);
         $this->app->instance(CompanyMembershipGateway::class, $gateway);
 
-        $html = $this->get(route('frontend.candidate.join-company', ['q' => 'north', 'page' => 2]))
-            ->assertOk()
-            ->getContent();
+        $html = $this->get(route('frontend.candidate.join-company'))->assertOk()->getContent();
 
-        $this->assertStringContainsString(__('candidate.membership.company_list_empty_filtered'), $html);
-        $this->assertStringContainsString('value="north"', $html);
+        $this->assertStringContainsString(__('candidate.membership.company_list_empty_title'), $html);
+        $this->assertMatchesRegularExpression('/type="submit"[^>]*\bdisabled\b|disabled[^>]*type="submit"/', $html);
     }
 
     public function test_successful_join_when_discovery_enabled_uses_existing_contract(): void
@@ -298,8 +295,8 @@ class CandidateCompanyMembershipTest extends TestCase
 
         $this->assertStringContainsString(__('candidate.membership.discovery_load_error_title'), $html);
         $this->assertStringContainsString('Discovery down', $html);
-        $this->assertStringNotContainsString('data-company-list', $html);
-        $this->assertMatchesRegularExpression('/type="submit"[^>]*disabled|disabled[^>]*type="submit"/', $html);
+        $this->assertStringNotContainsString('name="company_id"', $html);
+        $this->assertMatchesRegularExpression('/type="submit"[^>]*\bdisabled\b|disabled[^>]*type="submit"/', $html);
     }
 
     public function test_unauthorized_join_clears_session_and_redirects_to_login(): void
@@ -325,7 +322,7 @@ class CandidateCompanyMembershipTest extends TestCase
         $this->assertNull(ApiSession::token());
     }
 
-    public function test_arabic_locale_renders_list_first_membership_copy(): void
+    public function test_arabic_locale_renders_dropdown_membership_copy(): void
     {
         $this->actingAsCandidate();
         $this->bindUnavailableGateway();
@@ -336,7 +333,7 @@ class CandidateCompanyMembershipTest extends TestCase
             ->getContent();
 
         $this->assertStringContainsString(__('candidate.membership.list_unavailable_title', [], 'ar'), $html);
-        $this->assertStringContainsString(__('candidate.membership.company_list_label', [], 'ar'), $html);
+        $this->assertStringContainsString(__('candidate.membership.company', [], 'ar'), $html);
         $this->assertStringContainsString('dir="rtl"', $html);
     }
 

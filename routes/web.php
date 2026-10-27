@@ -63,7 +63,7 @@ Route::prefix('/')->name('frontend.')->group(function () {
 
     // Candidate
     Route::prefix('candidate')->middleware(['auth', 'account:candidate'])->name('candidate.')->group(function () {
-        Route::view('/dashboard', 'frontend.candidate.dashboard')->name('dashboard');
+        Route::get('/dashboard', [CandidateController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [CandidateController::class, 'getProfile'])->name('profile');
         Route::get('/profile/update', [CandidateController::class, 'updateProfile'])->name('profile.update');
         Route::post('/profile/update', [CandidateController::class, 'updateProfile'])->name('profile.update.submit');

@@ -9,7 +9,7 @@ namespace App\Support\Frontend\CompanyMembership;
  *   POST /api/company/join-requests
  *
  * Proposed (Backend approval required — see reports/COMPANY_MEMBERSHIP_BACKEND_API_REQUIREMENTS.md):
- *   GET /api/companies/approved — list-first discovery with pagination + optional q filter
+ *   GET /api/companies/approved — discovery for Company dropdown (pagination + optional q)
  *   GET /api/candidate/membership (or equivalent personal join-request status)
  *
  * Implementations must never call Admin-only company APIs.
@@ -17,10 +17,10 @@ namespace App\Support\Frontend\CompanyMembership;
 interface CompanyMembershipGateway
 {
     /**
-     * List eligible (approved) companies for the Candidate join UI.
+     * List eligible (approved) companies for the Candidate Company dropdown.
      *
-     * List-first: returns a page of companies (id + public name/details). Optional
-     * $query filters the list; it is not a search-only UX without a visible list.
+     * Returns companies (id + name). Optional $query may filter; current UI uses a
+     * simple single-select populated from the default list.
      *
      * @return array{
      *     available: bool,

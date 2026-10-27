@@ -37,18 +37,13 @@ class HttpCompanyMembershipGateway implements CompanyMembershipGateway
             );
         }
 
-        // List-first discovery: always request a page; optional q filters the list.
+        // Dropdown selector: load approved companies by name (optional q; paginated).
         $params = array_filter([
             'q' => $query !== null && trim($query) !== '' ? trim($query) : null,
             'page' => max(1, $page),
-            'per_page' => 15,
+            'per_page' => 100,
             'status' => 'approved',
         ], static fn ($v) => $v !== null);
-
-        // Keep page=1 in the query so Backend pagination contracts stay explicit.
-        if (! isset($params['page'])) {
-            $params['page'] = 1;
-        }
 
         $queryString = http_build_query($params);
         $url = $path.($queryString !== '' ? '?'.$queryString : '');

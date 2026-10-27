@@ -1,5 +1,6 @@
 // TalentBridge frontend behaviour.
 // Hooks are plain data-attributes in the Blade views (topbar, layouts, modal).
+import './candidate-dashboard-analytics.js';
 
 /* ---------- Dropdowns: [data-dropdown-trigger] + [data-dropdown-panel] ---------- */
 function closeDropdown(trigger) {

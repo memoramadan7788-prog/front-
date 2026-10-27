@@ -25,6 +25,24 @@ class CandidateController extends Controller
         $this->api = $api;
     }
 
+    public function dashboard(CandidateDashboardAdapter $adapter)
+    {
+        $payload = $adapter->load();
+
+        if (! empty($payload['unauthorized'])) {
+            ApiSession::forget();
+
+            return redirect()->route('frontend.account.login')
+                ->withErrors(['error' => __('candidate.pipeline.session_expired')]);
+        }
+
+        return view('frontend.candidate.dashboard', [
+            'kpis' => $payload['kpis'] ?? [],
+            'analytics' => $payload['analytics'] ?? [],
+            'loadError' => $payload['loadError'] ?? null,
+        ]);
+    }
+
     function getProfile(Request $request)
     {
         $response = $this->api->getProfile();
