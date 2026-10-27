@@ -192,24 +192,30 @@
     <x-slot:header>
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-bold text-hb-navy">{{ __('candidate.profile.section_skills') }}</h2>
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.skills.add')">{{ __('candidate.profile.add_skill') }}</x-button>
+            <x-button variant="light" size="sm" :href="route('frontend.candidate.skills.add')">{{ __('candidate.profile.manage_skills') }}</x-button>
         </div>
     </x-slot:header>
     @if (! empty($skills))
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2" data-profile-skills-list>
             @foreach ($skills as $skill)
                 @php
                     $label = is_array($skill)
                         ? (data_get($skill, 'name') ?? data_get($skill, 'skill.name') ?? data_get($skill, 'label'))
                         : (string) $skill;
+                    $level = is_array($skill) ? data_get($skill, 'level') : null;
                 @endphp
                 @if (filled($label))
-                    <x-badge>{{ $label }}</x-badge>
+                    <x-badge>
+                        {{ $label }}
+                        @if (filled($level))
+                            <span class="opacity-80">· {{ $level }}</span>
+                        @endif
+                    </x-badge>
                 @endif
             @endforeach
         </div>
     @else
-        <p class="text-sm text-hb-muted">{{ __('candidate.profile.empty_skills') }}</p>
+        <p class="text-sm text-hb-muted" data-profile-skills-empty>{{ __('candidate.profile.empty_skills') }}</p>
         <div class="mt-3">
             <x-button variant="light" size="sm" :href="route('frontend.candidate.skills.add')">{{ __('candidate.profile.add_skill') }}</x-button>
         </div>

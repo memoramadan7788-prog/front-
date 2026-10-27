@@ -43,6 +43,12 @@ class CandidateDashboardAdapter
     ];
 
     /**
+     * Seven-field Profile Completion (unchanged).
+     *
+     * Proposed (not applied): add `skills` as an 8th field when product approves
+     * scoring against `profile.skills` / GET /candidate/skills. Do not change
+     * silently — keep KPI accuracy stable until approved.
+     *
      * @var list<string>
      */
     public const PROFILE_COMPLETION_FIELDS = [

@@ -137,26 +137,46 @@ class CandidateAPI
         return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
     }
 
-    // TODO(backend): no change-password endpoint yet
-    public function changePassword($data)
+    /**
+     * PUT /api/candidate/change-password
+     * Payload keys: current_password, new_password, new_password_confirmation.
+     * Never log or persist plaintext passwords from $data.
+     *
+     * @param  array{current_password: string, new_password: string, new_password_confirmation: string}  $data
+     * @return array{message: string, data: mixed, statusCode: int, errors: array<string, mixed>|null}
+     */
+    public function changePassword(array $data): array
     {
-        $message = '';
-        $statusCode = 200;
+        $payload = [
+            'current_password' => (string) ($data['current_password'] ?? ''),
+            'new_password' => (string) ($data['new_password'] ?? ''),
+            'new_password_confirmation' => (string) ($data['new_password_confirmation'] ?? ''),
+        ];
 
-        $res = $this->api->reset()->method('POST')
-            ->url('/candidates/change-password')
+        $res = $this->api->reset()->method('PUT')
+            ->url('/candidate/change-password')
             ->bearer(ApiSession::token() ?? '')
-            ->body($data)->send();
+            ->body($payload)
+            ->send();
+
+        // Drop local plaintext copies promptly (request body already sent).
+        unset($payload, $data);
 
         if ($res->ok()) {
-            $message = $res->message;
-            $statusCode = 200; // any 2xx (the backend answers 201 for creates) counts as success
-        } else {
-            $message = "Error: {$res->message}\n";
-            $statusCode = $res->statusCode;
+            return [
+                'message' => $res->message ?: 'Password changed successfully.',
+                'data' => $res->data,
+                'statusCode' => 200,
+                'errors' => null,
+            ];
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return [
+            'message' => $res->message ?: "HTTP {$res->statusCode}",
+            'data' => $res->data,
+            'statusCode' => (int) $res->statusCode,
+            'errors' => is_array($res->errors) ? $res->errors : null,
+        ];
     }
 
     // TODO(backend): no delete-account endpoint yet
@@ -366,26 +386,135 @@ class CandidateAPI
         return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
     }
 
-    // TODO(backend): no candidate skills endpoint yet
-    public function addSkill($data)
+    /**
+     * GET /api/candidate/skills — assigned skills for the authenticated candidate.
+     *
+     * @return array{message: string, data: mixed, errors: array<string, mixed>|null, statusCode: int}
+     */
+    public function getSkills(): array
     {
-        $message = '';
-        $statusCode = 200;
-
-        $res = $this->api->reset()->method('POST')
-            ->url('/candidates/skills')
+        $res = $this->api->reset()->method('GET')
+            ->url('/candidate/skills')
             ->bearer(ApiSession::token() ?? '')
-            ->body($data)->send();
+            ->send();
 
         if ($res->ok()) {
-            $message = $res->message;
-            $statusCode = 200; // any 2xx (the backend answers 201 for creates) counts as success
-        } else {
-            $message = "Error: {$res->message}\n";
-            $statusCode = $res->statusCode;
+            $rows = is_array($res->data) ? $res->data : [];
+            if (isset($rows['data']) && is_array($rows['data'])) {
+                $rows = $rows['data'];
+            }
+
+            return [
+                'message' => $res->message ?: 'OK',
+                'data' => array_values(array_filter(
+                    is_array($rows) && array_is_list($rows) ? $rows : [],
+                    static fn ($row) => is_array($row)
+                )),
+                'errors' => null,
+                'statusCode' => 200,
+            ];
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return [
+            'message' => $res->message ?: "HTTP {$res->statusCode}",
+            'data' => [],
+            'errors' => is_array($res->errors) ? $res->errors : null,
+            'statusCode' => (int) $res->statusCode,
+        ];
+    }
+
+    /**
+     * POST /api/candidate/skills — full sync replace (Backend uses belongsToMany sync).
+     *
+     * @param  list<array{skill_id: int, level?: string|null}|int>  $skills
+     * @return array{message: string, data: mixed, errors: array<string, mixed>|null, statusCode: int}
+     */
+    public function syncSkills(array $skills): array
+    {
+        $res = $this->api->reset()->method('POST')
+            ->url('/candidate/skills')
+            ->bearer(ApiSession::token() ?? '')
+            ->body(['skills' => array_values($skills)])
+            ->send();
+
+        if ($res->ok()) {
+            $rows = is_array($res->data) ? $res->data : [];
+            if (isset($rows['data']) && is_array($rows['data'])) {
+                $rows = $rows['data'];
+            }
+
+            return [
+                'message' => $res->message ?: 'Candidate skills updated successfully.',
+                'data' => array_values(array_filter(
+                    is_array($rows) && array_is_list($rows) ? $rows : [],
+                    static fn ($row) => is_array($row)
+                )),
+                'errors' => null,
+                'statusCode' => 200,
+            ];
+        }
+
+        return [
+            'message' => $res->message ?: "HTTP {$res->statusCode}",
+            'data' => null,
+            'errors' => is_array($res->errors) ? $res->errors : null,
+            'statusCode' => (int) $res->statusCode,
+        ];
+    }
+
+    /**
+     * @deprecated Prefer syncSkills(); kept for older callers — merges one skill via full sync.
+     * @param  array{skill_id?: int, level?: string|null}  $data
+     */
+    public function addSkill(array $data): array
+    {
+        $skillId = (int) ($data['skill_id'] ?? 0);
+        if ($skillId < 1) {
+            return [
+                'message' => 'Invalid skill.',
+                'data' => null,
+                'errors' => ['skill_id' => ['A valid skill is required.']],
+                'statusCode' => 422,
+            ];
+        }
+
+        $current = $this->getSkills();
+        if ((int) ($current['statusCode'] ?? 500) !== 200) {
+            return $current;
+        }
+
+        $payload = [];
+        $replaced = false;
+        foreach ((array) ($current['data'] ?? []) as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $id = (int) (data_get($row, 'id') ?? data_get($row, 'skill_id') ?? 0);
+            if ($id < 1) {
+                continue;
+            }
+            if ($id === $skillId) {
+                $payload[] = [
+                    'skill_id' => $id,
+                    'level' => $data['level'] ?? data_get($row, 'level'),
+                ];
+                $replaced = true;
+            } else {
+                $payload[] = [
+                    'skill_id' => $id,
+                    'level' => data_get($row, 'level'),
+                ];
+            }
+        }
+
+        if (! $replaced) {
+            $payload[] = [
+                'skill_id' => $skillId,
+                'level' => $data['level'] ?? null,
+            ];
+        }
+
+        return $this->syncSkills($payload);
     }
 
     // TODO(backend): no candidate exams list yet - use ExamAPI

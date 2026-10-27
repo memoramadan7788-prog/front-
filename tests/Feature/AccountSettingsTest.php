@@ -131,13 +131,17 @@ class AccountSettingsTest extends TestCase
             ->assertSessionHasErrors(['new_password']);
     }
 
-    public function test_change_password_submit_does_not_mutate_and_reports_unavailable(): void
+    public function test_change_password_submit_does_not_mutate_and_reports_unavailable_for_admin(): void
     {
         $this->actingAsAdminSession();
 
         $accounts = Mockery::mock(AccountAPI::class);
         $accounts->shouldNotReceive('getProfile');
         $this->app->instance(AccountAPI::class, $accounts);
+
+        $candidates = Mockery::mock(\App\Models\CandidateAPI::class);
+        $candidates->shouldNotReceive('changePassword');
+        $this->app->instance(\App\Models\CandidateAPI::class, $candidates);
 
         $this->from(route('frontend.account.change-password'))
             ->post(route('frontend.account.change-password.submit'), [

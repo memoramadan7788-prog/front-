@@ -8,6 +8,8 @@ return [
         'experience_added' => 'تمت إضافة الخبرة بنجاح',
         'skill_added' => 'تمت إضافة المهارة بنجاح',
         'exam_submitted' => 'تم تسليم الامتحان بنجاح',
+        'password_changed' => 'تم تغيير كلمة المرور بنجاح.',
+        'skill_removed' => 'تمت إزالة المهارة من ملفك.',
     ],
     'admin' => [
         'company_approved' => 'تمت الموافقة على الشركة بنجاح',

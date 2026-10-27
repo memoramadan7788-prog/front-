@@ -193,6 +193,56 @@ document.addEventListener('submit', (event) => {
     }
 });
 
+/* ---------- Guard duplicate submits on change-password forms ---------- */
+document.addEventListener('submit', (event) => {
+    const form = event.target.closest('[data-password-change-form]');
+    if (!form) return;
+    if (form.dataset.submitting === '1') {
+        event.preventDefault();
+        return;
+    }
+    form.dataset.submitting = '1';
+    const btn = form.querySelector('[data-password-change-submit]');
+    if (btn) {
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        const idle = btn.querySelector('[data-password-change-idle]');
+        const loading = btn.querySelector('[data-password-change-loading]');
+        if (idle) idle.classList.add('hidden');
+        if (loading) {
+            loading.classList.remove('hidden');
+            loading.classList.add('inline-flex');
+            loading.removeAttribute('aria-hidden');
+        }
+    }
+});
+
+/* ---------- Guard duplicate submits on candidate skills forms ---------- */
+document.addEventListener('submit', (event) => {
+    const form = event.target.closest('[data-skills-add-form], [data-skills-remove-form]');
+    if (!form) return;
+    if (form.dataset.submitting === '1') {
+        event.preventDefault();
+        return;
+    }
+    form.dataset.submitting = '1';
+    const btn = form.querySelector('[data-skills-add-submit], [data-skills-remove-submit]');
+    if (btn) {
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        const idle = btn.querySelector('[data-skills-add-idle]');
+        const loading = btn.querySelector('[data-skills-add-loading]');
+        if (idle) idle.classList.add('hidden');
+        if (loading) {
+            loading.classList.remove('hidden');
+            loading.classList.add('inline-flex');
+            loading.removeAttribute('aria-hidden');
+        }
+    }
+});
+
 /* ---------- Profile avatar local preview (never Base64-in-session; no upload without API) ---------- */
 (function initProfileAvatar() {
     const root = document.querySelector('[data-profile-avatar]');

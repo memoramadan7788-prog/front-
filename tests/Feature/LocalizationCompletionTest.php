@@ -14,6 +14,8 @@ class LocalizationCompletionTest extends TestCase
     {
         $keys = [
             'flash.candidate.profile_updated',
+            'flash.candidate.password_changed',
+            'flash.candidate.skill_removed',
             'flash.admin.company_approved',
             'flash.company.vacancy_created',
             'flash.employee.join_requested',

@@ -14,6 +14,7 @@ use App\Frontend\Interviewer\InterviewerController;
 use App\Http\Controllers\HallController;
 use App\Frontend\Job\JobController;
 use App\Frontend\Lookup\LookupController;
+use App\Frontend\Notifications\NotificationsController;
 use App\Frontend\Offer\OfferController;
 use App\Http\Controllers\Frontend\LocaleController;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +65,8 @@ Route::prefix('/')->name('frontend.')->group(function () {
     // Candidate
     Route::prefix('candidate')->middleware(['auth', 'account:candidate'])->name('candidate.')->group(function () {
         Route::get('/dashboard', [CandidateController::class, 'dashboard'])->name('dashboard');
+        Route::post('/notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::post('/notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');
         Route::get('/profile', [CandidateController::class, 'getProfile'])->name('profile');
         Route::get('/profile/update', [CandidateController::class, 'updateProfile'])->name('profile.update');
         Route::post('/profile/update', [CandidateController::class, 'updateProfile'])->name('profile.update.submit');
@@ -78,6 +81,7 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::post('/experience/add', [CandidateController::class, 'addExperience'])->name('experience.add.submit');
         Route::get('/skills/add', [CandidateController::class, 'addSkill'])->name('skills.add');
         Route::post('/skills/add', [CandidateController::class, 'addSkill'])->name('skills.add.submit');
+        Route::post('/skills/{skillId}/remove', [CandidateController::class, 'removeSkill'])->name('skills.remove');
 
         Route::get('/vacancies', [CandidateController::class, 'getVacancies'])->name('vacancies.index');
         // Workspace job details (same public JobAPI payload as /jobs/{id}; layout only differs).

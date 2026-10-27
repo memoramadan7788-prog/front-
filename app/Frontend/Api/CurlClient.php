@@ -408,13 +408,20 @@ class CurlClient
             // API Resource: single {data: {...}} or paginated {data: [...], links, meta}
             $data = $json['data'];
             if (isset($json['meta']) && is_array($json['meta'])) {
-                $meta = ['pagination' => [
+                $pagination = [
                     'current_page' => $json['meta']['current_page'] ?? 1,
                     'last_page'    => $json['meta']['last_page'] ?? 1,
                     'per_page'     => $json['meta']['per_page'] ?? null,
                     'total'        => $json['meta']['total'] ?? null,
                     'links'        => $json['links'] ?? null,
-                ]];
+                ];
+                // Preserve non-pagination meta keys (e.g. unread_count on notifications).
+                foreach ($json['meta'] as $key => $value) {
+                    if (! array_key_exists($key, $pagination)) {
+                        $pagination[$key] = $value;
+                    }
+                }
+                $meta = ['pagination' => $pagination];
             }
         } else {
             // {message, user, token} / {message, application: {...}} ...

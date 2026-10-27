@@ -34,17 +34,18 @@ class TopbarAccountAndNotificationsTest extends TestCase
         $this->assertStringNotContainsString(__('common.workspace_account'), $html);
     }
 
-    public function test_notifications_bell_shows_unavailable_without_fabricating_items(): void
+    public function test_notifications_bell_shows_empty_state_without_fabricating_items(): void
     {
         $this->actingAsCandidate();
 
         $html = $this->get(route('frontend.candidate.dashboard'))->assertOk()->getContent();
 
         $this->assertStringContainsString('data-notifications-panel', $html);
-        $this->assertStringContainsString(__('common.notifications.unavailable_title'), $html);
-        $this->assertStringContainsString(__('common.notifications.unavailable_body'), $html);
+        $this->assertStringContainsString('data-notifications-empty', $html);
+        $this->assertStringContainsString(__('common.notifications.caught_up_title'), $html);
         $this->assertStringNotContainsString('Interview agenda', $html);
         $this->assertStringNotContainsString(__('common.notifications.unread', ['count' => 3]), $html);
+        $this->assertStringNotContainsString(__('common.notifications.unavailable_title'), $html);
     }
 
     public function test_notifications_list_renders_backend_items_when_gateway_available(): void
@@ -53,7 +54,7 @@ class TopbarAccountAndNotificationsTest extends TestCase
 
         $gateway = Mockery::mock(NotificationsGateway::class);
         $gateway->shouldReceive('isAvailable')->andReturn(true);
-        $gateway->shouldReceive('list')->once()->with(1)->andReturn([
+        $gateway->shouldReceive('list')->once()->with(1, 15)->andReturn([
             'available' => true,
             'statusCode' => 200,
             'message' => 'OK',
@@ -65,14 +66,13 @@ class TopbarAccountAndNotificationsTest extends TestCase
                 'read_at' => null,
                 'action_url' => '/candidate/join-company',
             ]],
-            'meta' => null,
-            'errors' => null,
-        ]);
-        $gateway->shouldReceive('unreadCount')->once()->andReturn([
-            'available' => true,
-            'statusCode' => 200,
-            'message' => 'OK',
-            'unread' => 1,
+            'meta' => [
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => 15,
+                'total' => 1,
+                'unread_count' => 1,
+            ],
             'errors' => null,
         ]);
         $this->app->instance(NotificationsGateway::class, $gateway);
@@ -123,7 +123,8 @@ class TopbarAccountAndNotificationsTest extends TestCase
             ->getContent();
 
         $this->assertStringContainsString(__('common.role_labels.candidate', [], 'ar'), $html);
-        $this->assertStringContainsString(__('common.notifications.unavailable_title', [], 'ar'), $html);
+        $this->assertStringContainsString(__('common.notifications.label', [], 'ar'), $html);
+        $this->assertStringContainsString(__('common.notifications.caught_up_title', [], 'ar'), $html);
         $this->assertStringContainsString('dir="rtl"', $html);
     }
 

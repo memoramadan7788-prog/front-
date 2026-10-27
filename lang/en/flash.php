@@ -12,6 +12,8 @@ return [
         'experience_added' => 'Work experience was added successfully.',
         'skill_added' => 'Skill was added successfully.',
         'exam_submitted' => 'Your exam was submitted successfully.',
+        'password_changed' => 'Your password was changed successfully.',
+        'skill_removed' => 'Skill removed from your profile.',
     ],
     'admin' => [
         'company_approved' => 'Company approved successfully.',

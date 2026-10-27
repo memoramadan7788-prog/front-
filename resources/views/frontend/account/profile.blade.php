@@ -124,10 +124,11 @@
             <h2 class="text-base font-bold text-hb-navy">{{ __('common.change_password') }}</h2>
         </x-slot:header>
         @if ($passwordChangeAvailable ?? false)
+            <p class="mb-3 text-sm text-hb-muted">{{ __('common.password_change.hint_available') }}</p>
             <x-button :href="route('frontend.account.change-password')">{{ __('common.change_password') }}</x-button>
         @else
             <p class="text-sm text-hb-muted">
-                {{ __('Authenticated password change is not available yet. Backend only provides forgot/reset-token flows, not a current-password change endpoint.') }}
+                {{ __('common.password_change.unavailable_role') }}
             </p>
             <div class="mt-4">
                 <x-button variant="light" :href="route('frontend.account.change-password')">{{ __('Open password form') }}</x-button>

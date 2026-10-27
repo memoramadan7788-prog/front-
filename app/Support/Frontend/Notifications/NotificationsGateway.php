@@ -3,16 +3,14 @@
 namespace App\Support\Frontend\Notifications;
 
 /**
- * Candidate/Company/Admin notifications integration surface.
+ * Notifications integration surface.
  *
- * Existing Backend: Notification model + internal creates — no Candidate/Company
- * HTTP list/read/unread APIs found. Proposed contracts:
- *   GET  /api/notifications
- *   GET  /api/notifications/unread-count
- *   POST /api/notifications/{id}/read
- *   POST /api/notifications/read-all
+ * Candidate Backend (shipped):
+ *   GET   /api/candidate/notifications          (meta.unread_count + pagination)
+ *   PATCH /api/candidate/notifications/{id}/read
+ *   PATCH /api/candidate/notifications/read-all
  *
- * See reports/PROFILE_AVATAR_NOTIFICATIONS_BACKEND_REQUIREMENTS.md
+ * Company / Super Admin: no Candidate-safe shared HTTP surface — gateway reports unavailable.
  */
 interface NotificationsGateway
 {
@@ -26,7 +24,7 @@ interface NotificationsGateway
      *     errors: array<string, mixed>|null
      * }
      */
-    public function list(int $page = 1): array;
+    public function list(int $page = 1, int $perPage = 15): array;
 
     /**
      * @return array{
@@ -38,6 +36,32 @@ interface NotificationsGateway
      * }
      */
     public function unreadCount(): array;
+
+    /**
+     * PATCH mark-one-read. Tests must mock this — never hit a live Backend in PHPUnit.
+     *
+     * @return array{
+     *     available: bool,
+     *     statusCode: int,
+     *     message: string,
+     *     data: array<string, mixed>|null,
+     *     errors: array<string, mixed>|null
+     * }
+     */
+    public function markAsRead(int $id): array;
+
+    /**
+     * PATCH mark-all-read.
+     *
+     * @return array{
+     *     available: bool,
+     *     statusCode: int,
+     *     message: string,
+     *     updated_count: int|null,
+     *     errors: array<string, mixed>|null
+     * }
+     */
+    public function markAllAsRead(): array;
 
     public function isAvailable(): bool;
 }

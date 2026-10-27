@@ -13,15 +13,20 @@ use Illuminate\Support\Facades\Hash;
 use App\Frontend\Auth\ApiSession;
 use App\Models\CandidateAPI;
 use App\Models\JobAPI;
+use App\Models\LookupAPI;
 use App\Support\Frontend\ApiListPage;
 use App\Support\Frontend\CandidateReturnPath;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Contracts\View\View;
 
 class CandidateController extends Controller
 {
     private $api;
 
-    public function __construct(CandidateAPI $api)
-    {
+    public function __construct(
+        CandidateAPI $api,
+        private readonly LookupAPI $lookups,
+    ) {
         $this->api = $api;
     }
 
@@ -316,29 +321,216 @@ class CandidateController extends Controller
         return view('frontend.candidate.experience', get_defined_vars());
     }
 
-    function addSkill(Request $request)
+    public function addSkill(Request $request): View|RedirectResponse
     {
         if ($request->isMethod('post')) {
-
-            $fields = $request->validate([
-                'skill_id' => 'required|integer',
+            $request->validate([
+                'skill_id' => 'required|integer|min:1',
                 'level' => 'nullable|string|max:50',
             ]);
 
-            $data = $request->only(['skill_id', 'level']);
+            $current = $this->api->getSkills();
+            $currentStatus = (int) ($current['statusCode'] ?? 500);
 
-            $response = $this->api->addSkill($data);
+            if ($currentStatus === 401) {
+                ApiSession::forget();
 
-            if ($response['statusCode'] === 200) {
-                // Skill creation successful, you can perform additional actions here if needed
-                return redirect()->back()->with('success_key', 'flash.candidate.skill_added');
-            } else {
-                // Skill creation failed, return the error message
-                return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
+                return redirect()->route('frontend.account.login')
+                    ->withErrors(['error' => __('candidate.skills.session_expired')]);
             }
+
+            if ($currentStatus === 403) {
+                return redirect()->route('frontend.workspace')
+                    ->withErrors(['error' => __('candidate.skills.forbidden')]);
+            }
+
+            if ($currentStatus !== 200) {
+                return redirect()->back()->withErrors(
+                    ($current['errors'] ?? []) ?: ['error' => $current['message'] ?? __('candidate.skills.load_error')]
+                )->withInput($request->only(['skill_id', 'level']));
+            }
+
+            $skillId = (int) $request->input('skill_id');
+            $level = $request->filled('level') ? (string) $request->input('level') : null;
+            $payload = $this->skillsSyncPayload((array) ($current['data'] ?? []), $skillId, $level, remove: false);
+
+            $response = $this->api->syncSkills($payload);
+
+            return $this->skillsMutationRedirect($response, 'flash.candidate.skill_added', $request);
         }
 
-        return view('frontend.candidate.skills', get_defined_vars());
+        return $this->skillsManageView($request);
+    }
+
+    public function removeSkill(Request $request, int $skillId): RedirectResponse
+    {
+        if ($skillId < 1) {
+            return redirect()->route('frontend.candidate.skills.add')
+                ->withErrors(['error' => __('candidate.skills.invalid_skill')]);
+        }
+
+        $current = $this->api->getSkills();
+        $currentStatus = (int) ($current['statusCode'] ?? 500);
+
+        if ($currentStatus === 401) {
+            ApiSession::forget();
+
+            return redirect()->route('frontend.account.login')
+                ->withErrors(['error' => __('candidate.skills.session_expired')]);
+        }
+
+        if ($currentStatus === 403) {
+            return redirect()->route('frontend.workspace')
+                ->withErrors(['error' => __('candidate.skills.forbidden')]);
+        }
+
+        if ($currentStatus !== 200) {
+            return redirect()->route('frontend.candidate.skills.add')->withErrors(
+                ($current['errors'] ?? []) ?: ['error' => $current['message'] ?? __('candidate.skills.load_error')]
+            );
+        }
+
+        $payload = $this->skillsSyncPayload((array) ($current['data'] ?? []), $skillId, null, remove: true);
+        $response = $this->api->syncSkills($payload);
+
+        return $this->skillsMutationRedirect($response, 'flash.candidate.skill_removed', $request);
+    }
+
+    private function skillsManageView(Request $request): View|RedirectResponse
+    {
+        $assigned = $this->api->getSkills();
+        $assignedStatus = (int) ($assigned['statusCode'] ?? 500);
+
+        if ($assignedStatus === 401) {
+            ApiSession::forget();
+
+            return redirect()->route('frontend.account.login')
+                ->withErrors(['error' => __('candidate.skills.session_expired')]);
+        }
+
+        if ($assignedStatus === 403) {
+            return redirect()->route('frontend.workspace')
+                ->withErrors(['error' => __('candidate.skills.forbidden')]);
+        }
+
+        $q = trim((string) $request->query('q', ''));
+        $catalog = $this->lookups->getSkills($q);
+        $catalogStatus = (int) ($catalog['statusCode'] ?? 500);
+
+        $assignedSkills = $assignedStatus === 200
+            ? (is_array($assigned['data'] ?? null) ? $assigned['data'] : [])
+            : [];
+
+        $catalogSkills = $catalogStatus === 200
+            ? \App\Support\Rows::from($catalog['data'] ?? [])
+            : [];
+
+        $assignedIds = collect($assignedSkills)
+            ->map(fn ($row) => (int) (data_get($row, 'id') ?? data_get($row, 'skill_id') ?? 0))
+            ->filter(fn ($id) => $id > 0)
+            ->all();
+
+        // Prefer catalog options that are not already assigned.
+        $availableCatalog = array_values(array_filter(
+            $catalogSkills,
+            static fn ($row) => ! in_array((int) data_get($row, 'id'), $assignedIds, true)
+        ));
+
+        return view('frontend.candidate.skills', [
+            'assignedSkills' => $assignedSkills,
+            'assignedError' => $assignedStatus === 200
+                ? null
+                : (trim((string) ($assigned['message'] ?? '')) ?: __('candidate.skills.load_error')),
+            'catalogSkills' => $availableCatalog,
+            'catalogError' => $catalogStatus === 200
+                ? null
+                : (trim((string) ($catalog['message'] ?? '')) ?: __('candidate.skills.catalog_error')),
+            'catalogQuery' => $q,
+            'skillsAvailable' => $assignedStatus === 200,
+        ]);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $current
+     * @return list<array{skill_id: int, level: string|null}>
+     */
+    private function skillsSyncPayload(array $current, int $targetId, ?string $level, bool $remove): array
+    {
+        $payload = [];
+        $seen = false;
+
+        foreach ($current as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+            $id = (int) (data_get($row, 'id') ?? data_get($row, 'skill_id') ?? 0);
+            if ($id < 1) {
+                continue;
+            }
+            if ($id === $targetId) {
+                $seen = true;
+                if ($remove) {
+                    continue;
+                }
+                $payload[] = [
+                    'skill_id' => $id,
+                    'level' => $level ?? (is_string(data_get($row, 'level')) ? (string) data_get($row, 'level') : null),
+                ];
+
+                continue;
+            }
+            $existingLevel = data_get($row, 'level');
+            $payload[] = [
+                'skill_id' => $id,
+                'level' => is_string($existingLevel) && $existingLevel !== '' ? $existingLevel : null,
+            ];
+        }
+
+        if (! $remove && ! $seen && $targetId > 0) {
+            $payload[] = [
+                'skill_id' => $targetId,
+                'level' => $level,
+            ];
+        }
+
+        return $payload;
+    }
+
+    private function skillsMutationRedirect(array $response, string $successKey, Request $request): RedirectResponse
+    {
+        $status = (int) ($response['statusCode'] ?? 500);
+
+        if ($status === 401) {
+            ApiSession::forget();
+
+            return redirect()->route('frontend.account.login')
+                ->withErrors(['error' => __('candidate.skills.session_expired')]);
+        }
+
+        if ($status === 403) {
+            return redirect()->route('frontend.workspace')
+                ->withErrors(['error' => __('candidate.skills.forbidden')]);
+        }
+
+        if ($status === 200) {
+            return redirect()->route('frontend.candidate.skills.add')->with('success_key', $successKey);
+        }
+
+        if ($status === 409) {
+            return redirect()->back()->withErrors([
+                'error' => $response['message'] ?? __('candidate.skills.conflict'),
+            ])->withInput($request->only(['skill_id', 'level']));
+        }
+
+        if ($status === 422) {
+            return redirect()->back()->withErrors(
+                ($response['errors'] ?? []) ?: ['error' => $response['message'] ?? __('candidate.skills.validation_error')]
+            )->withInput($request->only(['skill_id', 'level']));
+        }
+
+        return redirect()->back()->withErrors(
+            ($response['errors'] ?? []) ?: ['error' => $response['message'] ?? __('candidate.skills.save_error')]
+        )->withInput($request->only(['skill_id', 'level']));
     }
 
     function getExams(Request $request)

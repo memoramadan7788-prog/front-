@@ -10,9 +10,11 @@ return [
         // Example proposals: '/companies/approved', '/candidate/membership'
         'company_discovery_path' => env('API_COMPANY_DISCOVERY_PATH'),
         'candidate_membership_path' => env('API_CANDIDATE_MEMBERSHIP_PATH'),
-        // Proposed avatar / notifications (see PROFILE_AVATAR_NOTIFICATIONS_BACKEND_REQUIREMENTS.md)
+        // Proposed avatar (see PROFILE_AVATAR_NOTIFICATIONS_BACKEND_REQUIREMENTS.md)
         'profile_avatar_path' => env('API_PROFILE_AVATAR_PATH'),
-        'notifications_path' => env('API_NOTIFICATIONS_PATH'),
+        // Candidate notifications (Backend: GET/PATCH /api/candidate/notifications*)
+        'notifications_path' => env('API_NOTIFICATIONS_PATH', '/candidate/notifications'),
+        // Unused: unread_count is returned on list meta (kept for optional override / legacy)
         'notifications_unread_path' => env('API_NOTIFICATIONS_UNREAD_PATH'),
     ],
 
