@@ -134,6 +134,16 @@ class AdminAPI
         return ["message" => $message, "data" => $res->data, "meta" => $res->pagination(), "statusCode" => $statusCode];
     }
 
+    /**
+     * GET /api/admin/companies/{id} — single company (no company_id list filter on Backend).
+     *
+     * @return array{message: string, data: mixed, meta: mixed, statusCode: int}
+     */
+    public function getCompany(int|string $companyId): array
+    {
+        return $this->call('GET', '/admin/companies/'.$companyId);
+    }
+
     public function approveCompany($companyId)
     {
         $message = '';
@@ -244,9 +254,33 @@ class AdminAPI
         return $this->call('GET', '/admin/roles');
     }
 
-    public function getDashboard()
+    /**
+     * GET /api/admin/dashboard — Super Admin + reports.view.
+     *
+     * @return array{message: string, data: mixed, meta: mixed, statusCode: int, errors?: mixed}
+     */
+    public function getDashboard(): array
     {
         return $this->call('GET', '/admin/dashboard');
+    }
+
+    /**
+     * GET /api/admin/analytics?months= — Super Admin + reports.view.
+     * Backend clamps months to 3–12 (default 6).
+     *
+     * @param  array{months?: int}  $query
+     * @return array{message: string, data: mixed, meta: mixed, statusCode: int, errors?: mixed}
+     */
+    public function getAnalytics(array $query = []): array
+    {
+        $months = isset($query['months']) ? (int) $query['months'] : null;
+        $params = [];
+        if ($months !== null) {
+            $params['months'] = min(max($months, 3), 12);
+        }
+        $qs = $params !== [] ? ('?'.http_build_query($params)) : '';
+
+        return $this->call('GET', '/admin/analytics'.$qs);
     }
 
     public function getUser($userId)

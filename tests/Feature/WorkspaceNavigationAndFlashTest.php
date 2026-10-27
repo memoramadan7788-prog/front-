@@ -36,7 +36,8 @@ class WorkspaceNavigationAndFlashTest extends TestCase
             'name' => 'Admin',
             'account_type' => 'admin',
             'roles' => ['super_admin'],
-        ]);
+            'identity' => ApiSession::REALM_PLATFORM_ADMIN,
+        ], ApiSession::REALM_PLATFORM_ADMIN);
 
         $this->get(route('frontend.account.change-password'))
             ->assertOk()

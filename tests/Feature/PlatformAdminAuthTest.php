@@ -95,6 +95,35 @@ class PlatformAdminAuthTest extends TestCase
         $this->assertFalse(ApiSession::check());
     }
 
+    public function test_platform_admin_login_hides_backend_sql_errors(): void
+    {
+        $admins = Mockery::mock(AdminAPI::class);
+        $admins->shouldReceive('login')->once()->andReturn([
+            'message' => "SQLSTATE[42S02]: Base table or view not found: 1146 Table 'recruitment_audit.admins' doesn't exist",
+            'data' => null,
+            'errors' => null,
+            'statusCode' => 500,
+        ]);
+        $admins->shouldNotReceive('me');
+        $this->app->instance(AdminAPI::class, $admins);
+
+        $this->from(route('frontend.account.admin-login'))
+            ->post(route('frontend.account.admin-login.submit'), [
+                'email' => 'admin@example.com',
+                'password' => 'any-password',
+            ])
+            ->assertRedirect(route('frontend.account.admin-login'))
+            ->assertSessionHasErrors('error');
+
+        $errors = session('errors');
+        $this->assertNotNull($errors);
+        $bag = $errors->getBag('default');
+        $message = (string) ($bag->first('error') ?? '');
+        $this->assertSame(__('auth.admin_login.unavailable'), $message);
+        $this->assertStringNotContainsString('SQLSTATE', $message);
+        $this->assertFalse(ApiSession::check());
+    }
+
     public function test_standard_login_does_not_call_admin_login_api(): void
     {
         $admins = Mockery::mock(AdminAPI::class);
@@ -128,6 +157,42 @@ class PlatformAdminAuthTest extends TestCase
         $this->assertFalse(ApiSession::isPlatformAdmin());
         $this->assertSame(ApiSession::REALM_USER, ApiSession::realm());
         $this->assertSame('candidate', ApiSession::accountType());
+    }
+
+    public function test_legacy_user_admin_standard_login_does_not_create_admin_session(): void
+    {
+        $admins = Mockery::mock(AdminAPI::class);
+        $admins->shouldNotReceive('login');
+        $admins->shouldNotReceive('me');
+        $this->app->instance(AdminAPI::class, $admins);
+
+        $accounts = Mockery::mock(AccountAPI::class);
+        $accounts->shouldReceive('login')->once()->andReturn([
+            'message' => 'Login successful.',
+            'data' => [
+                'user' => [
+                    'id' => 1,
+                    'name' => 'Super Admin',
+                    'email' => 'admin@example.com',
+                    'account_type' => 'admin',
+                ],
+                'token' => 'legacy-user-admin-token',
+            ],
+            'errors' => [],
+            'statusCode' => 200,
+        ]);
+        $this->app->instance(AccountAPI::class, $accounts);
+
+        $this->from(route('frontend.account.login'))
+            ->post(route('frontend.account.login.submit'), [
+                'email' => 'admin@example.com',
+                'password' => 'ChangeMe123!',
+            ])
+            ->assertRedirect(route('frontend.account.admin-login'))
+            ->assertSessionHasErrors('error');
+
+        $this->assertFalse(ApiSession::check());
+        $this->assertNull(ApiSession::token());
     }
 
     public function test_company_login_preserves_user_realm(): void

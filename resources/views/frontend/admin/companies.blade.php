@@ -7,20 +7,63 @@
 @endsection
 
 @section('content')
-@php $items = \App\Support\Rows::from($companies ?? []); $meta = $pagination ?? null; @endphp
-<form method="GET" action="{{ route('frontend.admin.companies.index') }}" class="mb-4 flex flex-wrap items-end gap-3">
-    <x-form.input name="search" :label="__('Search')" type="search" class="max-w-xs" value="{{ request('search') }}" placeholder="{{ __('Company name') }}" />
-    <div class="w-full max-w-xs"><x-form.select name="status" :label="__('Status')">
-        <option value="">{{ __('All') }}</option>
-        @foreach (['pending' => __('Pending'), 'approved' => __('Approved'), 'rejected' => __('Rejected'), 'suspended' => __('Suspended')] as $st => $label)
-            <option value="{{ $st }}" @selected(request('status') === $st)>{{ $label }}</option>
-        @endforeach
-    </x-form.select></div>
+@php
+    $items = \App\Support\Rows::from($companies ?? []);
+    $meta = $pagination ?? null;
+    $options = is_array($companyOptions ?? null) ? $companyOptions : [];
+    $optionsStatus = $companyOptionsStatus ?? 'ok';
+    $selectedCompanyId = (string) ($selectedCompanyId ?? request('company_id', ''));
+    $selectedStatus = (string) ($selectedStatus ?? request('status', ''));
+@endphp
+
+<form method="GET" action="{{ route('frontend.admin.companies.index') }}" class="mb-4 flex flex-wrap items-end gap-3" data-admin-companies-filter>
+    <div class="w-full max-w-xs">
+        <x-form.select name="company_id" :label="__('admin.companies.filter_company')" data-admin-company-select>
+            <option value="">{{ __('admin.companies.filter_all_companies') }}</option>
+            @foreach ($options as $opt)
+                @continue(! is_array($opt) || ! isset($opt['id'], $opt['name']))
+                <option value="{{ $opt['id'] }}" @selected((string) $selectedCompanyId === (string) $opt['id'])>
+                    {{ $opt['name'] }}
+                </option>
+            @endforeach
+        </x-form.select>
+        @if ($optionsStatus === 'loading')
+            <p class="mt-1 text-xs text-hb-muted" data-admin-company-options-loading>{{ __('admin.companies.options_loading') }}</p>
+        @elseif ($optionsStatus === 'empty')
+            <p class="mt-1 text-xs text-hb-muted" data-admin-company-options-empty>{{ __('admin.companies.options_empty') }}</p>
+        @elseif ($optionsStatus === 'incomplete')
+            <p class="mt-1 text-xs text-hb-pending" data-admin-company-options-incomplete>{{ __('admin.companies.options_incomplete') }}</p>
+        @elseif ($optionsStatus === 'error')
+            <p class="mt-1 text-xs text-hb-error" data-admin-company-options-error role="alert">{{ __('admin.companies.options_error') }}</p>
+        @endif
+    </div>
+
+    <div class="w-full max-w-xs">
+        <x-form.select name="status" :label="__('Status')" data-admin-status-select>
+            <option value="">{{ __('All') }}</option>
+            @foreach (['pending' => __('Pending'), 'approved' => __('Approved'), 'rejected' => __('Rejected'), 'suspended' => __('Suspended')] as $st => $label)
+                <option value="{{ $st }}" @selected($selectedStatus === $st)>{{ $label }}</option>
+            @endforeach
+        </x-form.select>
+    </div>
+
     <x-button type="submit" variant="light">{{ __('Filter') }}</x-button>
-    @if (request()->hasAny(['search', 'status']))
+    @if ($selectedCompanyId !== '' || $selectedStatus !== '')
         <x-button variant="ghost" :href="route('frontend.admin.companies.index')">{{ __('Reset') }}</x-button>
     @endif
 </form>
+
+@if (! empty($filterError))
+    <div class="mb-4 rounded-2xl border border-hb-error/30 bg-hb-error-soft px-5 py-4 text-sm text-hb-error" role="alert" data-admin-companies-filter-error>
+        {{ $filterError }}
+    </div>
+@endif
+
+@if ($errors->any())
+    <div class="mb-4 rounded-2xl border border-hb-error/30 bg-hb-error-soft px-5 py-4 text-sm text-hb-error" role="alert" data-admin-companies-mutation-error>
+        {{ $errors->first() }}
+    </div>
+@endif
 
 <x-table>
     <x-slot:head>

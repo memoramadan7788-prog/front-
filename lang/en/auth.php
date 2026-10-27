@@ -170,6 +170,8 @@ return [
         'failed' => 'Invalid Super Admin credentials.',
         'inactive' => 'This admin account is inactive, suspended, or deleted.',
         'invalid_response' => 'Admin login succeeded but the identity response was incomplete.',
+        'platform_required' => 'Platform Admin pages require a Super Admin sign-in through this portal (POST /api/admin/login). Legacy User admin tokens from the standard login cannot access dashboard or analytics APIs.',
+        'unavailable' => 'The Super Admin sign-in service is temporarily unavailable. If this continues, the Backend platform Admin tables may not be migrated or seeded yet.',
     ],
     'flash' => [
         'register_candidate' => 'Your account was created successfully.',

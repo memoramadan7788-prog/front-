@@ -63,7 +63,13 @@ class TopbarAccount
         $roles = WorkspaceNavigator::roleNames($user);
 
         if ($shell === WorkspaceNavigator::SHELL_ADMIN) {
-            return __('common.role_labels.admin');
+            // Do not label legacy User admins as platform Super Admin — that UI claim is misleading.
+            if (ApiSession::isPlatformAdmin()
+                || ($user['identity'] ?? null) === ApiSession::REALM_PLATFORM_ADMIN) {
+                return __('common.role_labels.admin');
+            }
+
+            return __('common.role_labels.legacy_admin');
         }
 
         if ($shell === WorkspaceNavigator::SHELL_INTERVIEWER) {

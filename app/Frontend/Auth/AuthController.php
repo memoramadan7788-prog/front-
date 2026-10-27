@@ -81,21 +81,23 @@ class AuthController extends Controller
 
             if ($response['statusCode'] === 200) {
                 $user = (array) ($response['data']['user'] ?? []);
-                ApiSession::store((string) ($response['data']['token'] ?? ''), $user, ApiSession::REALM_USER);
-
                 $type = $user['account_type'] ?? 'candidate';
+
+                // Legacy User account_type=admin cannot use platform Admin APIs (EnsureSuperAdmin).
+                // Do not persist that token into a Frontend Admin session — send them to the Admin portal.
+                if ($type === 'admin') {
+                    return redirect()->route('frontend.account.admin-login')
+                        ->withErrors(['error' => __('auth.admin_login.platform_required')])
+                        ->withInput($request->only('email'));
+                }
+
+                ApiSession::store((string) ($response['data']['token'] ?? ''), $user, ApiSession::REALM_USER);
 
                 if ($type === 'company') {
                     $pending = data_get($user, 'company.status') === 'pending';
 
                     return redirect()->route('frontend.company.dashboard')
                         ->with('success_key', $pending ? 'auth.flash.login_company_pending' : 'auth.flash.login_success');
-                }
-
-                if ($type === 'admin') {
-                    // Legacy User account_type=admin (migration). Platform Admins must use admin-login.
-                    return redirect()->route('frontend.dashboard')
-                        ->with('success_key', 'auth.flash.login_success');
                 }
 
                 return redirect()->route('frontend.candidate.dashboard')
@@ -162,18 +164,25 @@ class AuthController extends Controller
 
             if ($status === 403) {
                 return redirect()->back()
-                    ->withErrors(['error' => $response['message'] ?? __('auth.admin_login.inactive')])
+                    ->withErrors(['error' => $this->safeAdminLoginMessage($response['message'] ?? null, __('auth.admin_login.inactive'))])
                     ->withInput($request->only('email'));
             }
 
             if ($status === 422) {
                 return redirect()->back()
-                    ->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message'] ?? __('auth.admin_login.failed')])
+                    ->withErrors(($response['errors'] ?? []) ?: ['error' => $this->safeAdminLoginMessage($response['message'] ?? null, __('auth.admin_login.failed'))])
                     ->withInput($request->only('email'));
             }
 
+            if ($status === 401) {
+                return redirect()->back()
+                    ->withErrors(['error' => $this->safeAdminLoginMessage($response['message'] ?? null, __('auth.admin_login.failed'))])
+                    ->withInput($request->only('email'));
+            }
+
+            // Never surface SQLSTATE / stack traces from Backend 5xx (APP_DEBUG).
             return redirect()->back()
-                ->withErrors(['error' => $response['message'] ?? __('auth.admin_login.failed')])
+                ->withErrors(['error' => __('auth.admin_login.unavailable')])
                 ->withInput($request->only('email'));
         }
 
@@ -198,6 +207,28 @@ class AuthController extends Controller
         return redirect()->route(
             $wasPlatformAdmin ? 'frontend.account.admin-login' : 'frontend.account.login'
         );
+    }
+
+    /**
+     * Drop Backend debug payloads (SQLSTATE, stack traces) from Admin login flash errors.
+     */
+    private function safeAdminLoginMessage(?string $message, string $fallback): string
+    {
+        $message = trim((string) $message);
+        if ($message === '') {
+            return $fallback;
+        }
+
+        if (preg_match('/SQLSTATE|Base table or view not found|Stack trace|Illuminate\\\\|Connection: mysql/i', $message) === 1) {
+            return __('auth.admin_login.unavailable');
+        }
+
+        // Keep short API messages; reject oversized debug dumps.
+        if (mb_strlen($message) > 240) {
+            return $fallback;
+        }
+
+        return $message;
     }
 
     /** @param  mixed  $data */

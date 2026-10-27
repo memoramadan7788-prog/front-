@@ -39,6 +39,7 @@ return [
         'employee' => 'موظف',
         'interviewer' => 'مقابِل',
         'admin' => 'المسؤول الأعلى',
+        'legacy_admin' => 'مسؤول (قديم)',
     ],
     'avatar' => [
         'title' => 'الصورة الشخصية',

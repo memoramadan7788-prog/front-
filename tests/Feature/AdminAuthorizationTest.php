@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Frontend\Auth\ApiSession;
 use App\Http\Middleware\EnsureAdminAccess;
-use App\Models\AccountAPI;
 use App\Models\AdminAPI;
 use Illuminate\Http\Request;
 use Mockery;
@@ -44,7 +43,7 @@ class AdminAuthorizationTest extends TestCase
             ->assertRedirect(route('frontend.workspace'));
     }
 
-    public function test_legacy_admin_session_allows_request_when_auth_me_confirms_admin(): void
+    public function test_legacy_user_admin_session_is_rejected_from_admin_pages(): void
     {
         ApiSession::store('admin-token', [
             'id' => 90,
@@ -53,35 +52,40 @@ class AdminAuthorizationTest extends TestCase
             'account_type' => 'admin',
         ], ApiSession::REALM_USER);
 
-        $accounts = Mockery::mock(AccountAPI::class);
-        $accounts->shouldReceive('getProfile')->once()->andReturn([
-            'message' => 'OK',
-            'data' => [
-                'id' => 90,
-                'email' => 'admin@example.com',
-                'name' => 'Admin',
-                'account_type' => 'admin',
-            ],
-            'errors' => [],
-            'meta' => null,
-            'statusCode' => 200,
-            'httpStatus' => 200,
-        ]);
+        $admins = Mockery::mock(AdminAPI::class);
+        $admins->shouldNotReceive('me');
+        $admins->shouldNotReceive('getDashboard');
+
+        $middleware = new EnsureAdminAccess($admins);
+        $request = Request::create('/admin/dashboard', 'GET');
+        $request->setUserResolver(fn () => auth()->user());
+
+        $response = $middleware->handle($request, fn () => response('should-not-run', 200));
+
+        $this->assertTrue($response->isRedirect());
+        $this->assertSame(route('frontend.account.admin-login'), $response->headers->get('Location'));
+        $this->assertFalse(ApiSession::check());
+        $this->assertNull(ApiSession::token());
+    }
+
+    public function test_legacy_user_admin_cannot_open_dashboard_via_http(): void
+    {
+        ApiSession::store('legacy-admin-token', [
+            'id' => 90,
+            'email' => 'admin@example.com',
+            'name' => 'Super Admin',
+            'account_type' => 'admin',
+        ], ApiSession::REALM_USER);
 
         $admins = Mockery::mock(AdminAPI::class);
         $admins->shouldNotReceive('me');
+        $admins->shouldNotReceive('getDashboard');
+        $admins->shouldNotReceive('getAnalytics');
+        $this->app->instance(AdminAPI::class, $admins);
 
-        $middleware = new EnsureAdminAccess($accounts, $admins);
-        $request = Request::create('/admin/roles', 'GET');
-        $request->setUserResolver(fn () => auth()->user());
-
-        $response = $middleware->handle($request, fn () => response('admin-ok', 200));
-
-        $this->assertSame(200, $response->getStatusCode());
-        $this->assertSame('admin-ok', $response->getContent());
-        $this->assertSame('admin', ApiSession::accountType());
-        $this->assertSame('admin-token', ApiSession::token());
-        $this->assertFalse(ApiSession::isPlatformAdmin());
+        $this->get(route('frontend.dashboard'))
+            ->assertRedirect(route('frontend.account.admin-login'));
+        $this->assertFalse(ApiSession::check());
     }
 
     public function test_platform_admin_session_revalidates_via_admin_me_not_auth_me(): void
@@ -92,9 +96,6 @@ class AdminAuthorizationTest extends TestCase
             'name' => 'Super',
             'account_type' => 'admin',
         ], ApiSession::REALM_PLATFORM_ADMIN);
-
-        $accounts = Mockery::mock(AccountAPI::class);
-        $accounts->shouldNotReceive('getProfile');
 
         $admins = Mockery::mock(AdminAPI::class);
         $admins->shouldReceive('me')->once()->andReturn([
@@ -110,7 +111,7 @@ class AdminAuthorizationTest extends TestCase
             'statusCode' => 200,
         ]);
 
-        $middleware = new EnsureAdminAccess($accounts, $admins);
+        $middleware = new EnsureAdminAccess($admins);
         $request = Request::create('/admin/dashboard', 'GET');
         $request->setUserResolver(fn () => auth()->user());
 
@@ -124,38 +125,6 @@ class AdminAuthorizationTest extends TestCase
         $this->assertSame('platform-admin-token', ApiSession::token());
     }
 
-    public function test_401_from_backend_clears_session_and_redirects_to_login(): void
-    {
-        ApiSession::store('stale-token', [
-            'id' => 91,
-            'email' => 'admin@example.com',
-            'name' => 'Admin',
-            'account_type' => 'admin',
-        ], ApiSession::REALM_USER);
-
-        $accounts = Mockery::mock(AccountAPI::class);
-        $accounts->shouldReceive('getProfile')->once()->andReturn([
-            'message' => 'Unauthenticated.',
-            'data' => null,
-            'errors' => [],
-            'meta' => null,
-            'statusCode' => 401,
-            'httpStatus' => 401,
-        ]);
-        $admins = Mockery::mock(AdminAPI::class);
-        $admins->shouldNotReceive('me');
-
-        $middleware = new EnsureAdminAccess($accounts, $admins);
-        $request = Request::create('/admin/users', 'GET');
-
-        $response = $middleware->handle($request, fn () => response('should-not-run'));
-
-        $this->assertTrue($response->isRedirect());
-        $this->assertSame(route('frontend.account.login'), $response->headers->get('Location'));
-        $this->assertFalse(ApiSession::check());
-        $this->assertNull(ApiSession::token());
-    }
-
     public function test_platform_admin_401_redirects_to_admin_login(): void
     {
         ApiSession::store('stale-platform', [
@@ -165,8 +134,6 @@ class AdminAuthorizationTest extends TestCase
             'account_type' => 'admin',
         ], ApiSession::REALM_PLATFORM_ADMIN);
 
-        $accounts = Mockery::mock(AccountAPI::class);
-        $accounts->shouldNotReceive('getProfile');
         $admins = Mockery::mock(AdminAPI::class);
         $admins->shouldReceive('me')->once()->andReturn([
             'message' => 'Unauthenticated.',
@@ -175,35 +142,31 @@ class AdminAuthorizationTest extends TestCase
             'statusCode' => 401,
         ]);
 
-        $middleware = new EnsureAdminAccess($accounts, $admins);
+        $middleware = new EnsureAdminAccess($admins);
         $response = $middleware->handle(Request::create('/admin/users', 'GET'), fn () => response('no'));
 
         $this->assertSame(route('frontend.account.admin-login'), $response->headers->get('Location'));
         $this->assertFalse(ApiSession::check());
     }
 
-    public function test_403_from_backend_keeps_session_and_redirects_to_workspace(): void
+    public function test_platform_admin_403_from_me_keeps_session_and_redirects_to_workspace(): void
     {
-        ApiSession::store('admin-token', [
+        ApiSession::store('platform-admin-token', [
             'id' => 92,
-            'email' => 'admin@example.com',
-            'name' => 'Admin',
+            'email' => 'super@example.com',
+            'name' => 'Super',
             'account_type' => 'admin',
-        ], ApiSession::REALM_USER);
+        ], ApiSession::REALM_PLATFORM_ADMIN);
 
-        $accounts = Mockery::mock(AccountAPI::class);
-        $accounts->shouldReceive('getProfile')->once()->andReturn([
+        $admins = Mockery::mock(AdminAPI::class);
+        $admins->shouldReceive('me')->once()->andReturn([
             'message' => 'Forbidden.',
             'data' => null,
-            'errors' => [],
-            'meta' => null,
+            'errors' => null,
             'statusCode' => 403,
-            'httpStatus' => 403,
         ]);
-        $admins = Mockery::mock(AdminAPI::class);
-        $admins->shouldNotReceive('me');
 
-        $middleware = new EnsureAdminAccess($accounts, $admins);
+        $middleware = new EnsureAdminAccess($admins);
         $request = Request::create('/admin/users', 'GET');
 
         $response = $middleware->handle($request, fn () => response('should-not-run'));
@@ -211,44 +174,34 @@ class AdminAuthorizationTest extends TestCase
         $this->assertTrue($response->isRedirect());
         $this->assertSame(route('frontend.workspace'), $response->headers->get('Location'));
         $this->assertTrue(ApiSession::check());
-        $this->assertSame('admin-token', ApiSession::token());
-        $this->assertSame('admin', ApiSession::accountType());
+        $this->assertSame('platform-admin-token', ApiSession::token());
+        $this->assertTrue(ApiSession::isPlatformAdmin());
     }
 
-    public function test_stale_admin_session_is_corrected_when_backend_reports_candidate(): void
+    public function test_wrong_realm_token_is_not_accepted_for_admin_pages(): void
     {
-        ApiSession::store('stale-admin-token', [
+        // Candidate/Company style user-realm token with a forged admin account_type claim.
+        ApiSession::store('user-realm-token', [
             'id' => 93,
-            'email' => 'user@example.com',
-            'name' => 'User',
+            'email' => 'forged@example.com',
+            'name' => 'Forged',
             'account_type' => 'admin',
         ], ApiSession::REALM_USER);
 
-        $accounts = Mockery::mock(AccountAPI::class);
-        $accounts->shouldReceive('getProfile')->once()->andReturn([
-            'message' => 'OK',
-            'data' => [
-                'id' => 93,
-                'email' => 'user@example.com',
-                'name' => 'User',
-                'account_type' => 'candidate',
-            ],
-            'errors' => [],
-            'meta' => null,
-            'statusCode' => 200,
-            'httpStatus' => 200,
-        ]);
         $admins = Mockery::mock(AdminAPI::class);
         $admins->shouldNotReceive('me');
+        $this->app->instance(AdminAPI::class, $admins);
 
-        $middleware = new EnsureAdminAccess($accounts, $admins);
-        $request = Request::create('/admin/dashboard', 'GET');
+        $this->get(route('frontend.admin.users.index'))
+            ->assertRedirect(route('frontend.account.admin-login'));
+        $this->assertFalse(ApiSession::check());
+    }
 
-        $response = $middleware->handle($request, fn () => response('should-not-run'));
+    public function test_missing_admin_session_redirects_to_admin_login(): void
+    {
+        ApiSession::forget();
 
-        $this->assertTrue($response->isRedirect());
-        $this->assertSame(route('frontend.workspace'), $response->headers->get('Location'));
-        $this->assertSame('candidate', ApiSession::accountType());
-        $this->assertSame('stale-admin-token', ApiSession::token());
+        $this->get(route('frontend.dashboard'))
+            ->assertRedirect();
     }
 }

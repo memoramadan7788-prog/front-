@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Frontend\Auth\ApiSession;
-use App\Models\AccountAPI;
 use App\Models\AdminAPI;
 use Closure;
 use Illuminate\Auth\GenericUser;
@@ -12,36 +11,38 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Revalidates Super Admin page access against the correct Backend identity endpoint.
+ * Revalidates Super Admin page access against the platform Admin identity endpoint.
  *
- * - Platform Admin realm (POST /api/admin/login) → GET /api/admin/me
- * - Legacy User account_type=admin (POST /api/auth/login) → GET /api/auth/me
+ * Platform Admin realm (POST /api/admin/login) → GET /api/admin/me only.
+ *
+ * Legacy User account_type=admin tokens (POST /api/auth/login) are not admitted to
+ * Admin workspace pages: Backend EnsureSuperAdmin rejects them on dashboard/analytics
+ * with "Forbidden. Super Admin access only." — Frontend must not render that shell.
  *
  * Must run after `auth` and `account:admin` (session gate). Session account_type alone
  * is not trusted for continued Admin access — Backend identity wins.
  *
- * 401 → clear session, redirect to login (expired / revoked authentication).
+ * 401 → clear session, redirect to admin-login (expired / revoked authentication).
  * 403 → keep session, redirect to workspace (insufficient permission / forbidden).
  * 200 with non-admin identity → refresh session from Backend, redirect to workspace.
  */
 class EnsureAdminAccess
 {
     public function __construct(
-        private readonly AccountAPI $accounts,
         private readonly AdminAPI $admins,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
         if (! ApiSession::check()) {
-            return redirect()->route('frontend.account.login');
+            return redirect()->route('frontend.account.admin-login');
         }
 
-        if (ApiSession::isPlatformAdmin()) {
-            return $this->handlePlatformAdmin($request, $next);
+        if (! ApiSession::isPlatformAdmin()) {
+            return $this->rejectNonPlatformAdminSession();
         }
 
-        return $this->handleLegacyUserAdmin($request, $next);
+        return $this->handlePlatformAdmin($request, $next);
     }
 
     private function handlePlatformAdmin(Request $request, Closure $next): Response
@@ -84,43 +85,16 @@ class EnsureAdminAccess
         return $next($request);
     }
 
-    private function handleLegacyUserAdmin(Request $request, Closure $next): Response
+    /**
+     * Legacy User admins (and any non-platform realm) cannot use platform Admin pages.
+     * Clear the incompatible session and send them to the Admin portal login.
+     */
+    private function rejectNonPlatformAdminSession(): Response
     {
-        $response = $this->accounts->getProfile();
-        $status = (int) ($response['statusCode'] ?? $response['httpStatus'] ?? 500);
+        ApiSession::forget();
 
-        if ($status === 401) {
-            ApiSession::forget();
-
-            return redirect()->route('frontend.account.login')
-                ->withErrors(['error' => __('Your session has expired. Please sign in again.')]);
-        }
-
-        if ($status === 403) {
-            return redirect()->route('frontend.workspace')
-                ->withErrors(['error' => __('You are not authorized to access the admin workspace.')]);
-        }
-
-        if ($status !== 200) {
-            return redirect()->route('frontend.workspace')
-                ->withErrors(['error' => __('Could not verify admin access. Please try again.')]);
-        }
-
-        $backendUser = $this->extractUser($response['data'] ?? null);
-        if ($backendUser === null) {
-            return redirect()->route('frontend.workspace')
-                ->withErrors(['error' => __('Could not verify admin access. Please try again.')]);
-        }
-
-        ApiSession::refreshUser($backendUser);
-        $this->rebindAuthUser($request);
-
-        if (ApiSession::accountType() !== 'admin') {
-            return redirect()->route('frontend.workspace')
-                ->withErrors(['error' => __('You are not authorized to access the admin workspace.')]);
-        }
-
-        return $next($request);
+        return redirect()->route('frontend.account.admin-login')
+            ->withErrors(['error' => __('auth.admin_login.platform_required')]);
     }
 
     /** @param  mixed  $data */
@@ -166,29 +140,6 @@ class EnsureAdminAccess
 
         if (isset($data['admin']) && is_array($data['admin'])) {
             return $this->extractPlatformAdmin($data['admin'] + ['roles' => $data['roles'] ?? []]);
-        }
-
-        return null;
-    }
-
-    /** @param  mixed  $data */
-    private function extractUser(mixed $data): ?array
-    {
-        if (! is_array($data)) {
-            return null;
-        }
-
-        // Some envelopes nest the user again under data/user.
-        if (isset($data['account_type']) || isset($data['email'])) {
-            return $data;
-        }
-
-        if (isset($data['user']) && is_array($data['user'])) {
-            return $data['user'];
-        }
-
-        if (isset($data['data']) && is_array($data['data'])) {
-            return $this->extractUser($data['data']);
         }
 
         return null;

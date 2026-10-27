@@ -39,6 +39,7 @@ return [
         'employee' => 'Employee',
         'interviewer' => 'Interviewer',
         'admin' => 'Super Admin',
+        'legacy_admin' => 'Admin (legacy)',
     ],
     'avatar' => [
         'title' => 'Profile picture',

@@ -15,8 +15,16 @@ class TopbarAccountTest extends TestCase
             TopbarAccount::roleLabel(['account_type' => 'candidate', 'roles' => ['candidate']])
         );
         $this->assertSame(
-            __('common.role_labels.admin'),
+            __('common.role_labels.legacy_admin'),
             TopbarAccount::roleLabel(['account_type' => 'admin', 'roles' => []])
+        );
+        $this->assertSame(
+            __('common.role_labels.admin'),
+            TopbarAccount::roleLabel([
+                'account_type' => 'admin',
+                'roles' => ['super_admin'],
+                'identity' => \App\Frontend\Auth\ApiSession::REALM_PLATFORM_ADMIN,
+            ])
         );
         $this->assertSame(
             __('common.role_labels.interviewer'),
