@@ -309,4 +309,64 @@ class AdminAPI
             'statusCode' => $res->ok() ? 200 : $res->statusCode,
         ];
     }
+
+    /** Normalised result used by the single-company calls. */
+    private function companyResult($res): array
+    {
+        return [
+            'message'    => $res->ok() ? $res->message : "Error: {$res->message}\n",
+            'data'       => $res->data,
+            'errors'     => $res->errors ?? [],
+            'statusCode' => $res->ok() ? 200 : $res->statusCode,
+        ];
+    }
+
+    public function getCompany($companyId)
+    {
+        $res = $this->api->reset()->method('GET')
+            ->url("/admin/companies/{$companyId}/details")
+            ->bearer(ApiSession::token() ?? '')->send();
+
+        return $this->companyResult($res);
+    }
+
+    public function updateCompany($companyId, $data)
+    {
+        $res = $this->api->reset()->method('PUT')
+            ->url("/admin/companies/{$companyId}")
+            ->bearer(ApiSession::token() ?? '')
+            ->body($data)->send();
+
+        return $this->companyResult($res);
+    }
+
+    public function uploadCompanyDocument($companyId, string $path, string $name, string $mime, array $fields = [])
+    {
+        $res = $this->api->reset()->method('POST')
+            ->url("/admin/companies/{$companyId}/documents")
+            ->bearer(ApiSession::token() ?? '')
+            ->form($fields)
+            ->file('file', $path, $mime, $name)
+            ->send();
+
+        return $this->companyResult($res);
+    }
+
+    public function downloadCompanyDocument($companyId, $documentId)
+    {
+        $res = $this->api->reset()->method('GET')
+            ->url("/admin/companies/{$companyId}/documents/{$documentId}/download")
+            ->bearer(ApiSession::token() ?? '')->send();
+
+        return $this->companyResult($res);
+    }
+
+    public function deleteCompanyDocument($companyId, $documentId)
+    {
+        $res = $this->api->reset()->method('DELETE')
+            ->url("/admin/companies/{$companyId}/documents/{$documentId}")
+            ->bearer(ApiSession::token() ?? '')->send();
+
+        return $this->companyResult($res);
+    }
 }

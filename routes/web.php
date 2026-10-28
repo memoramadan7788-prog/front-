@@ -129,6 +129,10 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::get('/profile/update', [CompanyController::class, 'updateProfile'])->name('profile.update');
         Route::post('/profile/update', [CompanyController::class, 'updateProfile'])->name('profile.update.submit');
 
+        Route::post('/profile/documents', [CompanyController::class, 'uploadDocument'])->name('documents.upload');
+        Route::get('/profile/documents/{documentId}/download', [CompanyController::class, 'downloadDocument'])->name('documents.download');
+        Route::delete('/profile/documents/{documentId}', [CompanyController::class, 'deleteDocument'])->name('documents.delete');
+
         Route::get('/vacancies', [CompanyController::class, 'getVacancies'])->name('vacancies.index');
         Route::get('/vacancies/create', [CompanyController::class, 'createVacancy'])->name('vacancies.create');
         Route::post('/vacancies/create', [CompanyController::class, 'createVacancy'])->name('vacancies.create.submit');
@@ -178,6 +182,11 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::post('/companies/{companyId}/suspend', [AdminController::class, 'suspendCompany'])->name('companies.suspend');
         Route::get('/companies/{companyId}/reject', [AdminController::class, 'rejectCompany'])->name('companies.reject');
         Route::post('/companies/{companyId}/reject', [AdminController::class, 'rejectCompany'])->name('companies.reject.submit');
+        Route::get('/companies/{companyId}', [AdminController::class, 'showCompany'])->name('companies.show');
+        Route::post('/companies/{companyId}/update', [AdminController::class, 'updateCompany'])->name('companies.update');
+        Route::post('/companies/{companyId}/documents', [AdminController::class, 'uploadCompanyDocument'])->name('companies.documents.upload');
+        Route::get('/companies/{companyId}/documents/{documentId}/download', [AdminController::class, 'downloadCompanyDocument'])->name('companies.documents.download');
+        Route::delete('/companies/{companyId}/documents/{documentId}', [AdminController::class, 'deleteCompanyDocument'])->name('companies.documents.delete');
         Route::get('/users', [AdminController::class, 'getUsers'])->name('users.index');
         Route::get('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->name('users.status');
         Route::post('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->name('users.status.submit');

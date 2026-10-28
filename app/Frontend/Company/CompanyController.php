@@ -61,7 +61,11 @@ class CompanyController extends Controller
             }
         }
 
-        return view('frontend.company.update-profile', get_defined_vars());
+        $profile = $this->api->getProfile();
+        $prefill = $profile['statusCode'] === 200 ? (array) $profile['data'] : [];
+        $documents = data_get($prefill, 'documents', []);
+
+        return view('frontend.company.update-profile', compact('prefill', 'documents'));
     }
 
     function getVacancies(Request $request)
@@ -260,5 +264,51 @@ class CompanyController extends Controller
         }
 
         return view('frontend.company.create-offer', get_defined_vars());
+    }
+
+    function uploadDocument(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'type' => 'nullable|in:commercial_register,tax_card,license,other',
+            'title' => 'nullable|string|max:255',
+        ]);
+
+        $file = $request->file('file');
+        $fields = array_filter($request->only(['type', 'title']), fn ($v) => $v !== null && $v !== '');
+
+        $response = $this->api->uploadDocument($file->getRealPath(), $file->getClientOriginalName(), (string) $file->getClientMimeType(), $fields);
+
+        if ($response['statusCode'] === 200) {
+            return redirect()->route('frontend.company.profile.update')->with('success', __('Document uploaded successfully.'));
+        }
+
+        return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+    }
+
+    function downloadDocument(Request $request, $documentId)
+    {
+        $response = $this->api->downloadDocument($documentId);
+
+        if ($response['statusCode'] === 200) {
+            $name = preg_replace('/[^\w.\- ]+/u', '_', basename((string) $request->query('name', 'document'))) ?: 'document';
+
+            return response()->streamDownload(function () use ($response) {
+                echo $response['data'];
+            }, $name, ['Content-Type' => 'application/octet-stream']);
+        }
+
+        return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+    }
+
+    function deleteDocument(Request $request, $documentId)
+    {
+        $response = $this->api->deleteDocument($documentId);
+
+        if ($response['statusCode'] === 200) {
+            return redirect()->back()->with('success', __('Document deleted successfully.'));
+        }
+
+        return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
     }
 }

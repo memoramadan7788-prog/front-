@@ -12,7 +12,24 @@
 @endsection
 
 @section('content')
-<x-card>@include('frontend.partials.record', ['record' => $profile ?? []])</x-card>
+@php
+    $profile = is_array($profile ?? null) ? $profile : [];
+    $documents = $profile['documents'] ?? [];
+    unset($profile['documents']);
+@endphp
+<x-card>@include('frontend.partials.record', ['record' => $profile])</x-card>
+
+<x-card class="mt-6">
+    <x-slot:header>
+        <h2 class="text-lg font-bold text-hb-navy">{{ __('Company documents') }}</h2>
+    </x-slot:header>
+    @include('frontend.partials.company-documents', [
+        'documents' => $documents,
+        'downloadUrl' => fn ($d) => route('frontend.company.documents.download', ['documentId' => data_get($d, 'id'), 'name' => data_get($d, 'original_filename')]),
+    ])
+    <div class="mt-4"><x-button variant="light" size="sm" :href="route('frontend.company.profile.update')">{{ __('Manage documents') }}</x-button></div>
+</x-card>
+
 <x-card class="mt-6">
     <h2 class="text-lg font-bold text-hb-navy">{{ __('Delete company account') }}</h2>
     <p class="mt-1 text-sm text-hb-muted">{{ __('This permanently removes the company and its data.') }}</p>

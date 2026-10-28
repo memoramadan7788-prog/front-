@@ -80,7 +80,7 @@
         @php $st = data_get($row, 'status'); @endphp
         <tr>
             <td class="px-4 py-3">
-                <p class="font-semibold text-hb-navy">{{ data_get($row, 'name', '—') }}</p>
+                <a href="{{ route('frontend.admin.companies.show', ['companyId' => data_get($row, 'id')]) }}" class="font-semibold text-hb-navy hover:underline">{{ data_get($row, 'name', '—') }}</a>
                 @if (data_get($row, 'owner.email'))<p class="text-xs text-hb-muted">{{ data_get($row, 'owner.email') }}</p>@endif
             </td>
             <td class="px-4 py-3">{{ data_get($row, 'industry') ?: '—' }}</td>
@@ -94,6 +94,7 @@
             </td>
             <td class="px-4 py-3">{{ \App\Support\Rows::date(data_get($row, 'created_at'), 'Y-m-d') }}</td>
             <td class="px-4 py-3"><div class="flex flex-wrap justify-end gap-2">
+                <x-button variant="ghost" size="sm" :href="route('frontend.admin.companies.show', ['companyId' => data_get($row, 'id')])">{{ __('View') }}</x-button>
                 @if ($st === 'pending')
                     <form method="POST" action="{{ route('frontend.admin.companies.approve', ['companyId' => data_get($row, 'id')]) }}" class="inline">@csrf <x-button type="submit" size="sm" variant="primary">{{ __('Approve') }}</x-button></form>
                     <x-button variant="destructive" size="sm" :href="route('frontend.admin.companies.reject', ['companyId' => data_get($row, 'id')])">{{ __('Reject') }}</x-button>

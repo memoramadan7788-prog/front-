@@ -57,28 +57,18 @@ class CompanyAPI
 
     public function getProfile()
     {
-        $message = '';
-        $statusCode = 200;
-
-        // TODO(backend): GET /company/profile does not exist yet, /auth/me carries the company (id, name, status)
         $res = $this->api->reset()->method('GET')
-            ->url('/auth/me')
+            ->url('/company/profile')
             ->bearer(ApiSession::token() ?? '')->send();
 
-        $data = $res->data;
-        if ($res->ok()) {
-            $message = $res->message;
-            $statusCode = 200; // any 2xx (the backend answers 201 for creates) counts as success
-            $data = (array) data_get($res->data, 'company', []) + ['email' => data_get($res->data, 'email')];
-        } else {
-            $message = "Error: {$res->message}\n";
-            $statusCode = $res->statusCode;
-        }
-
-        return ["message" => $message, "data" => $data, "statusCode" => $statusCode];
+        return [
+            'message'    => $res->ok() ? $res->message : "Error: {$res->message}\n",
+            'data'       => $res->data,
+            'errors'     => $res->errors ?? [],
+            'statusCode' => $res->ok() ? 200 : $res->statusCode,
+        ];
     }
 
-    // TODO(backend): PUT /company/profile does not exist yet
     public function updateProfile($data)
     {
         $message = '';
@@ -97,7 +87,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ["message" => $message, "data" => $res->data, "errors" => $res->errors ?? [], "statusCode" => $statusCode];
     }
 
     public function logout()
@@ -367,5 +357,46 @@ class CompanyAPI
         }
 
         return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+    }
+
+    /** Normalised result used by the company profile / documents calls. */
+    private function profileResult($res): array
+    {
+        return [
+            'message'    => $res->ok() ? $res->message : "Error: {$res->message}\n",
+            'data'       => $res->data,
+            'errors'     => $res->errors ?? [],
+            'statusCode' => $res->ok() ? 200 : $res->statusCode,
+        ];
+    }
+
+    public function uploadDocument(string $path, string $name, string $mime, array $fields = [])
+    {
+        $res = $this->api->reset()->method('POST')
+            ->url('/company/documents')
+            ->bearer(ApiSession::token() ?? '')
+            ->form($fields)
+            ->file('file', $path, $mime, $name)
+            ->send();
+
+        return $this->profileResult($res);
+    }
+
+    public function downloadDocument($documentId)
+    {
+        $res = $this->api->reset()->method('GET')
+            ->url("/company/documents/{$documentId}/download")
+            ->bearer(ApiSession::token() ?? '')->send();
+
+        return $this->profileResult($res);
+    }
+
+    public function deleteDocument($documentId)
+    {
+        $res = $this->api->reset()->method('DELETE')
+            ->url("/company/documents/{$documentId}")
+            ->bearer(ApiSession::token() ?? '')->send();
+
+        return $this->profileResult($res);
     }
 }

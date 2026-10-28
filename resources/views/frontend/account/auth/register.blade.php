@@ -48,8 +48,15 @@
         <x-auth-field name="name" label="Full name" icon="user" placeholder="Your full name" autocomplete="name" required />
         <x-auth-field name="email" label="Email" type="email" icon="mail" placeholder="you@example.com" autocomplete="email" required />
 
+        {{-- Company-only fields: required by AuthController when account_type = company --}}
+        <div id="company-fields" class="space-y-5" @if ($selected !== 'company') style="display:none" @endif>
+            <x-auth-field name="company_name" label="Company name" icon="user" placeholder="Your company name" autocomplete="organization" />
+            <x-auth-field name="industry" label="Industry (optional)" placeholder="e.g. Software" />
+            <x-auth-field name="website" label="Website (optional)" type="url" placeholder="https://example.com" />
+        </div>
+
         <div class="grid gap-5 sm:grid-cols-2">
-            <x-auth-field name="password" label="Password" type="password" icon="lock" placeholder="Min. 6 characters" autocomplete="new-password" required />
+            <x-auth-field name="password" label="Password" type="password" icon="lock" placeholder="Min. 8 characters" autocomplete="new-password" required />
             <x-auth-field name="password_confirmation" label="Confirm password" type="password" icon="lock" placeholder="Repeat password" autocomplete="new-password" required />
         </div>
 
@@ -63,4 +70,20 @@
         Already have an account?
         <a href="{{ route('frontend.account.login') }}" class="font-bold text-sky-600 hover:underline">Log in</a>
     </p>
+    <script>
+        (function () {
+            var box = document.getElementById('company-fields');
+            var name = document.getElementById('company_name');
+            function sync(type) {
+                var isCompany = type === 'company';
+                box.style.display = isCompany ? '' : 'none';
+                name.required = isCompany;
+            }
+            document.querySelectorAll('input[name=account_type]').forEach(function (r) {
+                r.addEventListener('change', function () { sync(this.value); });
+            });
+            var checked = document.querySelector('input[name=account_type]:checked');
+            sync(checked ? checked.value : 'candidate');
+        })();
+    </script>
 @endsection

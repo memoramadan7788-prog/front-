@@ -350,4 +350,83 @@ class AdminController extends Controller
             'loadError' => $loadError !== '' ? $loadError : __('Could not load roles.'),
         ]);
     }
+
+    function showCompany(Request $request, $companyId)
+    {
+        $response = $this->api->getCompany($companyId);
+
+        if ($response['statusCode'] === 200) {
+            return view('frontend.admin.company-show', ['company' => (array) $response['data']]);
+        }
+
+        return redirect()->route('frontend.admin.companies.index')
+            ->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+    }
+
+    function updateCompany(Request $request, $companyId)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'website' => 'nullable|url',
+            'industry' => 'nullable|string|max:255',
+            'contact_email' => 'nullable|email',
+            'contact_phone' => 'nullable|string|max:30',
+            'address' => 'nullable|string',
+        ]);
+
+        $response = $this->api->updateCompany($companyId, $request->only(['name', 'website', 'industry', 'contact_email', 'contact_phone', 'address']));
+
+        if ($response['statusCode'] === 200) {
+            return redirect()->route('frontend.admin.companies.show', ['companyId' => $companyId])
+                ->with('success', __('Company updated successfully.'));
+        }
+
+        return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
+    }
+
+    function uploadCompanyDocument(Request $request, $companyId)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'type' => 'nullable|in:commercial_register,tax_card,license,other',
+            'title' => 'nullable|string|max:255',
+        ]);
+
+        $file = $request->file('file');
+        $fields = array_filter($request->only(['type', 'title']), fn ($v) => $v !== null && $v !== '');
+
+        $response = $this->api->uploadCompanyDocument($companyId, $file->getRealPath(), $file->getClientOriginalName(), (string) $file->getClientMimeType(), $fields);
+
+        if ($response['statusCode'] === 200) {
+            return redirect()->back()->with('success', __('Document uploaded successfully.'));
+        }
+
+        return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+    }
+
+    function downloadCompanyDocument(Request $request, $companyId, $documentId)
+    {
+        $response = $this->api->downloadCompanyDocument($companyId, $documentId);
+
+        if ($response['statusCode'] === 200) {
+            $name = preg_replace('/[^\w.\- ]+/u', '_', basename((string) $request->query('name', 'document'))) ?: 'document';
+
+            return response()->streamDownload(function () use ($response) {
+                echo $response['data'];
+            }, $name, ['Content-Type' => 'application/octet-stream']);
+        }
+
+        return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+    }
+
+    function deleteCompanyDocument(Request $request, $companyId, $documentId)
+    {
+        $response = $this->api->deleteCompanyDocument($companyId, $documentId);
+
+        if ($response['statusCode'] === 200) {
+            return redirect()->back()->with('success', __('Document deleted successfully.'));
+        }
+
+        return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+    }
 }

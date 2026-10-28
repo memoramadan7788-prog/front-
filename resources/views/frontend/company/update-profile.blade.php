@@ -7,12 +7,15 @@
 @endsection
 
 @section('content')
+@if ($errors->has('error'))
+    <x-alert variant="error" class="mb-4" role="alert">{{ $errors->first('error') }}</x-alert>
+@endif
+
 <x-card class="max-w-2xl">
     <x-slot:header>
-        <h2 class="text-lg font-bold text-hb-navy">{{ __('Edit company profile') }}</h2>
+        <h2 class="text-lg font-bold text-hb-navy">{{ __('Company details') }}</h2>
     </x-slot:header>
 
-    
     <form method="POST" action="{{ route('frontend.company.profile.update.submit') }}" class="space-y-5">
         @csrf
         <x-form.input name="name" :label="__('Company name')" type="text" :required="true" :error="$errors->first('name')" value="{{ old('name', data_get(($prefill ?? []), 'name', '')) }}" />
@@ -26,6 +29,19 @@
             <x-button variant="light" :href="route('frontend.company.profile')">{{ __('Cancel') }}</x-button>
         </div>
     </form>
-    
+</x-card>
+
+<x-card class="mt-6 max-w-4xl">
+    <x-slot:header>
+        <h2 class="text-lg font-bold text-hb-navy">{{ __('Company documents') }}</h2>
+    </x-slot:header>
+    <p class="mb-4 text-sm text-hb-muted">{{ __('Upload your commercial register, tax card or licence so the platform team can review your company.') }}</p>
+
+    @include('frontend.partials.company-documents', [
+        'documents' => $documents ?? [],
+        'uploadUrl' => route('frontend.company.documents.upload'),
+        'downloadUrl' => fn ($d) => route('frontend.company.documents.download', ['documentId' => data_get($d, 'id'), 'name' => data_get($d, 'original_filename')]),
+        'deleteUrl' => fn ($d) => route('frontend.company.documents.delete', ['documentId' => data_get($d, 'id')]),
+    ])
 </x-card>
 @endsection
