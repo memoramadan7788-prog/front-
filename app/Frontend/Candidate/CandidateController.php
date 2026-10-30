@@ -6,7 +6,7 @@ use App\Frontend\Auth\ApiSession;
 use App\Models\CandidateAPI;
 use App\Models\JobAPI;
 use App\Models\LookupAPI;
-use App\Support\Frontend\ApiListPage;
+use App\Support\Frontend\CandidateDashboard\CandidateDashboardKpiGateway;
 use App\Support\Frontend\CandidateReturnPath;
 use App\Support\Rows;
 use Illuminate\Contracts\View\View;
@@ -275,8 +275,9 @@ public function uploadResume(Request $request)
             $response = $this->api->applyForVacancy($vacancyId, $data);
 
             if ($response['statusCode'] === 200) {
-                return redirect()->route('frontend.candidate.applications.index')
-                    ->with('success_key', 'candidate.apply_form.flash_success');
+                return redirect()->route('frontend.candidate.applications.success', ['vacancyId' => $vacancyId])
+                    ->with('success_key', 'candidate.apply_form.flash_success')
+                    ->with('application_submitted_vacancy', (int) $vacancyId);
             }
 
             // Preserve Backend validation / duplicate-application errors — no success claim.
@@ -295,6 +296,26 @@ public function uploadResume(Request $request)
             'vacancyId' => $vacancyId,
             'cvs' => $cvs,
             'job' => $job,
+        ]);
+    }
+
+    public function applicationSuccess(Request $request, int $vacancyId, JobAPI $jobs, CandidateDashboardKpiGateway $gateway): View|RedirectResponse
+    {
+        if ((int) $request->session()->get('application_submitted_vacancy') !== $vacancyId) {
+            return redirect()->route('frontend.candidate.applications.index');
+        }
+
+        $jobResponse = $jobs->getJob($vacancyId);
+        if ((int) ($jobResponse['statusCode'] ?? 500) !== 200) {
+            return redirect()->route('frontend.candidate.applications.index')->withErrors(['error' => __('candidate.apply_form.flash_error')]);
+        }
+
+        $recommendations = $gateway->recommendedJobs(1, 3);
+
+        return view('frontend.candidate.application-success', [
+            'job' => (array) ($jobResponse['data'] ?? []),
+            'recommendationsAvailable' => (int) ($recommendations['statusCode'] ?? 500) === 200,
+            'recommendations' => (int) ($recommendations['statusCode'] ?? 500) === 200 ? Rows::from($recommendations['data'] ?? []) : [],
         ]);
     }
 

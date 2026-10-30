@@ -109,6 +109,7 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::get('/vacancies/{vacancyId}/apply', [CandidateController::class, 'applyForVacancy'])->name('vacancies.apply');
         Route::post('/vacancies/{vacancyId}/apply', [CandidateController::class, 'applyForVacancy'])->name('vacancies.apply.submit');
         Route::get('/applications', [CandidateController::class, 'getApplications'])->name('applications.index');
+        Route::get('/applications/success/{vacancyId}', [CandidateController::class, 'applicationSuccess'])->whereNumber('vacancyId')->name('applications.success');
         Route::get('/applications/{applicationId}', [CandidateController::class, 'getApplication'])->name('applications.show');
         Route::post('/applications/{applicationId}/withdraw', [ApplicationController::class, 'withdrawApplication'])->name('applications.withdraw');
 
