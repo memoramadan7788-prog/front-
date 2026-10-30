@@ -249,13 +249,31 @@ class CandidateController extends Controller
         ]);
     }
 
-    function getApplications(Request $request)
+    function getApplications(Request $request, CandidateApplicationsAdapter $adapter)
     {
-        return ApiListPage::render(
-            $this->api->getApplications(),
-            'frontend.candidate.applications',
-            'applications',
-        );
+        $payload = $adapter->load($request);
+
+        if (! empty($payload['unauthorized'])) {
+            ApiSession::forget();
+
+            return redirect()->route('frontend.account.login')
+                ->withErrors(['error' => __('candidate.pipeline.session_expired')]);
+        }
+
+        return view('frontend.candidate.applications', [
+            'applications' => $payload['applications'] ?? [],
+            'tabs' => $payload['tabs'] ?? [],
+            'filters' => $payload['filters'] ?? [],
+            'statusOptions' => $payload['status_options'] ?? [],
+            'meta' => $payload['meta'] ?? null,
+            'loadError' => $payload['loadError'] ?? null,
+            'loadStatus' => $payload['loadStatus'] ?? null,
+            'catalogWarning' => $payload['catalog_warning'] ?? null,
+            'emptyCatalog' => (bool) ($payload['empty_catalog'] ?? false),
+            'emptyFiltered' => (bool) ($payload['empty_filtered'] ?? false),
+            'countsReliable' => (bool) ($payload['counts_reliable'] ?? false),
+            'catalogLoaded' => (int) ($payload['catalog_loaded'] ?? 0),
+        ]);
     }
 
     function getApplication(Request $request, $applicationId)

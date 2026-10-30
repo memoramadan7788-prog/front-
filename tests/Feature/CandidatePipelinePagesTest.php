@@ -7,11 +7,23 @@ use App\Models\CandidateAPI;
 use App\Models\ExamAPI;
 use App\Models\InterviewAPI;
 use App\Models\OfferAPI;
+use App\Support\Frontend\CandidateDashboard\CandidateDashboardKpiGateway;
 use Mockery;
+use Tests\Support\FakeCandidateDashboardKpiGateway;
 use Tests\TestCase;
 
 class CandidatePipelinePagesTest extends TestCase
 {
+    private FakeCandidateDashboardKpiGateway $applicationsGateway;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->applicationsGateway = new FakeCandidateDashboardKpiGateway;
+        $this->app->instance(CandidateDashboardKpiGateway::class, $this->applicationsGateway);
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();
@@ -33,9 +45,14 @@ class CandidatePipelinePagesTest extends TestCase
     public function test_applications_empty_success_shows_contextual_empty_state(): void
     {
         $this->actingAsCandidate();
-        $this->bind(CandidateAPI::class, 'getApplications', [
-            'statusCode' => 200, 'data' => [], 'message' => 'OK', 'errors' => [],
-        ]);
+        $this->applicationsGateway->applicationPages = [
+            $this->applicationsGateway->okPage([], [
+                'total' => 0,
+                'last_page' => 1,
+                'current_page' => 1,
+                'per_page' => 15,
+            ]),
+        ];
 
         $html = $this->get(route('frontend.candidate.applications.index'))->assertOk()->getContent();
 
@@ -49,17 +66,20 @@ class CandidatePipelinePagesTest extends TestCase
     public function test_applications_with_records_preserve_actions(): void
     {
         $this->actingAsCandidate();
-        $this->bind(CandidateAPI::class, 'getApplications', [
-            'statusCode' => 200,
-            'message' => 'OK',
-            'errors' => [],
-            'data' => [[
+        $this->applicationsGateway->applicationPages = [
+            $this->applicationsGateway->okPage([[
                 'id' => 9,
-                'status' => 'applied',
+                'status' => 'submitted',
                 'applied_at' => '2026-10-01T10:00:00+00:00',
-                'job' => ['title' => 'Backend Engineer'],
-            ]],
-        ]);
+                'job_title' => 'Backend Engineer',
+                'company_name' => 'Acme',
+            ]], [
+                'total' => 1,
+                'last_page' => 1,
+                'current_page' => 1,
+                'per_page' => 15,
+            ]),
+        ];
 
         $html = $this->get(route('frontend.candidate.applications.index'))->assertOk()->getContent();
 
@@ -72,12 +92,13 @@ class CandidatePipelinePagesTest extends TestCase
     public function test_applications_api_failure_shows_error_not_empty_state(): void
     {
         $this->actingAsCandidate();
-        $this->bind(CandidateAPI::class, 'getApplications', [
+        $this->applicationsGateway->applicationPages = [[
             'statusCode' => 503,
             'message' => 'Service unavailable',
             'errors' => [],
             'data' => null,
-        ]);
+            'meta' => null,
+        ]];
 
         $html = $this->get(route('frontend.candidate.applications.index'))->assertOk()->getContent();
 
@@ -89,12 +110,13 @@ class CandidatePipelinePagesTest extends TestCase
     public function test_applications_unauthorized_clears_session_and_redirects_to_login(): void
     {
         $this->actingAsCandidate();
-        $this->bind(CandidateAPI::class, 'getApplications', [
+        $this->applicationsGateway->applicationPages = [[
             'statusCode' => 401,
             'message' => 'Unauthenticated',
             'errors' => [],
             'data' => null,
-        ]);
+            'meta' => null,
+        ]];
 
         $this->get(route('frontend.candidate.applications.index'))
             ->assertRedirect(route('frontend.account.login'));
@@ -257,9 +279,14 @@ class CandidatePipelinePagesTest extends TestCase
     public function test_pipeline_pages_keep_candidate_navigation(): void
     {
         $this->actingAsCandidate();
-        $this->bind(CandidateAPI::class, 'getApplications', [
-            'statusCode' => 200, 'data' => [], 'message' => 'OK', 'errors' => [],
-        ]);
+        $this->applicationsGateway->applicationPages = [
+            $this->applicationsGateway->okPage([], [
+                'total' => 0,
+                'last_page' => 1,
+                'current_page' => 1,
+                'per_page' => 15,
+            ]),
+        ];
 
         $this->get(route('frontend.candidate.applications.index'))
             ->assertOk()

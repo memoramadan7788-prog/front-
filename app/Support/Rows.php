@@ -58,10 +58,10 @@ class Rows
     public static function badgeVariant(?string $status): string
     {
         return match (strtolower((string) $status)) {
-            'active', 'approved', 'accepted', 'open', 'published', 'hired', 'passed', 'booked', 'completed', 'available' => 'success',
-            'pending', 'draft', 'screening', 'interview', 'offer', 'submitted', 'sent', 'scheduled' => 'pending',
+            'active', 'approved', 'accepted', 'open', 'published', 'hired', 'passed', 'booked', 'completed', 'available', 'offered' => 'success',
+            'pending', 'draft', 'screening', 'shortlisted', 'interview', 'interviewing', 'offer', 'submitted', 'sent', 'scheduled' => 'pending',
             'rejected', 'banned', 'suspended', 'blocked', 'deactivated', 'deleted', 'failed', 'expired', 'cancelled', 'canceled', 'closed' => 'error',
-            'removed' => 'neutral',
+            'withdrawn', 'removed' => 'neutral',
             'applied' => 'info',
             default => 'neutral',
         };

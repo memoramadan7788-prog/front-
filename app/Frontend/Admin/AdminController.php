@@ -196,8 +196,7 @@ class AdminController extends Controller
     }
 
     function showCompany(Request $request, $companyId)
-
-
+    {
         $response = $this->api->getCompanyDetails($companyId);
 
         if ($response['statusCode'] === 200) {

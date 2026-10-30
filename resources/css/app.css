@@ -172,6 +172,37 @@
     .hb-modal-close { color: var(--hb-muted); }
     .hb-modal-close:hover { color: var(--hb-navy); }
     .hb-tabs { border-bottom: 1px solid var(--hb-border); }
+
+    /* Candidate My Applications — compact current-stage snapshot (not historical progression) */
+    .hb-apps-pipeline__dot {
+        display: inline-block;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 9999px;
+        flex-shrink: 0;
+    }
+    .hb-apps-pipeline__dot--idle {
+        background: color-mix(in srgb, var(--hb-muted) 35%, transparent);
+        border: 1px solid var(--hb-border);
+    }
+    .hb-apps-pipeline__dot--current {
+        background: var(--hb-blue);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--hb-blue) 22%, transparent);
+    }
+    .hb-apps-pipeline__rail {
+        display: inline-block;
+        width: 0.55rem;
+        height: 1px;
+        background: var(--hb-border);
+    }
+    .hb-apps-pipeline--full .hb-apps-pipeline__rail {
+        width: 0.35rem;
+        margin-inline: 0.15rem;
+    }
+    .hb-apps-tab:focus-visible {
+        outline: 2px solid var(--hb-blue);
+        outline-offset: 2px;
+    }
 }
 
 @keyframes ring {
