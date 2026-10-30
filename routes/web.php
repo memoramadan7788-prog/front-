@@ -13,6 +13,7 @@ use App\Frontend\Exam\ExamController;
 use App\Frontend\Home\HomeController;
 use App\Frontend\Interview\InterviewController;
 use App\Frontend\Interviewer\InterviewerController;
+use App\Frontend\Company\CompanyCreateJobController;
 use App\Frontend\Job\JobController;
 use App\Frontend\Lookup\LookupController;
 use App\Frontend\Notifications\NotificationsController;
@@ -152,8 +153,9 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::delete('/profile/documents/{documentId}', [CompanyController::class, 'deleteDocument'])->name('documents.delete');
 
         Route::get('/vacancies', [CompanyController::class, 'getVacancies'])->name('vacancies.index');
-        Route::get('/vacancies/create', [CompanyController::class, 'createVacancy'])->name('vacancies.create');
-        Route::post('/vacancies/create', [CompanyController::class, 'createVacancy'])->name('vacancies.create.submit');
+        Route::get('/vacancies/create', [CompanyCreateJobController::class, 'show'])->name('vacancies.create');
+        Route::post('/vacancies/create', [CompanyCreateJobController::class, 'handle'])->name('vacancies.create.submit');
+        Route::get('/vacancies/create/preview', [CompanyCreateJobController::class, 'preview'])->name('vacancies.create.preview');
         Route::get('/vacancies/{vacancyId}/update', [CompanyController::class, 'updateVacancy'])->name('vacancies.update');
         Route::post('/vacancies/{vacancyId}/update', [CompanyController::class, 'updateVacancy'])->name('vacancies.update.submit');
         Route::get('/vacancies/{vacancyId}/overview', [CompanyController::class, 'jobOverview'])->name('vacancies.overview');
