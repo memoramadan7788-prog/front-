@@ -14,6 +14,7 @@ use App\Frontend\Company\CompanyScheduleInterviewController;
 use App\Frontend\Company\CompanyTeamPermissionsController;
 use App\Frontend\Employee\EmployeeController;
 use App\Frontend\Exam\ExamController;
+use App\Frontend\Home\ConsultationController;
 use App\Frontend\Home\HomeController;
 use App\Frontend\Interview\InterviewController;
 use App\Frontend\Interviewer\InterviewerController;
@@ -39,8 +40,8 @@ Route::prefix('/')->name('frontend.')->group(function () {
     Route::get('/about', [HomeController::class, 'about'])->name('about');
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
     Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
-    Route::get('/consultation', [HomeController::class, 'consultation'])->name('consultation');
-    Route::post('/consultation', [HomeController::class, 'submitConsultation'])->name('consultation.submit');
+    Route::get('/consultation', [ConsultationController::class, 'show'])->name('consultation');
+    Route::post('/consultation', [ConsultationController::class, 'submit'])->name('consultation.submit');
     Route::get('/workspace', [HomeController::class, 'workspace'])->middleware('auth')->name('workspace');
     Route::get('/locale/{locale}', LocaleController::class)->name('locale.switch');
 

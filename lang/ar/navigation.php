@@ -9,6 +9,7 @@ return [
     'agency_services' => 'خدمات الوكالة',
     'companies' => 'الشركات',
     'contact' => 'تواصل معنا',
+    'consultation' => 'اطلب استشارة',
     'candidate' => [
         'eyebrow' => 'مرشح',
         'workspace' => 'مساحة العمل الشخصية',
