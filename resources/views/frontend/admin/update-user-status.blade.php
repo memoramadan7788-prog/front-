@@ -29,8 +29,9 @@
         </x-form.select>
         <x-form.textarea name="reason" :label="__('Reason (optional)')" rows="3" :error="$errors->first('reason')">{{ old('reason') }}</x-form.textarea>
         <p class="text-xs text-hb-muted">{{ __('Deactivating or blocking a user signs them out everywhere immediately.') }}</p>
+        <p class="text-xs text-hb-pending" data-status-confirm-note>{{ __('admin.users.status_confirm') }}</p>
         <div class="flex flex-wrap items-center gap-3 pt-1">
-            <x-button type="submit">{{ __('Save') }}</x-button>
+            <x-button type="submit" data-status-submit onclick="return window.confirm(this.getAttribute('data-confirm') || '')" data-confirm="{{ __('admin.users.status_confirm') }}">{{ __('Save') }}</x-button>
             <x-button variant="light" :href="route('frontend.admin.users.index')">{{ __('Cancel') }}</x-button>
         </div>
     </form>

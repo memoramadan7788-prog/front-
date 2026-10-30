@@ -2,16 +2,11 @@
 
 namespace App\Frontend\Admin;
 
-use App\Frontend\Auth\ApiSession;
 use App\Models\AdminAPI;
 use App\Support\Frontend\SafeApiMessage;
 use App\Support\Rows;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -22,16 +17,16 @@ class AdminController extends Controller
 
     public function __construct()
     {
-        $this->api = new AdminAPI();
+        $this->api = new AdminAPI;
     }
 
     /** Keep only the query-string filters the backend understands (drop empty ones). */
     private function filters(Request $request, array $allowed): array
     {
-        return array_filter($request->only($allowed), fn($v) => $v !== null && $v !== '');
+        return array_filter($request->only($allowed), fn ($v) => $v !== null && $v !== '');
     }
 
-    function dashboard(Request $request)
+    public function dashboard(Request $request)
     {
         $adapter = new AdminDashboardAdapter($this->api);
 
@@ -115,7 +110,6 @@ class AdminController extends Controller
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
 
-
         // Backend platform Admin suspend currently fails audit FK (user_id=0) — never claim success.
         return redirect()->back()->withErrors([
             'error' => $this->apiFlashError(
@@ -159,35 +153,65 @@ class AdminController extends Controller
 
     public function updateUserStatus(Request $request, $userId)
     {
+        $userResponse = $this->api->getUser($userId);
+        $userCode = (int) ($userResponse['statusCode'] ?? 500);
+        $user = $userCode === 200 ? Rows::get($userResponse['data'], 'data', $userResponse['data']) : [];
+        if (! is_array($user)) {
+            $user = [];
+        }
+
+        $accountType = strtolower((string) data_get($user, 'account_type', ''));
+        if ($accountType === 'admin') {
+            return redirect()->route('frontend.admin.users.index')
+                ->withErrors(['error' => __('admin.users.status_blocked_admin_type')]);
+        }
+
         if ($request->isMethod('post')) {
+            if ($userCode !== 200 || data_get($user, 'id') === null) {
+                return redirect()->route('frontend.admin.users.index')
+                    ->withErrors(['error' => SafeApiMessage::forUser(
+                        is_string($userResponse['message'] ?? null) ? $userResponse['message'] : null,
+                        __('admin.users.load_error'),
+                        ['action' => 'admin.users.status', 'status' => $userCode]
+                    )]);
+            }
 
             $fields = $request->validate([
                 'account_status' => 'required|string|in:'.implode(',', array_keys(self::USER_STATUSES)),
                 'reason' => 'nullable|string|max:500',
             ]);
 
-            // the backend expects account_status_id (+ optional reason)
             $data = array_filter([
                 'account_status_id' => self::USER_STATUSES[$fields['account_status']],
                 'reason' => $fields['reason'] ?? null,
             ], fn ($v) => $v !== null && $v !== '');
 
             $response = $this->api->updateUserStatus($userId, $data);
+            $statusCode = (int) ($response['statusCode'] ?? 500);
 
-            if ($response['statusCode'] === 200) {
-                // User status update successful, you can perform additional actions here if needed
+            if ($statusCode === 200) {
                 return redirect()->route('frontend.admin.users.index')->with('success_key', 'flash.admin.user_status_updated');
-            } else {
-                // User status update failed, return the error message
-                return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
             }
+
+            return redirect()->back()->withErrors(($response['errors'] ?? []) ?: [
+                'error' => SafeApiMessage::forUser(
+                    is_string($response['message'] ?? null) ? $response['message'] : null,
+                    __('admin.users.load_error'),
+                    ['action' => 'admin.users.status.patch', 'status' => $statusCode]
+                ),
+            ])->withInput();
         }
 
-        // show the user being edited (name, email and current status)
-        $userResponse = $this->api->getUser($userId);
-        $user = $userResponse['statusCode'] === 200 ? Rows::get($userResponse['data'], 'data', $userResponse['data']) : [];
+        if ($userCode === 404) {
+            return redirect()->route('frontend.admin.users.index')
+                ->withErrors(['error' => __('admin.users.data_unavailable')]);
+        }
 
-        return view('frontend.admin.update-user-status', get_defined_vars());
+        return view('frontend.admin.update-user-status', [
+            'userId' => $userId,
+            'user' => $user,
+            'statusBlocked' => false,
+        ]);
     }
 
     public function getAuditLogs(Request $request)

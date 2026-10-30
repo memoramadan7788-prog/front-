@@ -2,6 +2,7 @@
 
 use App\Frontend\Account\AccountController;
 use App\Frontend\Admin\AdminController;
+use App\Frontend\Admin\AdminUsersAccessController;
 use App\Frontend\Application\ApplicationController;
 use App\Frontend\Ats\AtsController;
 use App\Frontend\Auth\AuthController;
@@ -227,9 +228,10 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::post('/companies/{companyId}/documents', [AdminController::class, 'uploadCompanyDocument'])->name('companies.documents.upload');
         Route::get('/companies/{companyId}/documents/{documentId}/download', [AdminController::class, 'downloadCompanyDocument'])->name('companies.documents.download');
         Route::delete('/companies/{companyId}/documents/{documentId}', [AdminController::class, 'deleteCompanyDocument'])->name('companies.documents.delete');
-        Route::get('/users', [AdminController::class, 'getUsers'])->name('users.index');
-        Route::get('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->name('users.status');
-        Route::post('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->name('users.status.submit');
+        Route::get('/users', [AdminUsersAccessController::class, 'index'])->name('users.index');
+        Route::get('/users/export-page', [AdminUsersAccessController::class, 'exportCurrentPage'])->name('users.export-page');
+        Route::get('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->whereNumber('userId')->name('users.status');
+        Route::post('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->whereNumber('userId')->name('users.status.submit');
         Route::get('/roles', [AdminController::class, 'getRoles'])->name('roles.index');
         Route::get('/audit-logs', [AdminController::class, 'getAuditLogs'])->name('audit-logs.index');
     });
