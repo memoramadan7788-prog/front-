@@ -60,14 +60,51 @@ class CompanyController extends Controller
 
     public function getVacancies(Request $request)
     {
+        $filters = $request->validate([
+            'status' => ['nullable', 'string', 'in:open,draft,closed,all'],
+            'q' => ['nullable', 'string', 'max:120'],
+            'location' => ['nullable', 'string', 'max:120'],
+            'hiring_model' => ['nullable', 'string', 'in:direct,agency'],
+        ]);
         $response = $this->api->getVacancies();
 
         if ($response['statusCode'] === 200) {
-            // Vacancies retrieval successful, you can perform additional actions here if needed
-            return view('frontend.company.vacancies', ['vacancies' => $response['data']]);
+            $items = Rows::from($response['data'] ?? []);
+            $status = $filters['status'] ?? 'all';
+            $items = array_values(array_filter($items, static function ($row) use ($status, $filters): bool {
+                $rowStatus = strtolower((string) data_get($row, 'status', ''));
+                $isOpen = in_array($rowStatus, ['open', 'published'], true);
+                $isDraft = $rowStatus === 'draft';
+                $isClosed = in_array($rowStatus, ['closed', 'expired'], true);
+                if (($status === 'open' && ! $isOpen) || ($status === 'draft' && ! $isDraft) || ($status === 'closed' && ! $isClosed)) {
+                    return false;
+                }
+
+                $term = mb_strtolower(trim((string) ($filters['q'] ?? '')));
+                if ($term !== '' && ! str_contains(mb_strtolower((string) data_get($row, 'title', '')), $term) && ! str_contains(mb_strtolower((string) data_get($row, 'id', '')), $term)) {
+                    return false;
+                }
+
+                if (! empty($filters['location']) && ! str_contains(mb_strtolower((string) data_get($row, 'location', '')), mb_strtolower($filters['location']))) {
+                    return false;
+                }
+
+                return empty($filters['hiring_model']) || data_get($row, 'hiring_model') === $filters['hiring_model'];
+            }));
+
+            return view('frontend.company.vacancies', [
+                'vacancies' => $response['data'] ?? [],
+                'items' => $items,
+                'filters' => array_merge(['status' => $status, 'q' => '', 'location' => '', 'hiring_model' => ''], $filters),
+                'loadError' => null,
+            ]);
         } else {
-            // Vacancies retrieval failed, return the error message
-            return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+            return view('frontend.company.vacancies', [
+                'vacancies' => [],
+                'items' => [],
+                'filters' => array_merge(['status' => 'all', 'q' => '', 'location' => '', 'hiring_model' => ''], $filters),
+                'loadError' => __('company.vacancies_management.load_error'),
+            ]);
         }
     }
 

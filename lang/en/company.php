@@ -959,4 +959,14 @@ return [
             'question_label' => 'Question :number',
         ],
     ],
+    'vacancies_management' => [
+        'title' => 'Vacancies & requisitions', 'eyebrow' => 'Hiring workspace', 'new' => 'New vacancy', 'tabs' => 'Vacancy status',
+        'open' => 'Open', 'draft' => 'Draft', 'closed' => 'Closed', 'all' => 'All', 'search' => 'Search title or requisition ID',
+        'location' => 'Location', 'hiring_model' => 'Hiring model', 'any_model' => 'Any model', 'apply_filters' => 'Apply filters', 'clear' => 'Clear',
+        'draft_label' => 'Draft requisitions', 'draft_count' => ':count draft requisition|:count draft requisitions', 'draft_hint' => 'Continue editing a draft when you are ready to publish.',
+        'requisition_id' => 'Requisition', 'owner' => 'Owner', 'pipeline' => 'Pipeline', 'pipeline_count' => ':count application|:count applications', 'pipeline_unavailable' => 'Pipeline summary unavailable',
+        'overview' => 'Overview', 'applications' => 'Applications', 'edit' => 'Edit', 'empty_title' => 'No vacancies found', 'empty_body' => 'Try changing your filters or create a vacancy to get started.',
+        'untitled' => 'Untitled vacancy', 'load_error' => 'We could not load vacancies. Please try again.', 'saved' => 'Vacancy changes saved.', 'pagination' => 'Vacancy pages',
+        'pagination_unavailable' => 'More vacancy pages are available, but the Backend does not document a page request parameter yet.',
+    ],
 ];
