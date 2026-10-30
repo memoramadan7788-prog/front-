@@ -11,7 +11,7 @@ use App\Frontend\Auth\ApiSession;
  *
  * /jobs filters (JobIndexRequest): q, title, company_name, location,
  * employment_type (scalar or array), work_mode (scalar or array),
- * company_id, category_id, discipline (aliased to category_id), skills[],
+ * company_id, category_id, skills[],
  * max_experience, salary_min, salary_max, published_from, published_to,
  * sort_by (published_at|title|salary_min|deadline), sort_dir, page, per_page (max 50)
  */

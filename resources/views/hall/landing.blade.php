@@ -188,6 +188,36 @@
         })();
         </script>
 
+        {{-- Public job search: existing Laravel jobs route and query parameter contract. --}}
+        <section class="bg-white px-5 py-10 lg:px-8" aria-labelledby="landing-search-title">
+            <div class="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm sm:p-8">
+                <div class="mb-6 max-w-2xl">
+                    <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-sky-600">{{ __('hall.landing_features.search.eyebrow') }}</p>
+                    <h2 id="landing-search-title" class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">{{ __('hall.landing_features.search.title') }}</h2>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">{{ __('hall.landing_features.search.body') }}</p>
+                </div>
+                <form method="GET" action="{{ route('frontend.jobs.index') }}" class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end" role="search">
+                    <div>
+                        <label for="landing-job-query" class="mb-2 block text-sm font-semibold text-slate-700">{{ __('hall.landing_features.search.role_label') }}</label>
+                        <input id="landing-job-query" name="q" type="search" maxlength="100" value="{{ request('q') }}" autocomplete="organization-title" placeholder="{{ __('hall.landing_features.search.role_placeholder') }}" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200">
+                    </div>
+                    <div>
+                        <label for="landing-job-location" class="mb-2 block text-sm font-semibold text-slate-700">{{ __('hall.landing_features.search.location_label') }}</label>
+                        <input id="landing-job-location" name="location" type="search" maxlength="100" value="{{ request('location') }}" autocomplete="address-level2" placeholder="{{ __('hall.landing_features.search.location_placeholder') }}" class="min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200">
+                    </div>
+                    <button type="submit" class="inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-7 text-sm font-bold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">{{ __('hall.landing_features.search.submit') }}</button>
+                </form>
+            </div>
+        </section>
+
+        {{-- Company discovery is intentionally unavailable until a public directory contract exists. --}}
+        <section id="company-strip" class="bg-white px-5 py-8 lg:px-8" aria-labelledby="company-strip-title">
+            <div class="mx-auto max-w-7xl rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center">
+                <h2 id="company-strip-title" class="text-xl font-bold text-slate-900">{{ __('hall.landing_features.companies.title') }}</h2>
+                <p class="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-600" role="status">{{ __('hall.landing_features.companies.unavailable') }}</p>
+            </div>
+        </section>
+
         {{-- Icon-led services, inspired by the reference layout --}}
         <section id="services" class="relative z-20 -mt-14 bg-transparent px-5 pb-12 pt-0 lg:px-8">
             <div class="mx-auto max-w-7xl">
@@ -236,6 +266,76 @@
                                 <span class="mt-1 max-w-[170px] text-xs leading-5 text-slate-500">{{ $service['description'] }}</span>
                             </a>
                                             @endforeach
+                </div>
+            </div>
+        </section>
+
+        {{-- Service labels are required by the page brief; service descriptions await backend content. --}}
+        <section class="bg-slate-50 px-5 py-14 lg:px-8" aria-labelledby="service-models-title">
+            <div class="mx-auto max-w-7xl">
+                <div class="mx-auto mb-8 max-w-2xl text-center">
+                    <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-sky-600">{{ __('hall.landing_features.models.eyebrow') }}</p>
+                    <h2 id="service-models-title" class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">{{ __('hall.landing_features.models.title') }}</h2>
+                    <p class="mt-3 text-sm leading-6 text-slate-600">{{ __('hall.landing_features.models.body') }}</p>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach (['candidates', 'direct', 'agency'] as $model)
+                        <article class="flex min-h-44 flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <h3 class="text-lg font-bold text-slate-900">{{ __('hall.landing_features.models.' . $model) }}</h3>
+                            <p class="mt-3 text-sm leading-6 text-slate-600" role="status">{{ __('hall.landing_features.models.unavailable') }}</p>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+
+        {{-- Workflow ordering and copy must come from a documented backend contract. --}}
+        <section class="bg-white px-5 py-14 lg:px-8" aria-labelledby="workflow-title">
+            <div class="mx-auto max-w-7xl">
+                <div class="mx-auto max-w-2xl text-center">
+                    <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-sky-600">{{ __('hall.landing_features.workflow.eyebrow') }}</p>
+                    <h2 id="workflow-title" class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">{{ __('hall.landing_features.workflow.title') }}</h2>
+                    <p class="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-sm leading-6 text-slate-600" role="status">{{ __('hall.landing_features.workflow.unavailable') }}</p>
+                </div>
+            </div>
+        </section>
+
+        {{-- Categories load through the existing Laravel lookup route; only documented id/name fields are used. --}}
+        <section class="bg-slate-50 px-5 py-14 lg:px-8" aria-labelledby="specialties-title">
+            <div class="mx-auto max-w-7xl">
+                <div class="mx-auto mb-8 max-w-2xl text-center">
+                    <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-sky-600">{{ __('hall.landing_features.specialties.eyebrow') }}</p>
+                    <h2 id="specialties-title" class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">{{ __('hall.landing_features.specialties.title') }}</h2>
+                    <p class="mt-3 text-sm leading-6 text-slate-600">{{ __('hall.landing_features.specialties.body') }}</p>
+                </div>
+                <div data-landing-categories
+                     data-categories-url="{{ route('frontend.lookup.categories') }}"
+                     data-jobs-url="{{ route('frontend.jobs.index') }}"
+                     class="min-h-24 rounded-2xl border border-slate-200 bg-white p-5 sm:p-7">
+                    <div data-category-state="loading" class="flex min-h-14 items-center justify-center gap-3 text-sm text-slate-600" role="status">
+                        <span class="h-5 w-5 animate-spin rounded-full border-2 border-sky-600 border-t-transparent" aria-hidden="true"></span>
+                        <span>{{ __('hall.landing_features.specialties.loading') }}</span>
+                    </div>
+                    <p data-category-state="empty" class="hidden py-4 text-center text-sm text-slate-600" role="status" aria-hidden="true">{{ __('hall.landing_features.specialties.empty') }}</p>
+                    <div data-category-state="error" class="hidden py-4 text-center" role="alert" aria-hidden="true">
+                        <p class="text-sm text-rose-700">{{ __('hall.landing_features.specialties.error') }}</p>
+                        <button type="button" data-category-retry class="mt-3 rounded-lg px-4 py-2 text-sm font-semibold text-sky-700 underline underline-offset-4 focus:outline-none focus:ring-2 focus:ring-sky-500">{{ __('hall.landing_features.specialties.retry') }}</button>
+                    </div>
+                    <div data-category-state="success" class="hidden" aria-hidden="true">
+                        <div data-category-list class="flex flex-wrap justify-center gap-3"></div>
+                    </div>
+                    <noscript><p class="py-4 text-center text-sm text-slate-600">{{ __('hall.landing_features.specialties.no_script') }}</p></noscript>
+                </div>
+            </div>
+        </section>
+
+        {{-- Public aggregate pipeline data is not documented; never request candidate application records here. --}}
+        <section class="bg-white px-5 py-14 lg:px-8" aria-labelledby="pipeline-preview-title">
+            <div class="mx-auto max-w-7xl">
+                <div class="mx-auto max-w-2xl text-center">
+                    <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-sky-600">{{ __('hall.landing_features.pipeline.eyebrow') }}</p>
+                    <h2 id="pipeline-preview-title" class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">{{ __('hall.landing_features.pipeline.title') }}</h2>
+                    <p class="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-sm leading-6 text-slate-600" role="status">{{ __('hall.landing_features.pipeline.unavailable') }}</p>
                 </div>
             </div>
         </section>

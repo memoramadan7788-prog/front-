@@ -21,6 +21,7 @@ class JobController extends Controller
 
     public function getJobs(Request $request): View
     {
+        $this->validatePublicFilters($request);
         $filters = $this->normalizeJobFilters($request);
         $response = $this->api->getJobs($filters);
 
@@ -44,6 +45,7 @@ class JobController extends Controller
 
     public function searchJobs(Request $request): View
     {
+        $this->validatePublicFilters($request);
         $filters = $this->normalizeJobFilters($request);
         if (($filters['q'] ?? '') === '' && $request->filled('q')) {
             $filters['q'] = (string) $request->query('q');
@@ -52,6 +54,16 @@ class JobController extends Controller
         $response = $this->api->getJobs($filters);
 
         return $this->renderList($request, $response, $filters);
+    }
+
+    private function validatePublicFilters(Request $request): void
+    {
+        $request->validate([
+            'q' => 'sometimes|nullable|string|max:100',
+            'location' => 'sometimes|nullable|string|max:100',
+            'category_id' => 'sometimes|nullable|integer|min:1',
+            'discipline' => 'sometimes|nullable|integer|min:1',
+        ]);
     }
 
     public function getSalaryBenchmark(Request $request)
@@ -169,7 +181,7 @@ class JobController extends Controller
             'employment_type' => $request->query('employment_type'),
             'salary_min' => is_numeric($salaryMin) ? $salaryMin : null,
             'salary_max' => is_numeric($salaryMax) ? $salaryMax : null,
-            'discipline' => $request->query('discipline'),
+            'category_id' => $request->query('category_id', $request->query('discipline')),
             'page' => $request->query('page'),
             'per_page' => $request->query('per_page'),
             'sort_by' => $sort['sort_by'],
@@ -183,10 +195,6 @@ class JobController extends Controller
         if ($request->filled('sort_dir')) {
             $filters['sort_dir'] = $request->query('sort_dir');
         }
-        if ($request->filled('category_id') && ! $request->filled('discipline')) {
-            $filters['discipline'] = $request->query('category_id');
-        }
-
         return array_filter($filters, fn ($v) => $v !== null && $v !== '' && $v !== []);
     }
 
