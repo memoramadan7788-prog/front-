@@ -32,6 +32,9 @@ Route::prefix('/')->name('frontend.')->group(function () {
     Route::get('/welcome', [HomeController::class, 'index'])->name('welcome');
     Route::get('/about', [HomeController::class, 'about'])->name('about');
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+    Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
+    Route::get('/consultation', [HomeController::class, 'consultation'])->name('consultation');
+    Route::post('/consultation', [HomeController::class, 'submitConsultation'])->name('consultation.submit');
     Route::get('/workspace', [HomeController::class, 'workspace'])->middleware('auth')->name('workspace');
     Route::get('/locale/{locale}', LocaleController::class)->name('locale.switch');
 

@@ -18,7 +18,7 @@
                     {{ __('public.about.body') }}
                 </p>
                 <div class="mt-8 flex flex-wrap gap-3">
-                    <x-button size="lg" variant="primary" :href="route('frontend.contact')">{{ __('public.about.cta_contact') }}</x-button>
+                    <x-button size="lg" variant="primary" :href="route('frontend.consultation')">{{ __('public.about.cta_contact') }}</x-button>
                     <x-button size="lg" variant="secondary" :href="route('frontend.about') . '#engagements'">{{ __('public.about.cta_direct') }}</x-button>
                 </div>
             </div>
@@ -42,7 +42,7 @@
                             <h3 class="mt-5 text-xl font-semibold text-hb-navy">{{ $card['title'] }}</h3>
                             <p class="mt-1 text-xs font-semibold tracking-wide text-hb-blue uppercase">{{ $card['eyebrow'] }}</p>
                             <p class="mt-3 flex-1 text-sm leading-relaxed text-hb-muted">{{ $card['body'] }}</p>
-                            <a href="{{ route('frontend.contact') }}" class="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-hb-blue">
+                            <a href="{{ route('frontend.consultation') }}" class="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-hb-blue">
                                 {{ __('public.about.discuss_model') }}
                                 <span aria-hidden="true" class="transition group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1">&rarr;</span>
                             </a>
@@ -109,7 +109,7 @@
                     <h2 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ __('public.about.cta_title') }}</h2>
                     <p class="mt-3 max-w-xl text-sm leading-relaxed text-hb-nav-muted">{{ __('public.about.cta_body') }}</p>
                 </div>
-                <x-button class="relative mt-6 lg:mt-0" size="lg" variant="primary" :href="route('frontend.contact')">{{ __('public.about.cta_button') }}</x-button>
+                <x-button class="relative mt-6 lg:mt-0" size="lg" variant="primary" :href="route('frontend.consultation')">{{ __('public.about.cta_button') }}</x-button>
             </div>
         </div>
     </section>
