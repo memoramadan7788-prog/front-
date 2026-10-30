@@ -2,6 +2,7 @@
 
 use App\Frontend\Account\AccountController;
 use App\Frontend\Admin\AdminController;
+use App\Frontend\Admin\AdminUsersAccessController;
 use App\Frontend\Application\ApplicationController;
 use App\Frontend\Ats\AtsController;
 use App\Frontend\Auth\AuthController;
@@ -9,12 +10,16 @@ use App\Frontend\Candidate\CandidateController;
 use App\Frontend\Candidate\CandidateOnboardingController;
 use App\Frontend\Candidate\CandidatePreferencesController;
 use App\Frontend\Company\CompanyController;
+use App\Frontend\Company\CompanyCreateJobController;
+use App\Frontend\Company\CompanyScheduleInterviewController;
+use App\Frontend\Company\CompanyTeamPermissionsController;
 use App\Frontend\Employee\EmployeeController;
 use App\Frontend\Exam\ExamController;
+use App\Frontend\Home\ConsultationController;
 use App\Frontend\Home\HomeController;
 use App\Frontend\Interview\InterviewController;
 use App\Frontend\Interviewer\InterviewerController;
-use App\Frontend\Company\CompanyCreateJobController;
+use App\Frontend\Interviewer\InterviewerLiveWorkspaceController;
 use App\Frontend\Job\JobController;
 use App\Frontend\Lookup\LookupController;
 use App\Frontend\Notifications\NotificationsController;
@@ -36,8 +41,8 @@ Route::prefix('/')->name('frontend.')->group(function () {
     Route::get('/about', [HomeController::class, 'about'])->name('about');
     Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
     Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
-    Route::get('/consultation', [HomeController::class, 'consultation'])->name('consultation');
-    Route::post('/consultation', [HomeController::class, 'submitConsultation'])->name('consultation.submit');
+    Route::get('/consultation', [ConsultationController::class, 'show'])->name('consultation');
+    Route::post('/consultation', [ConsultationController::class, 'submit'])->name('consultation.submit');
     Route::get('/workspace', [HomeController::class, 'workspace'])->middleware('auth')->name('workspace');
     Route::get('/locale/{locale}', LocaleController::class)->name('locale.switch');
 
@@ -185,25 +190,31 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::post('/interviews/{interviewId}/evaluation', [InterviewController::class, 'submitEvaluation'])->name('interviews.evaluation.submit');
         Route::get('/salary-benchmark', [JobController::class, 'getSalaryBenchmark'])->name('salary-benchmark');
         Route::get('/interview-calendar', [CompanyController::class, 'teamInterviewCalendar'])->name('interview-calendar');
+        Route::get('/interviews/schedule', [CompanyScheduleInterviewController::class, 'show'])->name('interviews.schedule');
+        Route::post('/interviews/schedule', [CompanyScheduleInterviewController::class, 'handle'])->name('interviews.schedule.submit');
         Route::get('/hiring-analytics', [CompanyController::class, 'hiringAnalytics'])->name('analytics');
 
         Route::get('/change-password', [AccountController::class, 'changePasswordForm'])->name('change-password');
         Route::post('/change-password', [AccountController::class, 'changePassword'])->name('change-password.submit');
         Route::delete('/delete-account', [AccountController::class, 'deleteAccount'])->name('delete-account');
 
-        Route::get('/employees', [EmployeeController::class, 'getEmployees'])->name('employees.index');
-        Route::post('/employees/{employeeId}/approve', [EmployeeController::class, 'approveEmployee'])->name('employees.approve');
-        Route::get('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->name('employees.reject');
-        Route::post('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->name('employees.reject.submit');
-        Route::delete('/employees/{employeeId}/remove', [EmployeeController::class, 'removeEmployee'])->name('employees.remove');
+        Route::get('/employees', [CompanyTeamPermissionsController::class, 'show'])->name('employees.index');
+        Route::post('/employees/{employeeId}/approve', [CompanyTeamPermissionsController::class, 'approve'])->whereNumber('employeeId')->name('employees.approve');
+        Route::put('/employees/{employeeId}/role', [CompanyTeamPermissionsController::class, 'updateRole'])->whereNumber('employeeId')->name('employees.role.update');
+        Route::get('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->whereNumber('employeeId')->name('employees.reject');
+        Route::post('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->whereNumber('employeeId')->name('employees.reject.submit');
+        Route::delete('/employees/{employeeId}/remove', [CompanyTeamPermissionsController::class, 'remove'])->whereNumber('employeeId')->name('employees.remove');
+        Route::post('/employees/invitations', [CompanyTeamPermissionsController::class, 'createInvitation'])->name('employees.invitations.store');
+        Route::delete('/employees/invitations/{invitationId}', [CompanyTeamPermissionsController::class, 'deleteInvitation'])->whereNumber('invitationId')->name('employees.invitations.destroy');
     });
 
     // Interviewer (a company account that has the interviewer role - the backend enforces the permissions)
     Route::prefix('interviewer')->middleware(['auth', 'account:company'])->name('interviewer.')->group(function () {
         Route::get('/interviews', [InterviewerController::class, 'getInterviews'])->name('interviews.index');
-        Route::get('/interviews/{interviewId}', [InterviewerController::class, 'getInterview'])->name('interviews.show');
-        Route::get('/interviews/{interviewId}/evaluation', [InterviewerController::class, 'submitEvaluation'])->name('interviews.evaluation');
-        Route::post('/interviews/{interviewId}/evaluation', [InterviewerController::class, 'submitEvaluation'])->name('interviews.evaluation.submit');
+        Route::get('/interviews/{interviewId}/live', [InterviewerLiveWorkspaceController::class, 'show'])->whereNumber('interviewId')->name('interviews.live');
+        Route::get('/interviews/{interviewId}', [InterviewerController::class, 'getInterview'])->whereNumber('interviewId')->name('interviews.show');
+        Route::get('/interviews/{interviewId}/evaluation', [InterviewerController::class, 'submitEvaluation'])->whereNumber('interviewId')->name('interviews.evaluation');
+        Route::post('/interviews/{interviewId}/evaluation', [InterviewerController::class, 'submitEvaluation'])->whereNumber('interviewId')->name('interviews.evaluation.submit');
         Route::get('/availability/add', [InterviewerController::class, 'addAvailability'])->name('availability.add');
         Route::post('/availability/add', [InterviewerController::class, 'addAvailability'])->name('availability.add.submit');
     });
@@ -222,9 +233,10 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::post('/companies/{companyId}/documents', [AdminController::class, 'uploadCompanyDocument'])->name('companies.documents.upload');
         Route::get('/companies/{companyId}/documents/{documentId}/download', [AdminController::class, 'downloadCompanyDocument'])->name('companies.documents.download');
         Route::delete('/companies/{companyId}/documents/{documentId}', [AdminController::class, 'deleteCompanyDocument'])->name('companies.documents.delete');
-        Route::get('/users', [AdminController::class, 'getUsers'])->name('users.index');
-        Route::get('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->name('users.status');
-        Route::post('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->name('users.status.submit');
+        Route::get('/users', [AdminUsersAccessController::class, 'index'])->name('users.index');
+        Route::get('/users/export-page', [AdminUsersAccessController::class, 'exportCurrentPage'])->name('users.export-page');
+        Route::get('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->whereNumber('userId')->name('users.status');
+        Route::post('/users/{userId}/status', [AdminController::class, 'updateUserStatus'])->whereNumber('userId')->name('users.status.submit');
         Route::get('/roles', [AdminController::class, 'getRoles'])->name('roles.index');
         Route::get('/audit-logs', [AdminController::class, 'getAuditLogs'])->name('audit-logs.index');
     });

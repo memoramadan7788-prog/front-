@@ -33,7 +33,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function register($data)
@@ -52,7 +52,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function getProfile()
@@ -62,9 +62,9 @@ class CompanyAPI
             ->bearer(ApiSession::token() ?? '')->send();
 
         return [
-            'message'    => $res->ok() ? $res->message : "Error: {$res->message}\n",
-            'data'       => $res->data,
-            'errors'     => $res->errors ?? [],
+            'message' => $res->ok() ? $res->message : "Error: {$res->message}\n",
+            'data' => $res->data,
+            'errors' => $res->errors ?? [],
             'statusCode' => $res->ok() ? 200 : $res->statusCode,
         ];
     }
@@ -87,7 +87,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "errors" => $res->errors ?? [], "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'errors' => $res->errors ?? [], 'statusCode' => $statusCode];
     }
 
     public function logout()
@@ -108,7 +108,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function resetPassword($data)
@@ -127,7 +127,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function changePassword($data)
@@ -148,7 +148,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function deleteAccount()
@@ -169,7 +169,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function getVacancies()
@@ -189,7 +189,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     /** The backend asks for company_id on create: it is the company of the logged-in user. */
@@ -197,7 +197,7 @@ class CompanyAPI
     {
         $id = data_get(ApiSession::user(), 'company.id');
 
-        if (!$id) {
+        if (! $id) {
             // session saved before the company was known (e.g. right after register): ask the backend once
             $me = $this->api->reset()->method('GET')->url('/auth/me')->bearer(ApiSession::token() ?? '')->send();
             $id = data_get($me->data, 'company.id');
@@ -231,7 +231,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function updateVacancy($vacancyId, $data)
@@ -252,7 +252,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function deleteVacancy($vacancyId)
@@ -272,7 +272,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function getApplications($vacancyId)
@@ -292,7 +292,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function updateApplicationStatus($applicationId, $data)
@@ -313,7 +313,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function createExam($data)
@@ -335,7 +335,7 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function createOffer($data)
@@ -356,16 +356,16 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     /** Normalised result used by the company profile / documents calls. */
     private function profileResult($res): array
     {
         return [
-            'message'    => $res->ok() ? $res->message : "Error: {$res->message}\n",
-            'data'       => $res->data,
-            'errors'     => $res->errors ?? [],
+            'message' => $res->ok() ? $res->message : "Error: {$res->message}\n",
+            'data' => $res->data,
+            'errors' => $res->errors ?? [],
             'statusCode' => $res->ok() ? 200 : $res->statusCode,
         ];
     }
@@ -398,5 +398,85 @@ class CompanyAPI
             ->bearer(ApiSession::token() ?? '')->send();
 
         return $this->profileResult($res);
+    }
+
+    /**
+     * GET /company/applications/{id} — company-scoped application detail.
+     */
+    public function getApplication(int $applicationId): array
+    {
+        $res = $this->api->reset()->method('GET')
+            ->url("/company/applications/{$applicationId}")
+            ->bearer(ApiSession::token() ?? '')
+            ->send();
+
+        return $this->interviewResult($res);
+    }
+
+    /**
+     * GET /company/applications/{id}/available-slots
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function getApplicationAvailableSlots(int $applicationId, array $filters = []): array
+    {
+        $query = http_build_query(array_filter($filters, static fn ($v) => $v !== null && $v !== ''));
+        $res = $this->api->reset()->method('GET')
+            ->url("/company/applications/{$applicationId}/available-slots".($query ? "?{$query}" : ''))
+            ->bearer(ApiSession::token() ?? '')
+            ->send();
+
+        return $this->interviewResult($res);
+    }
+
+    /**
+     * POST /company/interviews/check-conflicts
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function checkInterviewConflicts(array $data): array
+    {
+        $res = $this->api->reset()->method('POST')
+            ->url('/company/interviews/check-conflicts')
+            ->bearer(ApiSession::token() ?? '')
+            ->body($data)
+            ->send();
+
+        return $this->interviewResult($res);
+    }
+
+    /**
+     * POST /interviews — HR schedule with availability bookings.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function scheduleInterview(array $data): array
+    {
+        $res = $this->api->reset()->method('POST')
+            ->url('/interviews')
+            ->bearer(ApiSession::token() ?? '')
+            ->body($data)
+            ->send();
+
+        return $this->interviewResult($res);
+    }
+
+    private function interviewResult(object $res): array
+    {
+        if ($res->ok()) {
+            return [
+                'message' => $res->message,
+                'data' => $res->data,
+                'errors' => null,
+                'statusCode' => (int) ($res->statusCode ?: 200),
+            ];
+        }
+
+        return [
+            'message' => $res->message ?: "HTTP {$res->statusCode}",
+            'data' => $res->data,
+            'errors' => $res->errors ?? null,
+            'statusCode' => (int) $res->statusCode,
+        ];
     }
 }

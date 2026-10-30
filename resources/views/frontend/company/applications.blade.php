@@ -24,6 +24,7 @@
             <td class="px-4 py-3">{{ \App\Support\Rows::date(data_get($row, 'applied_at')) }}</td>
             <td class="px-4 py-3"><div class="flex flex-wrap justify-end gap-2">
                 <x-button variant="light" size="sm" :href="route('frontend.company.applications.status', ['applicationId' => data_get($row, 'id')])">{{ __('Change status') }}</x-button>
+                <x-button variant="light" size="sm" :href="route('frontend.company.interviews.schedule', ['application_id' => data_get($row, 'id')])">{{ __('company.interviews.schedule_for_applicant') }}</x-button>
                 <x-button variant="light" size="sm" :href="route('frontend.company.offers.create', ['application_id' => data_get($row, 'id')])">{{ __('Send offer') }}</x-button>
                 <x-button variant="light" size="sm" :href="route('frontend.company.applications.ats', ['applicationId' => data_get($row, 'id')])">{{ __('ats.open') }}</x-button>
             </div></td>

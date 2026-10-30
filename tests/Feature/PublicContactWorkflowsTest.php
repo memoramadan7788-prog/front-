@@ -82,7 +82,7 @@ class PublicContactWorkflowsTest extends TestCase
             ->assertSee('name="expected_hires"', false)
             ->assertSee('name="preferred_contact"', false)
             ->assertSee('name="privacy_consent"', false)
-            ->assertSee(__('public.contact.next_title'))
+            ->assertSee(__('public.consultation.next_title'))
             ->assertSee(route('frontend.contact'));
 
         $this->get(route('frontend.about'))
@@ -112,12 +112,13 @@ class PublicContactWorkflowsTest extends TestCase
                 'company' => 'Example Co',
                 'role_title' => 'Recruiter',
                 'hiring_model' => 'direct_only',
-                'expected_hires' => __('public.contact.hire_counts')[0],
+                'expected_hires' => '1_3',
                 'needs' => 'Hiring requirements',
-                'preferred_contact' => __('public.contact.contact_options')[0],
+                'preferred_contact' => 'email',
                 'privacy_consent' => '1',
             ])->assertRedirect(route('frontend.consultation'))
-            ->assertSessionHas('submission_unavailable', __('public.consultation.unavailable'));
+            ->assertSessionHas('submission_unavailable', __('public.consultation.unavailable'))
+            ->assertSessionHas('consultation_blocked', true);
 
         $this->from(route('frontend.consultation'))
             ->post(route('frontend.consultation.submit'), [

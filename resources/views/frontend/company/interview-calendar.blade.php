@@ -3,9 +3,14 @@
 @section('title', __('Team interview calendar'))
 
 @section('page_header')
-    <div>
-        <p class="text-sm font-semibold text-hb-blue">{{ __('Hiring team') }}</p>
-        <h1 class="mt-1 text-2xl font-semibold tracking-tight text-hb-navy">{{ __('Team interview calendar') }}</h1>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="text-sm font-semibold text-hb-blue">{{ __('Hiring team') }}</p>
+            <h1 class="mt-1 text-2xl font-semibold tracking-tight text-hb-navy">{{ __('Team interview calendar') }}</h1>
+        </div>
+        <x-button variant="primary" :href="route('frontend.company.interviews.schedule')">
+            {{ __('company.interviews.schedule_interview') }}
+        </x-button>
     </div>
 @endsection
 
@@ -15,6 +20,7 @@
         <div>
             <p class="font-semibold text-sky-950">{{ __('Local planning view') }}</p>
             <p class="mt-1 text-sm text-sky-900">{{ __('Calendar slots and panel choices are stored in this browser only. They are not sent to the hiring API.') }}</p>
+            <p class="mt-2 text-sm text-sky-900">{{ __('company.interviews.calendar_schedule_hint') }}</p>
         </div>
         <span class="w-fit rounded-full bg-white px-3 py-1 text-xs font-bold text-sky-900">{{ __('Not synced') }}</span>
     </div>

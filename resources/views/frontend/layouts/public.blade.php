@@ -64,6 +64,7 @@
                 <a href="{{ route('frontend.jobs.index') }}" class="hb-nav-link py-1">{{ __('navigation.find_job') }}</a>
                 <a href="{{ route('frontend.about') }}" class="hb-nav-link py-1">{{ __('navigation.for_employers') }}</a>
                 <a href="{{ route('frontend.about') }}#engagements" class="hb-nav-link py-1">{{ __('navigation.agency_services') }}</a>
+                <a href="{{ route('frontend.consultation') }}" class="hb-nav-link py-1">{{ __('navigation.consultation') }}</a>
                 <a href="{{ route('frontend.contact') }}" class="hb-nav-link py-1">{{ __('navigation.contact') }}</a>
                 @guest
                     <a href="{{ route('frontend.account.login') }}" class="hb-nav-link py-1 sm:hidden">{{ __('common.actions.sign_in') }}</a>
@@ -101,6 +102,7 @@
                     <ul class="mt-3 space-y-2 text-sm text-hb-muted">
                         <li><a href="{{ route('frontend.about') }}" class="hover:text-hb-blue">{{ __('navigation.for_employers') }}</a></li>
                         <li><a href="{{ route('frontend.about') }}#engagements" class="hover:text-hb-blue">{{ __('navigation.agency_services') }}</a></li>
+                        <li><a href="{{ route('frontend.consultation') }}" class="hover:text-hb-blue">{{ __('navigation.consultation') }}</a></li>
                         <li><a href="{{ route('frontend.contact') }}" class="hover:text-hb-blue">{{ __('navigation.contact') }}</a></li>
                     </ul>
                 </div>

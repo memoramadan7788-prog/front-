@@ -23,6 +23,11 @@
             'active' => request()->routeIs('frontend.company.interview-calendar'),
         ],
         [
+            'label' => __('company.interviews.schedule_interview'),
+            'route' => 'frontend.company.interviews.schedule',
+            'active' => request()->routeIs('frontend.company.interviews.schedule*'),
+        ],
+        [
             'label' => __('Hiring analytics'),
             'route' => 'frontend.company.analytics',
             'active' => request()->routeIs('frontend.company.analytics'),

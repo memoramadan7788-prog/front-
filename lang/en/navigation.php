@@ -9,6 +9,7 @@ return [
     'agency_services' => 'Agency services',
     'companies' => 'Companies',
     'contact' => 'Contact',
+    'consultation' => 'Request consultation',
     'candidate' => [
         'eyebrow' => 'Candidate',
         'workspace' => 'Personal workspace',
