@@ -179,6 +179,7 @@ return [
         'full_time' => 'دوام كامل',
         'contract' => 'عقد',
         'part_time' => 'دوام جزئي',
+        'internship' => 'تدريب',
     ],
     'validation' => [
         'required' => 'هذا الحقل مطلوب.',

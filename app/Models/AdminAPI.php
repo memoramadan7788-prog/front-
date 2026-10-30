@@ -321,7 +321,13 @@ class AdminAPI
         ];
     }
 
-    public function getCompany($companyId)
+    /**
+     * GET /api/admin/companies/{id}/details — profile + documents payload.
+     * Distinct from getCompany() which hits management show (/admin/companies/{id}).
+     *
+     * @return array{message: string, data: mixed, errors: array, statusCode: int}
+     */
+    public function getCompanyDetails($companyId): array
     {
         $res = $this->api->reset()->method('GET')
             ->url("/admin/companies/{$companyId}/details")

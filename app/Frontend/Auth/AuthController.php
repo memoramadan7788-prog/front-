@@ -4,10 +4,12 @@ namespace App\Frontend\Auth;
 
 use App\Models\AccountAPI;
 use App\Models\AdminAPI;
+use App\Support\Frontend\SafeApiMessage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -41,13 +43,17 @@ class AuthController extends Controller
 
             $response = $this->api->register($data);
 
-            if ($response['statusCode'] === 200) {
+            // Backend may answer 201 Created; treat any 2xx as success only when a token is present.
+            $status = (int) ($response['statusCode'] ?? 0);
+            $ok = $status >= 200 && $status < 300 && ! empty($response['data']['token'] ?? $response['data']['access_token'] ?? null);
+
+            if ($ok) {
                 $user = (array) ($response['data']['user'] ?? []);
                 // register answers {user, company, token}: the company is not inside user, so the session keeps it
                 if (! empty($response['data']['company'])) {
                     $user['company'] = array_intersect_key((array) $response['data']['company'], array_flip(['id', 'name', 'status']));
                 }
-                ApiSession::store((string) ($response['data']['token'] ?? ''), $user, ApiSession::REALM_USER);
+                ApiSession::store((string) ($response['data']['token'] ?? $response['data']['access_token'] ?? ''), $user, ApiSession::REALM_USER);
 
                 if (($user['account_type'] ?? 'candidate') === 'company') {
                     return redirect()->route('frontend.company.dashboard')
@@ -58,7 +64,10 @@ class AuthController extends Controller
                     ->with('success_key', 'auth.flash.register_candidate');
             }
 
-            return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
+            // Never flash SQLSTATE / schema dumps from Backend APP_DEBUG; do not claim success.
+            return redirect()->back()
+                ->withErrors($this->safeRegisterErrors($response))
+                ->withInput();
         }
 
         return view('frontend.account.auth.register', get_defined_vars());
@@ -214,21 +223,53 @@ class AuthController extends Controller
      */
     private function safeAdminLoginMessage(?string $message, string $fallback): string
     {
-        $message = trim((string) $message);
-        if ($message === '') {
-            return $fallback;
+        return SafeApiMessage::forUser($message, $fallback, ['action' => 'auth.admin_login']);
+    }
+
+    /**
+     * Public registration errors must never include SQLSTATE, table names, hosts, or stack traces.
+     *
+     * @param  array<string, mixed>  $response
+     * @return array<string, string>
+     */
+    private function safeRegisterErrors(array $response): array
+    {
+        $fallback = __('auth.register.unavailable');
+        $rawMessage = is_string($response['message'] ?? null) ? $response['message'] : null;
+        $errors = is_array($response['errors'] ?? null) ? $response['errors'] : [];
+
+        $safe = [];
+        foreach ($errors as $key => $value) {
+            if (is_array($value)) {
+                $value = reset($value);
+            }
+            if (! is_string($value) || trim($value) === '') {
+                continue;
+            }
+            $field = is_string($key) ? $key : 'error';
+            $safe[$field] = SafeApiMessage::forUser($value, $fallback, [
+                'action' => 'auth.register',
+                'field' => $field,
+                'status' => $response['statusCode'] ?? null,
+            ]);
         }
 
-        if (preg_match('/SQLSTATE|Base table or view not found|Stack trace|Illuminate\\\\|Connection: mysql/i', $message) === 1) {
-            return __('auth.admin_login.unavailable');
+        if ($safe === []) {
+            $safe['error'] = SafeApiMessage::forUser($rawMessage, $fallback, [
+                'action' => 'auth.register',
+                'status' => $response['statusCode'] ?? null,
+            ]);
         }
 
-        // Keep short API messages; reject oversized debug dumps.
-        if (mb_strlen($message) > 240) {
-            return $fallback;
+        // If Backend left a partial account but verification schema failed, keep failure UX (no success flash).
+        if (SafeApiMessage::looksSensitive((string) ($rawMessage ?? '')) || SafeApiMessage::looksSensitive(implode(' ', $safe))) {
+            Log::warning('Registration Backend error sanitized for user flash.', [
+                'status' => $response['statusCode'] ?? null,
+                'snippet' => mb_substr((string) ($rawMessage ?? reset($safe) ?: ''), 0, 180),
+            ]);
         }
 
-        return $message;
+        return $safe;
     }
 
     /** @param  mixed  $data */

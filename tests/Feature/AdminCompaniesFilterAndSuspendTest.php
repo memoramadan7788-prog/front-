@@ -4,11 +4,18 @@ namespace Tests\Feature;
 
 use App\Frontend\Auth\ApiSession;
 use App\Models\AdminAPI;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Mockery;
 use Tests\TestCase;
 
 class AdminCompaniesFilterAndSuspendTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(PreventRequestForgery::class);
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();

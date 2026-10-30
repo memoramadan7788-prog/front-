@@ -179,6 +179,7 @@ return [
         'full_time' => 'Full-time',
         'contract' => 'Contract',
         'part_time' => 'Part-time',
+        'internship' => 'Internship',
     ],
     'validation' => [
         'required' => 'This field is required.',

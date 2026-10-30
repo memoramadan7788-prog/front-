@@ -353,7 +353,8 @@ class AdminController extends Controller
 
     function showCompany(Request $request, $companyId)
     {
-        $response = $this->api->getCompany($companyId);
+        // Details endpoint includes documents; management show is used by the companies filter.
+        $response = $this->api->getCompanyDetails($companyId);
 
         if ($response['statusCode'] === 200) {
             return view('frontend.admin.company-show', ['company' => (array) $response['data']]);

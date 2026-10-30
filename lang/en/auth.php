@@ -84,6 +84,7 @@ return [
         'have_account' => 'Already have an account?',
         'sign_in' => 'Sign in',
         'sign_in_arrow' => 'Sign in →',
+        'unavailable' => 'We could not create your account right now. Please try again in a moment. If this continues, account services may be temporarily unavailable.',
     ],
     'forgot' => [
         'eyebrow' => 'Account access',

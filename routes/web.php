@@ -39,7 +39,15 @@ Route::prefix('/')->name('frontend.')->group(function () {
     Route::prefix('jobs')->name('jobs.')->group(function () {
         Route::get('/', [JobController::class, 'getJobs'])->name('index');
         Route::get('/search', [JobController::class, 'searchJobs'])->name('search');
-        Route::get('/{jobId}', [JobController::class, 'getJob'])->name('show');
+        Route::post('/{jobId}/save', [JobController::class, 'saveJob'])
+            ->middleware(['auth', 'account:candidate'])
+            ->whereNumber('jobId')
+            ->name('save');
+        Route::delete('/{jobId}/save', [JobController::class, 'unsaveJob'])
+            ->middleware(['auth', 'account:candidate'])
+            ->whereNumber('jobId')
+            ->name('unsave');
+        Route::get('/{jobId}', [JobController::class, 'getJob'])->whereNumber('jobId')->name('show');
     });
     Route::prefix('lookup')->name('lookup.')->group(function () {
         Route::get('/countries', [LookupController::class, 'getCountries'])->name('countries');
