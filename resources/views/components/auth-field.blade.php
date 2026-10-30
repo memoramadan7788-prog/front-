@@ -8,7 +8,7 @@
     $isPassword = $type === 'password';
 @endphp
 <div>
-  <label for="{{ $name }}" class="mb-1.5 block text-sm font-semibold text-slate-700">{{ $label }}</label>
+  <label for="{{ $name }}" class="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-[var(--hb-text)]">{{ $label }}</label>
   <div class="relative">
     @if ($icon && isset($icons[$icon]))
       <svg class="pointer-events-none absolute start-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icons[$icon] !!}</svg>
@@ -16,23 +16,23 @@
 
     <input id="{{ $name }}" name="{{ $name }}" type="{{ $type }}"
            value="{{ $isPassword ? '' : old($name) }}"
-           @error($name) aria-invalid="true" @enderror
-           {{ $attributes->merge(['class' => 'w-full rounded-xl border bg-white py-3 text-sm text-slate-900 placeholder:text-slate-400 transition focus:outline-none focus:ring-4 '
+           @error($name) aria-invalid="true" aria-describedby="{{ $name }}-error" @enderror
+           {{ $attributes->merge(['class' => 'w-full rounded-xl border bg-white py-3 text-sm text-slate-900 placeholder:text-slate-400 transition focus:outline-none focus:ring-4 dark:bg-slate-950/40 dark:text-[var(--hb-text)] dark:placeholder:text-slate-500 '
                . ($icon ? 'ps-11 ' : 'ps-4 ')
                . ($isPassword ? 'pe-11 ' : 'pe-4 ')
-               . ($errors->has($name) ? 'border-red-400 focus:border-red-500 focus:ring-red-500/15' : 'border-slate-300 focus:border-sky-500 focus:ring-sky-500/15')]) }}>
+               . ($errors->has($name) ? 'border-red-400 focus:border-red-500 focus:ring-red-500/15' : 'border-slate-300 focus:border-sky-500 focus:ring-sky-500/15 dark:border-[var(--hb-border)]')]) }}>
 
     @if ($isPassword)
-      <button type="button" data-toggle-password="{{ $name }}" aria-label="Show password"
-              class="absolute end-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 transition hover:text-sky-600">
+      <button type="button" data-toggle-password="{{ $name }}" aria-label="{{ __('auth.login.show_password') }}" aria-pressed="false"
+              class="absolute end-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 transition hover:text-sky-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40">
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
     @endif
   </div>
 
   @error($name)
-    <p class="mt-1.5 text-sm text-red-600" role="alert">{{ $message }}</p>
+    <p id="{{ $name }}-error" class="mt-1.5 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
   @elseif ($hint)
-    <p class="mt-1.5 text-xs text-slate-500">{{ $hint }}</p>
+    <p class="mt-1.5 text-xs text-slate-500 dark:text-[var(--hb-muted)]">{{ $hint }}</p>
   @enderror
 </div>

@@ -5,6 +5,7 @@ namespace App\Frontend\Auth;
 use App\Models\AccountAPI;
 use App\Models\AdminAPI;
 use App\Support\Frontend\SafeApiMessage;
+use App\Support\Frontend\SafeInternalRedirect;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -80,15 +81,20 @@ class AuthController extends Controller
             $request->validate([
                 'email' => 'required|email',
                 'password' => 'required',
+                // redirect is optional and sanitized separately; never trust raw open redirects.
+                'redirect' => 'nullable|string|max:2048',
             ]);
 
+            // Backend LoginRequest accepts email + password only (no remember / OAuth).
             $data = $request->only(['email', 'password']);
 
             // Candidate/Company (and legacy User) only — do not fall back to /admin/login.
             $response = $this->api->login($data);
             unset($data);
 
-            if ($response['statusCode'] === 200) {
+            $status = (int) ($response['statusCode'] ?? 0);
+
+            if ($status === 200) {
                 $user = (array) ($response['data']['user'] ?? []);
                 $type = $user['account_type'] ?? 'candidate';
 
@@ -102,23 +108,108 @@ class AuthController extends Controller
 
                 ApiSession::store((string) ($response['data']['token'] ?? ''), $user, ApiSession::REALM_USER);
 
-                if ($type === 'company') {
-                    $pending = data_get($user, 'company.status') === 'pending';
+                $defaultPath = $type === 'company'
+                    ? route('frontend.company.dashboard', [], false)
+                    : route('frontend.candidate.dashboard', [], false);
+                $successKey = ($type === 'company' && data_get($user, 'company.status') === 'pending')
+                    ? 'auth.flash.login_company_pending'
+                    : 'auth.flash.login_success';
 
-                    return redirect()->route('frontend.company.dashboard')
-                        ->with('success_key', $pending ? 'auth.flash.login_company_pending' : 'auth.flash.login_success');
-                }
-
-                return redirect()->route('frontend.candidate.dashboard')
-                    ->with('success_key', 'auth.flash.login_success');
+                return redirect()->to($this->safePostLoginPath($request, $defaultPath))
+                    ->with('success_key', $successKey);
             }
 
             return redirect()->back()
-                ->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])
-                ->withInput($request->only('email'));
+                ->withErrors($this->safeLoginErrors($response))
+                ->withInput($request->only('email', 'redirect'));
         }
 
+        $safeRedirect = $this->safeLoginContinuationPath($request);
+
         return view('frontend.account.auth.login', get_defined_vars());
+    }
+
+    /**
+     * Same-app continuation target for Welcome Back messaging / post-login return.
+     * Rejects external hosts, schemes, and auth pages themselves.
+     */
+    private function safeLoginContinuationPath(Request $request): ?string
+    {
+        $raw = $request->query('redirect');
+        if (! is_string($raw) || trim($raw) === '') {
+            return null;
+        }
+
+        $path = SafeInternalRedirect::sanitize($raw, '/__unsafe__');
+        if ($path === '/__unsafe__' || $this->isAuthPagePath($path)) {
+            return null;
+        }
+
+        return $path;
+    }
+
+    /**
+     * Prefer a sanitized return path; otherwise the role dashboard default.
+     */
+    private function safePostLoginPath(Request $request, string $defaultPath): string
+    {
+        $raw = $request->input('redirect');
+        if (! is_string($raw) || trim($raw) === '') {
+            return $defaultPath;
+        }
+
+        $path = SafeInternalRedirect::sanitize($raw, $defaultPath);
+        if ($this->isAuthPagePath($path)) {
+            return $defaultPath;
+        }
+
+        return $path;
+    }
+
+    private function isAuthPagePath(string $path): bool
+    {
+        $onlyPath = parse_url($path, PHP_URL_PATH);
+        $onlyPath = is_string($onlyPath) ? $onlyPath : $path;
+
+        return preg_match('#^/account/(login|register|admin-login)(/|$)#', $onlyPath) === 1;
+    }
+
+    /**
+     * Public login errors must never include SQLSTATE, table names, hosts, or stack traces.
+     *
+     * @param  array<string, mixed>  $response
+     * @return array<string, string>
+     */
+    private function safeLoginErrors(array $response): array
+    {
+        $fallback = __('auth.login.unavailable');
+        $rawMessage = is_string($response['message'] ?? null) ? $response['message'] : null;
+        $errors = is_array($response['errors'] ?? null) ? $response['errors'] : [];
+
+        $safe = [];
+        foreach ($errors as $key => $value) {
+            if (is_array($value)) {
+                $value = reset($value);
+            }
+            if (! is_string($value) || trim($value) === '') {
+                continue;
+            }
+            $field = is_string($key) ? $key : 'error';
+            $safe[$field] = SafeApiMessage::forUser($value, $fallback, [
+                'action' => 'auth.login',
+                'field' => $field,
+                'status' => $response['statusCode'] ?? null,
+            ]);
+        }
+
+        if ($safe === []) {
+            $safe['error'] = SafeApiMessage::forUser($rawMessage, $fallback, [
+                'action' => 'auth.login',
+                'status' => $response['statusCode'] ?? null,
+            ]);
+        }
+
+        return $safe;
     }
 
     /**

@@ -61,17 +61,26 @@ class LocalizationCompletionTest extends TestCase
 
     public function test_auth_pitch_and_hall_landing_use_translated_copy(): void
     {
+        // Pitch copy remains on centered auth pages (register). Login uses the branding panel.
+        $registerEn = $this->withUnencryptedCookie(SetFrontendLocale::COOKIE, 'en')
+            ->get(route('frontend.account.register'))
+            ->assertOk()
+            ->getContent();
+        $this->assertStringContainsString(__('auth.pitch.headline', [], 'en'), $registerEn);
+
         $loginEn = $this->withUnencryptedCookie(SetFrontendLocale::COOKIE, 'en')
             ->get(route('frontend.account.login'))
             ->assertOk()
             ->getContent();
-        $this->assertStringContainsString(__('auth.pitch.headline', [], 'en'), $loginEn);
+        $this->assertStringContainsString(__('auth.login.title', [], 'en'), $loginEn);
+        $this->assertStringContainsString(__('auth.brand_headline', [], 'en'), $loginEn);
 
         $loginAr = $this->withUnencryptedCookie(SetFrontendLocale::COOKIE, 'ar')
             ->get(route('frontend.account.login'))
             ->assertOk()
             ->getContent();
-        $this->assertStringContainsString(__('auth.pitch.headline', [], 'ar'), $loginAr);
+        $this->assertStringContainsString(__('auth.login.title', [], 'ar'), $loginAr);
+        $this->assertStringContainsString(__('auth.brand_headline', [], 'ar'), $loginAr);
         $this->assertMatchesRegularExpression('/<html[^>]*\sdir="rtl"/', $loginAr);
 
         $landingAr = $this->withUnencryptedCookie(SetFrontendLocale::COOKIE, 'ar')

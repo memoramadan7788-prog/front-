@@ -177,6 +177,30 @@ document.addEventListener('keydown', (event) => {
     });
 });
 
+/* ---------- Guard duplicate submits on Welcome Back login ---------- */
+document.addEventListener('submit', (event) => {
+    const form = event.target.closest('[data-login-form]');
+    if (!form) return;
+    if (form.dataset.submitting === '1') {
+        event.preventDefault();
+        return;
+    }
+    form.dataset.submitting = '1';
+    const btn = form.querySelector('[data-login-submit]');
+    if (btn) {
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+        const idle = btn.querySelector('[data-login-idle]');
+        const loading = btn.querySelector('[data-login-loading]');
+        if (idle) idle.classList.add('hidden');
+        if (loading) {
+            loading.classList.remove('hidden');
+            loading.classList.add('inline-flex');
+            loading.removeAttribute('aria-hidden');
+        }
+    }
+});
+
 /* ---------- Guard duplicate submits on apply forms ---------- */
 document.addEventListener('submit', (event) => {
     const form = event.target.closest('[data-apply-form]');
