@@ -222,7 +222,18 @@ class CandidateDashboardAnalytics
         }
 
         usort($items, static function (array $a, array $b): int {
-            return strcmp((string) $a['start_at'], (string) $b['start_at']);
+            try {
+                $aTs = Carbon::parse((string) $a['start_at'])->getTimestamp();
+            } catch (Throwable) {
+                $aTs = PHP_INT_MAX;
+            }
+            try {
+                $bTs = Carbon::parse((string) $b['start_at'])->getTimestamp();
+            } catch (Throwable) {
+                $bTs = PHP_INT_MAX;
+            }
+
+            return $aTs <=> $bTs;
         });
 
         return [

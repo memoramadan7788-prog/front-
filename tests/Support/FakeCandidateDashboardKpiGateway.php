@@ -43,9 +43,20 @@ class FakeCandidateDashboardKpiGateway implements CandidateDashboardKpiGateway
         'errors' => null,
     ];
 
+    /** @var array{statusCode: int, message: string, data: mixed, meta: ?array, errors: mixed} */
+    public array $recommendedJobsResponse = [
+        'statusCode' => 200,
+        'message' => 'OK',
+        'data' => [],
+        'meta' => ['total' => 0, 'last_page' => 1, 'current_page' => 1, 'per_page' => 6],
+        'errors' => null,
+    ];
+
     public int $applicationCalls = 0;
 
     public int $interviewCalls = 0;
+
+    public int $recommendedJobsCalls = 0;
 
     public function __construct()
     {
@@ -84,6 +95,13 @@ class FakeCandidateDashboardKpiGateway implements CandidateDashboardKpiGateway
     public function profile(): array
     {
         return $this->profileResponse;
+    }
+
+    public function recommendedJobs(int $page = 1, int $perPage = 6): array
+    {
+        $this->recommendedJobsCalls++;
+
+        return $this->recommendedJobsResponse;
     }
 
     /**

@@ -43,4 +43,11 @@ interface CandidateDashboardKpiGateway
      * @return ApiEnvelope
      */
     public function profile(): array;
+
+    /**
+     * GET /candidate/recommended-jobs
+     *
+     * @return ApiEnvelope
+     */
+    public function recommendedJobs(int $page = 1, int $perPage = 6): array;
 }

@@ -106,6 +106,38 @@
         box-shadow: var(--shadow-hb-sm);
     }
 
+    /* Candidate dashboard KPI strip — compact reference-inspired summary cards */
+    .hb-kpi-card {
+        box-shadow: var(--shadow-hb-sm);
+        min-height: 6.75rem;
+        background: var(--hb-surface);
+        border-radius: 1rem;
+    }
+    .hb-kpi-card:hover {
+        box-shadow: var(--shadow-hb-md);
+    }
+    .hb-kpi-spark {
+        height: 1.5rem;
+        opacity: 0.95;
+    }
+    .hb-kpi-spark span {
+        display: block;
+        flex: 1 1 0;
+        min-width: 3px;
+        max-width: 7px;
+        border-radius: 9999px 9999px 1px 1px;
+        background: color-mix(in srgb, var(--hb-blue) 48%, transparent);
+    }
+    .hb-kpi-spark--amber span { background: color-mix(in srgb, #f59e0b 55%, transparent); }
+    .hb-kpi-spark--emerald span { background: color-mix(in srgb, #10b981 55%, transparent); }
+    .hb-kpi-spark--rose span { background: color-mix(in srgb, #f43f5e 50%, transparent); }
+    .hb-kpi-spark--violet span { background: color-mix(in srgb, #8b5cf6 55%, transparent); }
+    .hb-kpi-spark--teal span { background: color-mix(in srgb, #14b8a6 55%, transparent); }
+    .hb-kpi-spark--blue span { background: color-mix(in srgb, var(--hb-blue) 55%, transparent); }
+    .hb-dashboard-analytics .hb-surface {
+        box-shadow: var(--shadow-hb-sm);
+    }
+
     .hb-nav-link { font-size: .875rem; font-weight: 500; color: var(--hb-text); transition: color .15s; }
     .hb-nav-link:hover { color: var(--hb-blue); }
 

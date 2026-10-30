@@ -99,6 +99,45 @@ class CandidateDashboardKpiTest extends TestCase
         $this->assertStringContainsString(__('candidate.kpi.quick_actions'), $html);
     }
 
+    public function test_dashboard_partial_error_banner_is_not_duplicated(): void
+    {
+        $this->actingAsCandidate();
+        $leak = 'SQLSTATE[HY000]: General error while loading applications';
+        $this->gateway->applicationPages = [$this->gateway->error(500, $leak)];
+        $this->gateway->interviewPages = [$this->gateway->error(500, $leak)];
+        $this->gateway->offersResponse = $this->gateway->error(500, $leak);
+        $this->gateway->recommendedJobsResponse = $this->gateway->error(500, $leak);
+
+        $html = $this->get(route('frontend.candidate.dashboard'))->assertOk()->getContent();
+
+        $title = __('candidate.kpi.partial_error');
+        $this->assertSame(1, substr_count($html, $title));
+        $this->assertStringContainsString('data-dashboard-partial-error', $html);
+        $this->assertStringNotContainsString($title.' '.$title, $html);
+        $this->assertStringNotContainsString('SQLSTATE', $html);
+        // Sanitized fallback "Unavailable" must not be appended under the banner title.
+        $this->assertStringNotContainsString($title.'</p>'."\n".'            <p class="mt-1 opacity-90">'.__('candidate.kpi.unavailable'), $html);
+    }
+
+    public function test_recommended_jobs_schema_failure_does_not_raise_global_banner(): void
+    {
+        $this->actingAsCandidate();
+        $this->gateway->recommendedJobsResponse = $this->gateway->error(
+            500,
+            "SQLSTATE[42S02]: Base table or view not found: 1146 Table 'recruitment_audit.candidate_hidden_jobs' doesn't exist"
+        );
+
+        $html = $this->get(route('frontend.candidate.dashboard'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('data-recommended-error', $html);
+        $this->assertStringContainsString('data-recommended-state="error"', $html);
+        $this->assertStringContainsString('data-recommended-error-kind="schema"', $html);
+        $this->assertStringContainsString(__('candidate.dashboard.recommended_backend_unavailable'), $html);
+        $this->assertStringNotContainsString('data-recommended-empty', $html);
+        $this->assertStringNotContainsString('data-dashboard-partial-error', $html);
+        $this->assertMatchesRegularExpression('/data-kpi="total_applications"[^>]*data-kpi-available="1"/', $html);
+    }
+
     public function test_dashboard_unauthorized_redirects_to_login(): void
     {
         $this->actingAsCandidate();

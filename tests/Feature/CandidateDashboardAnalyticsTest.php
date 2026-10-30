@@ -40,13 +40,16 @@ class CandidateDashboardAnalyticsTest extends TestCase
         $this->assertStringContainsString('data-activity-period="90"', $html);
         $this->assertStringContainsString(__('candidate.analytics.activity_empty'), $html);
         $this->assertStringContainsString(__('candidate.analytics.pipeline_empty'), $html);
-        $this->assertStringContainsString(__('candidate.analytics.timeline_empty'), $html);
+        // Interview empty lives on the sole upcoming-interview card (timeline panel removed).
+        $this->assertStringContainsString('data-upcoming-interview-empty', $html);
+        $this->assertStringContainsString(__('candidate.dashboard.upcoming_empty'), $html);
+        $this->assertStringNotContainsString('data-analytics-panel="timeline"', $html);
         $this->assertStringContainsString(__('candidate.kpi.quick_actions'), $html);
         $this->assertStringContainsString(__('Discover jobs'), $html);
         $this->assertStringNotContainsString('999 applications invented', $html);
     }
 
-    public function test_populated_dashboard_renders_pipeline_legend_and_timeline(): void
+    public function test_populated_dashboard_renders_pipeline_legend_and_upcoming_card(): void
     {
         $this->actingAsCandidate();
         $this->gateway->applicationPages = [
@@ -62,7 +65,8 @@ class CandidateDashboardAnalyticsTest extends TestCase
                     'status' => 'scheduled',
                     'start_at' => '2026-11-02T15:00:00+00:00',
                     'is_online' => true,
-                    'application' => ['job_title' => 'Platform Engineer', 'company_name' => 'Acme'],
+                    'job_title' => 'Platform Engineer',
+                    'company_name' => 'Acme',
                 ],
             ], ['total' => 1, 'last_page' => 1, 'current_page' => 1, 'per_page' => 100]),
         ];
@@ -76,12 +80,14 @@ class CandidateDashboardAnalyticsTest extends TestCase
         $this->assertStringContainsString(__('candidate.analytics.status.submitted'), $html);
         $this->assertStringContainsString(__('candidate.analytics.status.unknown'), $html);
         $this->assertStringContainsString('mystery_stage', $html);
+        $this->assertStringContainsString('data-upcoming-interview-item', $html);
         $this->assertStringContainsString('Platform Engineer', $html);
         $this->assertStringContainsString('Acme', $html);
         $this->assertStringContainsString('data-profile-ring', $html);
         $this->assertStringContainsString('data-percent="100"', $html);
         $this->assertStringContainsString(__('candidate.analytics.profile_ring_title'), $html);
         $this->assertStringContainsString(__('candidate.kpi.quick_actions'), $html);
+        $this->assertStringNotContainsString('data-next-action="review_interview"', $html);
     }
 
     public function test_historical_unavailable_when_applied_at_missing(): void
@@ -110,7 +116,7 @@ class CandidateDashboardAnalyticsTest extends TestCase
         $this->assertStringContainsString(__('candidate.kpi.partial_error'), $html);
         $this->assertStringContainsString(__('candidate.analytics.historical_unavailable'), $html);
         $this->assertStringContainsString(__('candidate.analytics.pipeline_unavailable'), $html);
-        $this->assertStringContainsString(__('candidate.analytics.timeline_unavailable'), $html);
+        $this->assertStringContainsString('data-upcoming-interview-error', $html);
         $this->assertStringContainsString(__('candidate.kpi.quick_actions'), $html);
     }
 
@@ -139,8 +145,9 @@ class CandidateDashboardAnalyticsTest extends TestCase
         $this->assertStringContainsString('data-kpi="total_applications"', $html);
         $this->assertStringContainsString('data-analytics-panel="activity"', $html);
         $this->assertStringContainsString('data-analytics-panel="pipeline"', $html);
-        $this->assertStringContainsString('data-analytics-panel="timeline"', $html);
         $this->assertStringContainsString('data-analytics-panel="profile"', $html);
+        $this->assertStringContainsString('data-upcoming-interview-card', $html);
+        $this->assertStringNotContainsString('data-analytics-panel="timeline"', $html);
         $this->assertStringContainsString('lg:grid-cols-3', $html);
         $this->assertStringContainsString('sm:grid-cols-2', $html);
     }

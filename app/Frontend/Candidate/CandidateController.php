@@ -44,6 +44,7 @@ class CandidateController extends Controller
         return view('frontend.candidate.dashboard', [
             'kpis' => $payload['kpis'] ?? [],
             'analytics' => $payload['analytics'] ?? [],
+            'overview' => $payload['overview'] ?? [],
             'loadError' => $payload['loadError'] ?? null,
         ]);
     }

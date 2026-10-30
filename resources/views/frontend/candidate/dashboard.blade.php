@@ -10,6 +10,7 @@
 @php
     $k = is_array($kpis ?? null) ? $kpis : [];
     $a = is_array($analytics ?? null) ? $analytics : [];
+    $o = is_array($overview ?? null) ? $overview : [];
     $metric = function (string $key) use ($k): array {
         $row = is_array($k[$key] ?? null) ? $k[$key] : [];
 
@@ -45,6 +46,13 @@
     $profileRing = is_array($a['profile_ring'] ?? null) ? $a['profile_ring'] : [];
     $timeline = is_array($a['interview_timeline'] ?? null) ? $a['interview_timeline'] : [];
 
+    $upcomingCard = is_array($o['upcoming_interview'] ?? null) ? $o['upcoming_interview'] : [];
+    $tracker = is_array($o['application_tracker'] ?? null) ? $o['application_tracker'] : [];
+    $recommended = is_array($o['recommendations'] ?? null) ? $o['recommendations'] : [];
+    $nextActions = is_array($o['next_actions']['items'] ?? null) ? $o['next_actions']['items'] : [];
+    $profileChecklist = is_array($o['profile_checklist'] ?? null) ? $o['profile_checklist'] : [];
+    $checklistLinks = is_array($profileChecklist['links'] ?? null) ? $profileChecklist['links'] : [];
+
     $statusLabels = [
         'submitted' => __('candidate.analytics.status.submitted'),
         'screening' => __('candidate.analytics.status.screening'),
@@ -76,292 +84,352 @@
             'activitySummary' => __('candidate.analytics.activity_summary'),
         ],
     ];
+
+    // Genuine spark values from the verified 7-day activity series only (never invented).
+    $activitySpark = [];
+    if (($activity['available'] ?? false) && is_array($activity['periods']['7']['values'] ?? null)) {
+        $activitySpark = array_slice(array_map('floatval', $activity['periods']['7']['values']), -10);
+        if (! array_filter($activitySpark, static fn ($v) => $v > 0)) {
+            $activitySpark = [];
+        }
+    }
+
+    $statTotal = ($totalApps['available'] && $inProgress['available'])
+        ? __('candidate.kpi.stat_in_progress', ['count' => $inProgress['display']])
+        : null;
+    $statProgress = $inProgress['available']
+        ? __('candidate.kpi.stat_open_pipeline')
+        : null;
+    $statInterviews = $interviews['available']
+        ? __('candidate.kpi.stat_upcoming')
+        : null;
+    $statOffers = $offers['available']
+        ? __('candidate.kpi.stat_offers')
+        : null;
+    $statProfile = $profile['available']
+        ? __('candidate.analytics.profile_fields_meta', [
+            'filled' => (int) ($k['profile_completion']['filled'] ?? 0),
+            'total' => (int) ($k['profile_completion']['total_fields'] ?? 7),
+        ])
+        : null;
+
+    $recommendedState = ($recommended['error'] ?? false)
+        ? 'error'
+        : ((($recommended['empty'] ?? true) ? 'empty' : 'ready'));
 @endphp
 
-<x-welcome-banner :subtitle="__('Pick up where you left off: jobs, exams, interviews and offers in one place.')" />
+<div class="hb-candidate-dashboard flex flex-col gap-3" data-candidate-dashboard>
+{{-- Compact welcome — reference uses title + one line; keep banner without dominating --}}
+<x-welcome-banner
+    compact
+    :subtitle="__('candidate.dashboard.subtitle')"
+/>
 
 @if (! empty($loadError))
-    <div class="mb-6 rounded-2xl border border-hb-error/30 bg-hb-error-soft px-5 py-4 text-sm text-hb-error" role="alert">
-        {{ __('candidate.kpi.partial_error') }}
-        <span class="opacity-80">{{ trim($loadError) }}</span>
+    @php
+        $partialTitle = __('candidate.kpi.partial_error');
+        $errorDetail = trim((string) $loadError);
+        $genericUnavailable = __('candidate.kpi.unavailable');
+        // Prefer a specific detail; never echo the generic "Unavailable" alone under the same title.
+        $showDetail = $errorDetail !== ''
+            && $errorDetail !== $partialTitle
+            && $errorDetail !== $genericUnavailable;
+    @endphp
+    <div class="rounded-xl border border-hb-error/25 bg-hb-error-soft px-4 py-3 text-sm text-hb-error" role="alert" data-dashboard-partial-error>
+        <p class="font-semibold">{{ $partialTitle }}</p>
+        @if ($showDetail)
+            <p class="mt-1 opacity-90">{{ $errorDetail }}</p>
+        @endif
     </div>
 @endif
 
-<section class="mb-8" aria-labelledby="candidate-kpi-heading">
-    <div class="mb-5 flex flex-wrap items-end justify-between gap-2">
-        <div>
-            <h2 id="candidate-kpi-heading" class="text-lg font-semibold tracking-tight text-hb-navy">{{ __('candidate.kpi.section_title') }}</h2>
-            <p class="mt-1 text-sm text-hb-muted">{{ __('candidate.kpi.section_subtitle') }}</p>
-        </div>
+{{-- KPI-first summary strip — compact 4+2 grid matching reference density --}}
+<section aria-labelledby="candidate-kpi-heading" data-dashboard-kpi-strip>
+    <div class="mb-2">
+        <h2 id="candidate-kpi-heading" class="text-base font-semibold tracking-tight text-hb-navy">{{ __('candidate.kpi.section_title') }}</h2>
+        <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.kpi.section_subtitle') }}</p>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div class="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
         <x-kpi-card
             kpi-key="total_applications"
             :label="__('candidate.kpi.total_applications')"
             :value="$totalApps['display']"
+            :stat="$statTotal"
             :meta="$metaFor($totalApps, 'candidate.kpi.total_applications_meta')"
             :href="$totalApps['href'] ? route($totalApps['href']) : null"
             :available="$totalApps['available']"
+            :spark="$activitySpark"
             icon="applications"
+            tone="blue"
         />
         <x-kpi-card
             kpi-key="applications_in_progress"
             :label="__('candidate.kpi.applications_in_progress')"
             :value="$inProgress['display']"
+            :stat="$statProgress"
             :meta="$metaFor($inProgress, 'candidate.kpi.applications_in_progress_meta')"
             :href="$inProgress['href'] ? route($inProgress['href']) : null"
             :available="$inProgress['available']"
             icon="progress"
+            tone="amber"
         />
         <x-kpi-card
             kpi-key="upcoming_interviews"
             :label="__('candidate.kpi.upcoming_interviews')"
             :value="$interviews['display']"
+            :stat="$statInterviews"
             :meta="$metaFor($interviews, 'candidate.kpi.upcoming_interviews_meta')"
             :href="$interviews['href'] ? route($interviews['href']) : null"
             :available="$interviews['available']"
             icon="interviews"
+            tone="violet"
         />
         <x-kpi-card
             kpi-key="offers_received"
             :label="__('candidate.kpi.offers_received')"
             :value="$offers['display']"
+            :stat="$statOffers"
             :meta="$metaFor($offers, 'candidate.kpi.offers_received_meta')"
             :href="$offers['href'] ? route($offers['href']) : null"
             :available="$offers['available']"
             icon="offers"
+            tone="emerald"
         />
+    </div>
+    <div class="mt-2.5 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
         <x-kpi-card
+            class="lg:col-span-2"
             kpi-key="pending_assessments"
             :label="__('candidate.kpi.pending_assessments')"
             :value="$assessments['display']"
-            :meta="$metaFor($assessments, 'candidate.kpi.pending_assessments_meta')"
+            :meta="$metaFor($assessments, 'candidate.kpi.assessments_unavailable')"
             :href="$assessments['href'] ? route($assessments['href']) : null"
             :available="$assessments['available']"
             icon="assessments"
+            tone="rose"
         />
         <x-kpi-card
+            class="lg:col-span-2"
             kpi-key="profile_completion"
             :label="__('candidate.kpi.profile_completion')"
             :value="$profile['display']"
+            :stat="$statProfile"
             :meta="$metaFor($profile, 'candidate.kpi.profile_completion_meta')"
             :href="$profile['href'] ? route($profile['href']) : null"
             :available="$profile['available']"
             icon="profile"
+            tone="teal"
         />
     </div>
 </section>
 
-<section
-    class="mb-10"
-    aria-labelledby="candidate-analytics-heading"
-    data-candidate-analytics="{{ e(json_encode($analyticsPayload, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) }}"
->
-    <div class="mb-5">
-        <h2 id="candidate-analytics-heading" class="text-lg font-semibold tracking-tight text-hb-navy">{{ __('candidate.analytics.section_title') }}</h2>
-        <p class="mt-1 text-sm text-hb-muted">{{ __('candidate.analytics.section_subtitle') }}</p>
+{{-- Analytics immediately after KPIs (reference composition) --}}
+@include('frontend.candidate.partials.dashboard-analytics')
+
+{{-- Task #12 operational blocks — single upcoming-interview card (no duplicate timeline) --}}
+<section aria-labelledby="candidate-overview-heading" data-dashboard-overview>
+    <div class="mb-2">
+        <h2 id="candidate-overview-heading" class="text-base font-semibold tracking-tight text-hb-navy">{{ __('candidate.dashboard.next_steps') }}</h2>
+        <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.dashboard.progress_aside') }}</p>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-3">
-        {{-- Application activity --}}
-        <x-card class="lg:col-span-2" data-analytics-panel="activity">
+    <div class="grid gap-3 lg:grid-cols-2">
+        {{-- Sole upcoming interview presentation (Task #12) --}}
+        <x-card data-upcoming-interview-card>
             <x-slot:header>
-                <div class="flex flex-wrap items-start justify-between gap-3">
+                <div class="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                        <h3 class="text-base font-bold text-hb-navy">{{ __('candidate.analytics.activity_title') }}</h3>
-                        <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.analytics.activity_subtitle') }}</p>
+                        <h3 class="text-sm font-bold text-hb-navy">{{ __('candidate.dashboard.upcoming_card_title') }}</h3>
+                        <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.dashboard.upcoming_card_subtitle') }}</p>
                     </div>
-                    <div class="inline-flex rounded-xl border border-hb-border bg-hb-page/60 p-1" role="group" aria-label="{{ __('candidate.analytics.sr_period_group') }}">
-                        @foreach ([7, 30, 90] as $days)
-                            <button
-                                type="button"
-                                data-activity-period="{{ $days }}"
-                                class="rounded-lg px-2.5 py-1 text-xs font-semibold transition"
-                                aria-pressed="false"
-                            >{{ __('candidate.analytics.period_'.$days) }}</button>
-                        @endforeach
-                    </div>
+                    <a href="{{ route('frontend.candidate.interviews.index') }}" class="text-sm font-semibold text-hb-blue hover:underline">{{ __('candidate.dashboard.upcoming_view') }}</a>
                 </div>
             </x-slot:header>
 
-            <div data-activity-unavailable @class(['py-12 text-center', 'hidden' => (bool) ($activity['available'] ?? false)]) role="status">
-                <p class="text-sm font-semibold text-hb-navy">{{ __('candidate.analytics.historical_unavailable') }}</p>
-                <p class="mt-1 text-sm text-hb-muted">{{ $activityUnavailableMsg }}</p>
-            </div>
-            <div data-activity-empty @class(['py-12 text-center', 'hidden' => ! (($activity['available'] ?? false) && ($activity['empty'] ?? false))]) role="status">
-                <p class="text-sm font-semibold text-hb-navy">{{ __('candidate.analytics.activity_empty') }}</p>
-                <p class="mt-1 text-sm text-hb-muted">{{ __('candidate.analytics.activity_empty_hint') }}</p>
-                <a href="{{ route('frontend.candidate.vacancies.index') }}" class="mt-4 inline-flex text-sm font-semibold text-hb-blue hover:underline">{{ __('Discover jobs') }}</a>
-            </div>
-            <div data-activity-chart-wrap @class(['hidden' => ! (($activity['available'] ?? false) && ! ($activity['empty'] ?? true))])>
-                <p data-activity-summary class="mb-3 text-xs text-hb-muted" aria-live="polite"></p>
-                <div data-activity-chart class="min-h-[220px] w-full"></div>
-                <noscript>
-                    <p class="text-sm text-hb-muted">{{ __('candidate.analytics.activity_subtitle') }}</p>
-                </noscript>
-            </div>
-        </x-card>
-
-        {{-- Profile completion ring --}}
-        <x-card data-analytics-panel="profile">
-            <x-slot:header>
-                <h3 class="text-base font-bold text-hb-navy">{{ __('candidate.analytics.profile_ring_title') }}</h3>
-                <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.analytics.profile_ring_subtitle') }}</p>
-            </x-slot:header>
-
-            @if (! ($profileRing['available'] ?? false))
-                <p class="py-10 text-center text-sm text-hb-muted" role="status">{{ __('candidate.analytics.profile_ring_unavailable') }}</p>
+            @if ($upcomingCard['error'] ?? false)
+                <p class="py-4 text-center text-sm text-hb-muted" role="alert" data-upcoming-interview-error>{{ __('candidate.dashboard.upcoming_error') }}</p>
+            @elseif ($upcomingCard['empty'] ?? true)
+                <div class="py-4 text-center" role="status" data-upcoming-interview-empty>
+                    <p class="text-sm font-semibold text-hb-navy">{{ __('candidate.dashboard.upcoming_empty') }}</p>
+                    <p class="mt-1 text-xs text-hb-muted">{{ __('candidate.dashboard.upcoming_empty_hint') }}</p>
+                </div>
             @else
-                @php
-                    $pct = (int) ($profileRing['percent'] ?? 0);
-                    $filled = (int) ($profileRing['filled'] ?? 0);
-                    $fields = (int) ($profileRing['total_fields'] ?? 7);
-                    $checks = is_array($profileRing['checks'] ?? null) ? $profileRing['checks'] : [];
-                    $r = 54;
-                    $circ = 2 * M_PI * $r;
-                @endphp
-                <div
-                    class="flex flex-col items-center"
-                    data-profile-ring
-                    data-percent="{{ $pct }}"
-                >
-                    <svg class="h-40 w-40" viewBox="0 0 140 140" role="img" aria-label="{{ __('candidate.kpi.profile_completion') }}: {{ $pct }}%">
-                        <circle cx="70" cy="70" r="{{ $r }}" fill="none" stroke="currentColor" class="text-hb-page" stroke-width="12" />
-                        <circle
-                            data-profile-ring-progress
-                            cx="70" cy="70" r="{{ $r }}"
-                            fill="none"
-                            stroke="currentColor"
-                            class="text-hb-blue"
-                            stroke-width="12"
-                            stroke-linecap="round"
-                            transform="rotate(-90 70 70)"
-                            style="stroke-dasharray: {{ $circ }}; stroke-dashoffset: {{ $circ }};"
-                        />
-                        <text x="70" y="66" text-anchor="middle" class="fill-hb-navy text-2xl font-semibold" style="font-size: 28px; font-weight: 600;">{{ $pct }}%</text>
-                        <text x="70" y="88" text-anchor="middle" class="fill-hb-muted" style="font-size: 11px;">{{ __('candidate.analytics.profile_fields_meta', ['filled' => $filled, 'total' => $fields]) }}</text>
-                    </svg>
-                    <ul class="mt-4 w-full space-y-1.5 text-sm">
-                        @foreach (\App\Frontend\Candidate\CandidateDashboardAdapter::PROFILE_COMPLETION_FIELDS as $field)
-                            @php $ok = (bool) ($checks[$field] ?? false); @endphp
-                            <li class="flex items-center justify-between gap-2">
-                                <span class="text-hb-text">{{ __('candidate.analytics.field.'.$field) }}</span>
-                                <span class="{{ $ok ? 'text-hb-success' : 'text-hb-muted' }}" aria-hidden="true">{{ $ok ? '✓' : '–' }}</span>
-                                <span class="sr-only">{{ $ok ? __('Approved') : __('Pending') }}</span>
-                            </li>
-                        @endforeach
-                    </ul>
-                    <a href="{{ route('frontend.candidate.profile') }}" class="mt-4 text-sm font-semibold text-hb-blue hover:underline">{{ __('candidate.dashboard.finish_profile') }}</a>
-                </div>
+                @php $iv = is_array($upcomingCard['item'] ?? null) ? $upcomingCard['item'] : []; @endphp
+                <article class="rounded-xl border border-hb-border bg-hb-page/50 p-3.5" data-upcoming-interview-item>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-hb-muted">
+                        {{ \App\Support\Rows::date(data_get($iv, 'start_at'), 'D, M j · H:i T') }}
+                    </p>
+                    <h4 class="mt-1.5 text-sm font-bold text-hb-navy">{{ data_get($iv, 'job_title') ?: __('Interviews') }}</h4>
+                    <p class="mt-1 text-xs text-hb-muted">
+                        @if (data_get($iv, 'company_name'))
+                            {{ data_get($iv, 'company_name') }} ·
+                        @endif
+                        {{ data_get($iv, 'is_online') ? __('candidate.dashboard.online') : __('candidate.dashboard.onsite') }}
+                        @if (data_get($iv, 'interview_type'))
+                            · {{ data_get($iv, 'interview_type') }}
+                        @endif
+                        · {{ data_get($iv, 'status') }}
+                    </p>
+                    <a href="{{ data_get($iv, 'href') ?: route('frontend.candidate.interviews.index') }}" class="mt-3 inline-flex text-sm font-semibold text-hb-blue hover:underline">
+                        {{ __('candidate.dashboard.upcoming_view') }}
+                    </a>
+                </article>
             @endif
         </x-card>
-    </div>
 
-    <div class="mt-4 grid gap-4 lg:grid-cols-3">
-        {{-- Pipeline donut --}}
-        <x-card data-analytics-panel="pipeline">
+        {{-- Next actions — actionable only (no duplicate interview review) --}}
+        <x-card data-next-actions-card>
             <x-slot:header>
-                <h3 class="text-base font-bold text-hb-navy">{{ __('candidate.analytics.pipeline_title') }}</h3>
-                <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.analytics.pipeline_subtitle') }}</p>
+                <h3 class="text-sm font-bold text-hb-navy">{{ __('candidate.dashboard.next_actions') }}</h3>
+                <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.dashboard.next_actions_subtitle') }}</p>
             </x-slot:header>
 
-            <div data-pipeline-unavailable @class(['py-10 text-center text-sm text-hb-muted', 'hidden' => (bool) ($pipeline['available'] ?? false)]) role="status">
-                {{ __('candidate.analytics.pipeline_unavailable') }}
-            </div>
-            <div data-pipeline-empty @class(['py-10 text-center', 'hidden' => ! (($pipeline['available'] ?? false) && ($pipeline['empty'] ?? false))]) role="status">
-                <p class="text-sm font-semibold text-hb-navy">{{ __('candidate.analytics.pipeline_empty') }}</p>
-                <a href="{{ route('frontend.candidate.vacancies.index') }}" class="mt-3 inline-flex text-sm font-semibold text-hb-blue hover:underline">{{ __('Discover jobs') }}</a>
-            </div>
-            <div data-pipeline-chart-wrap @class(['hidden' => ! (($pipeline['available'] ?? false) && ! ($pipeline['empty'] ?? true))])>
-                <div data-pipeline-donut class="min-h-[200px]"></div>
-                <ul class="mt-4 space-y-2 text-sm" data-pipeline-legend>
-                    @foreach (($pipeline['segments'] ?? []) as $seg)
+            @if ($nextActions === [])
+                <p class="py-4 text-center text-sm text-hb-muted" role="status" data-next-actions-empty>{{ __('candidate.dashboard.next_actions_empty') }}</p>
+            @else
+                <ul class="space-y-2" data-next-actions-list>
+                    @foreach ($nextActions as $action)
                         @php
-                            $key = (string) ($seg['key'] ?? 'unknown');
-                            $count = (int) ($seg['count'] ?? 0);
-                            $label = $statusLabels[$key] ?? $key;
+                            $label = ! empty($action['label_key']) ? __($action['label_key']) : (string) ($action['label'] ?? '');
+                            $meta = null;
+                            if (! empty($action['meta_key'])) {
+                                $meta = __($action['meta_key']);
+                            } elseif (! empty($action['meta']) && is_string($action['meta'])) {
+                                $when = \App\Support\Rows::date($action['meta'], 'M j, Y H:i T');
+                                $meta = ($action['deadline_state'] ?? '') === 'overdue'
+                                    ? __('candidate.dashboard.deadline_overdue', ['when' => $when])
+                                    : __('candidate.dashboard.deadline_upcoming', ['when' => $when]);
+                            }
+                            $href = (string) ($action['href'] ?? '#');
                         @endphp
-                        <li class="flex items-center justify-between gap-2">
-                            <span class="inline-flex items-center gap-2 text-hb-text">
-                                <span class="h-2.5 w-2.5 rounded-full bg-hb-blue" aria-hidden="true"></span>
-                                {{ $label }}
-                                @if (! ($seg['known'] ?? true) && ! empty($seg['statuses']))
-                                    <span class="text-xs text-hb-muted">({{ implode(', ', $seg['statuses']) }})</span>
+                        <li>
+                            <a href="{{ $href }}" class="block rounded-xl border border-hb-border px-3.5 py-2.5 transition hover:border-hb-blue/40 hover:bg-hb-page/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-hb-blue/30" data-next-action="{{ $action['key'] ?? '' }}">
+                                <span class="block text-sm font-semibold text-hb-navy">{{ $label }}</span>
+                                @if ($meta)
+                                    <span class="mt-0.5 block text-xs text-hb-muted">{{ $meta }}</span>
                                 @endif
-                            </span>
-                            <span class="font-semibold text-hb-navy tabular-nums">{{ $count }}</span>
+                                @if (! empty($action['job_title']))
+                                    <span class="mt-0.5 block text-xs text-hb-muted">{{ $action['job_title'] }}</span>
+                                @endif
+                            </a>
                         </li>
                     @endforeach
                 </ul>
-                @if (($pipeline['available'] ?? false) && ! ($pipeline['reconciled'] ?? true))
-                    <p class="mt-3 text-xs text-hb-pending" role="status">{{ __('candidate.analytics.pipeline_reconcile_note') }}</p>
-                @endif
-                {{-- Accessible table alternative --}}
-                <table class="sr-only">
-                    <caption>{{ __('candidate.analytics.pipeline_title') }}</caption>
-                    <thead><tr><th>{{ __('candidate.analytics.pipeline_subtitle') }}</th><th>{{ __('candidate.analytics.pipeline_total') }}</th></tr></thead>
-                    <tbody>
-                        @foreach (($pipeline['segments'] ?? []) as $seg)
-                            <tr>
-                                <td>{{ $statusLabels[$seg['key'] ?? 'unknown'] ?? ($seg['key'] ?? '') }}</td>
-                                <td>{{ (int) ($seg['count'] ?? 0) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </x-card>
-
-        {{-- Interview timeline --}}
-        <x-card class="lg:col-span-2" data-analytics-panel="timeline">
-            <x-slot:header>
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <h3 class="text-base font-bold text-hb-navy">{{ __('candidate.analytics.timeline_title') }}</h3>
-                        <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.analytics.timeline_subtitle') }}</p>
-                    </div>
-                    <a href="{{ route('frontend.candidate.interviews.index') }}" class="text-sm font-semibold text-hb-blue hover:underline">{{ __('Interviews') }}</a>
-                </div>
-            </x-slot:header>
-
-            @if (! ($timeline['available'] ?? false))
-                <p class="py-10 text-center text-sm text-hb-muted" role="status">{{ __('candidate.analytics.timeline_unavailable') }}</p>
-            @elseif ($timeline['empty'] ?? true)
-                <div class="py-10 text-center" role="status">
-                    <p class="text-sm font-semibold text-hb-navy">{{ __('candidate.analytics.timeline_empty') }}</p>
-                    <a href="{{ route('frontend.candidate.interviews.index') }}" class="mt-3 inline-flex text-sm font-semibold text-hb-blue hover:underline">{{ __('Interviews') }}</a>
-                </div>
-            @else
-                <ol class="relative space-y-0 border-s border-hb-border ms-3" data-interview-timeline>
-                    @foreach (($timeline['items'] ?? []) as $item)
-                        @php
-                            $start = data_get($item, 'start_at');
-                            $when = is_string($start) ? \App\Support\Rows::date($start) : '—';
-                            $title = data_get($item, 'job_title') ?: __('Interviews');
-                            $company = data_get($item, 'company_name');
-                            $online = (bool) data_get($item, 'is_online', false);
-                        @endphp
-                        <li class="relative pb-6 ps-6 last:pb-0">
-                            <span class="absolute -start-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-hb-blue ring-4 ring-hb-surface" aria-hidden="true"></span>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-hb-muted">{{ $when }}</p>
-                            <p class="mt-1 text-sm font-semibold text-hb-navy">{{ $title }}</p>
-                            <p class="mt-0.5 text-sm text-hb-muted">
-                                @if ($company){{ $company }} · @endif
-                                {{ $online ? __('candidate.analytics.timeline_online') : __('candidate.analytics.timeline_onsite') }}
-                                · {{ data_get($item, 'status') }}
-                            </p>
-                        </li>
-                    @endforeach
-                </ol>
             @endif
         </x-card>
     </div>
+
+    {{-- Compact application tracker --}}
+    <x-card class="mt-3" data-application-tracker>
+        <x-slot:header>
+            <div class="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                    <h3 class="text-sm font-bold text-hb-navy">{{ __('candidate.dashboard.tracker_title') }}</h3>
+                    <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.dashboard.tracker_subtitle') }}</p>
+                </div>
+                <a href="{{ route('frontend.candidate.applications.index') }}" class="text-sm font-semibold text-hb-blue hover:underline">{{ __('candidate.dashboard.tracker_view_all') }}</a>
+            </div>
+        </x-slot:header>
+
+        <p class="mb-2 text-xs text-hb-muted" data-tracker-snapshot-note>{{ __('candidate.dashboard.tracker_snapshot_note') }}</p>
+
+        @if ($tracker['error'] ?? false)
+            <p class="py-4 text-center text-sm text-hb-muted" role="alert" data-tracker-error>{{ __('candidate.dashboard.tracker_error') }}</p>
+        @elseif ($tracker['empty'] ?? true)
+            <div class="py-4 text-center" role="status" data-tracker-empty>
+                <p class="text-sm font-semibold text-hb-navy">{{ __('candidate.dashboard.tracker_empty') }}</p>
+                <a href="{{ route('frontend.candidate.vacancies.index') }}" class="mt-2 inline-flex text-sm font-semibold text-hb-blue hover:underline">{{ __('Discover jobs') }}</a>
+            </div>
+        @else
+            @if ($tracker['partial'] ?? false)
+                <p class="mb-2 rounded-xl border border-hb-pending/30 bg-hb-pending-soft px-3 py-2 text-xs text-hb-pending" role="status" data-tracker-partial>
+                    {{ __('candidate.dashboard.tracker_partial_note') }}
+                </p>
+            @endif
+            <ul class="divide-y divide-hb-border" data-tracker-list>
+                @foreach (($tracker['items'] ?? []) as $app)
+                    @php
+                        $statusKey = (string) ($app['status'] ?? 'unknown');
+                        $statusLabel = $statusLabels[$statusKey] ?? $statusKey;
+                    @endphp
+                    <li class="flex flex-wrap items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-semibold text-hb-navy">{{ $app['job_title'] ?: __('My applications') }}</p>
+                            <p class="mt-0.5 text-xs text-hb-muted">
+                                @if (! empty($app['company_name'])){{ $app['company_name'] }} · @endif
+                                {{ \App\Support\Rows::date($app['applied_at'] ?? null, 'M j, Y') }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="rounded-full bg-hb-info-soft px-2.5 py-1 text-xs font-semibold text-hb-blue" data-tracker-status="{{ $statusKey }}">{{ $statusLabel }}</span>
+                            <a href="{{ $app['href'] }}" class="text-sm font-semibold text-hb-blue hover:underline">{{ __('candidate.dashboard.view_application') }}</a>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </x-card>
+
+    {{-- Recommended jobs — empty vs backend failure are distinct --}}
+    <x-card class="mt-3" data-recommended-jobs data-recommended-state="{{ $recommendedState }}">
+        <x-slot:header>
+            <div class="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                    <h3 class="text-sm font-bold text-hb-navy">{{ __('candidate.dashboard.recommended') }}</h3>
+                    <p class="mt-0.5 text-xs text-hb-muted">{{ __('candidate.dashboard.recommended_subtitle') }}</p>
+                </div>
+                <a href="{{ route('frontend.candidate.vacancies.index') }}" class="text-sm font-semibold text-hb-blue hover:underline">{{ __('Discover jobs') }}</a>
+            </div>
+        </x-slot:header>
+
+        @if ($recommended['error'] ?? false)
+            <div class="py-4 text-center" role="alert" data-recommended-error data-recommended-error-kind="{{ $recommended['error_kind'] ?? 'api' }}">
+                <p class="text-sm font-semibold text-hb-navy">{{ __($recommended['error_key'] ?? 'candidate.dashboard.recommended_error') }}</p>
+                @if (! empty($recommended['error_hint_key']))
+                    <p class="mt-1 text-xs text-hb-muted">{{ __($recommended['error_hint_key']) }}</p>
+                @endif
+                <a href="{{ route('frontend.candidate.vacancies.index') }}" class="mt-2 inline-flex text-sm font-semibold text-hb-blue hover:underline">{{ __('Discover jobs') }}</a>
+            </div>
+        @elseif ($recommended['empty'] ?? true)
+            <div class="py-4 text-center" role="status" data-recommended-empty>
+                <p class="text-sm font-semibold text-hb-navy">{{ __('candidate.dashboard.recommended_empty') }}</p>
+                <p class="mt-1 text-xs text-hb-muted">{{ __('candidate.dashboard.recommended_empty_hint') }}</p>
+            </div>
+        @else
+            <ul class="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3" data-recommended-list>
+                @foreach (($recommended['items'] ?? []) as $job)
+                    <li class="rounded-xl border border-hb-border bg-hb-surface p-3.5">
+                        <p class="text-sm font-bold text-hb-navy">{{ $job['title'] ?: __('Jobs') }}</p>
+                        <p class="mt-1 text-xs text-hb-muted">
+                            @if (! empty($job['company_name'])){{ $job['company_name'] }}@endif
+                            @if (! empty($job['work_mode'])) · {{ $job['work_mode'] }}@endif
+                            @if (! empty($job['location'])) · {{ $job['location'] }}@endif
+                        </p>
+                        @if (! empty($job['why_it_fits']) && is_array($job['why_it_fits']))
+                            <p class="mt-2 text-xs font-semibold text-hb-navy">{{ __('candidate.dashboard.why_it_fits') }}</p>
+                            <ul class="mt-1 space-y-0.5 text-xs text-hb-muted">
+                                @foreach ($job['why_it_fits'] as $reason)
+                                    <li>{{ $reason }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        <div class="mt-2.5 flex flex-wrap gap-3">
+                            <a href="{{ $job['href'] }}" class="text-sm font-semibold text-hb-blue hover:underline">{{ __('candidate.dashboard.recommended_view') }}</a>
+                            @unless ($job['applied_by_me'] ?? false)
+                                <a href="{{ $job['apply_href'] }}" class="text-sm font-semibold text-hb-blue hover:underline">{{ __('candidate.dashboard.recommended_apply') }}</a>
+                            @endunless
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </x-card>
 </section>
 
 <section aria-labelledby="candidate-quick-actions-heading">
-    <h2 id="candidate-quick-actions-heading" class="mb-4 text-lg font-semibold tracking-tight text-hb-navy">{{ __('candidate.kpi.quick_actions') }}</h2>
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <h2 id="candidate-quick-actions-heading" class="mb-2 text-base font-semibold tracking-tight text-hb-navy">{{ __('candidate.kpi.quick_actions') }}</h2>
+    <div class="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
         <x-stat-card :label="__('Discover jobs')" value="→" :meta="__('Browse open vacancies')" :href="route('frontend.candidate.vacancies.index')" />
         <x-stat-card :label="__('My applications')" value="→" :meta="__('Track your applications')" :href="route('frontend.candidate.applications.index')" />
         <x-stat-card :label="__('Assessments')" value="→" :meta="__('Take your exams')" :href="route('frontend.candidate.exams.index')" />
@@ -370,4 +438,5 @@
         <x-stat-card :label="__('Profile & resume')" value="→" :meta="__('Keep your profile up to date')" :href="route('frontend.candidate.profile')" />
     </div>
 </section>
+</div>
 @endsection

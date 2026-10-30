@@ -48,6 +48,14 @@ class HttpCandidateDashboardKpiGateway implements CandidateDashboardKpiGateway
         return $this->get('/candidate/profile');
     }
 
+    public function recommendedJobs(int $page = 1, int $perPage = 6): array
+    {
+        return $this->get('/candidate/recommended-jobs', [
+            'page' => max(1, $page),
+            'per_page' => max(1, min(50, $perPage)),
+        ]);
+    }
+
     /**
      * @param  array<string, scalar>  $query
      * @return array{statusCode: int, message: string, data: mixed, meta: ?array, errors: mixed}
