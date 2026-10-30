@@ -11,7 +11,8 @@
     $sort = $sort ?? request('sort', 'newest');
     $isCandidate = (bool) ($isCandidate ?? false);
     $isAuthenticated = (bool) ($isAuthenticated ?? false);
-    $hasActiveFilters = request()->hasAny(['q', 'location', 'work_mode', 'employment_type', 'salary_min', 'salary_max', 'discipline', 'sort']);
+    $selectedCategory = request('category_id', request('discipline'));
+    $hasActiveFilters = request()->hasAny(['q', 'location', 'work_mode', 'employment_type', 'salary_min', 'salary_max', 'discipline', 'category_id', 'sort']);
     $employmentOptions = [
         'full_time' => __('common.employment.full_time'),
         'part_time' => __('common.employment.part_time'),
@@ -88,7 +89,7 @@
                 <x-form.select name="discipline" :label="__('public.jobs.discipline')">
                     <option value="">{{ __('public.jobs.any_discipline') }}</option>
                     @foreach ($categories as $category)
-                        <option value="{{ data_get($category, 'id') }}" @selected((string) request('discipline') === (string) data_get($category, 'id'))>
+                        <option value="{{ data_get($category, 'id') }}" @selected((string) $selectedCategory === (string) data_get($category, 'id'))>
                             {{ data_get($category, 'name') }}
                         </option>
                     @endforeach

@@ -96,13 +96,14 @@ class PublicAllJobsTest extends TestCase
             ->assertSee('Platform Engineer');
     }
 
-    public function test_salary_and_discipline_filters_are_forwarded(): void
+    public function test_salary_and_discipline_filters_are_forwarded_using_backend_category_id(): void
     {
         $jobs = Mockery::mock(JobAPI::class);
         $jobs->shouldReceive('getJobs')->once()->with(Mockery::on(function (array $query) {
             return (string) ($query['salary_min'] ?? '') === '80000'
                 && (string) ($query['salary_max'] ?? '') === '140000'
-                && (string) ($query['discipline'] ?? '') === '3';
+                && (string) ($query['category_id'] ?? '') === '3'
+                && ! array_key_exists('discipline', $query);
         }))->andReturn($this->okListResponse([$this->jobRow(1)]));
         $this->app->instance(JobAPI::class, $jobs);
         $this->mockCategories([['id' => 3, 'name' => 'Engineering']]);
@@ -112,6 +113,15 @@ class PublicAllJobsTest extends TestCase
             'salary_max' => 140000,
             'discipline' => 3,
         ]))->assertOk();
+    }
+
+    public function test_public_job_search_validates_keyword_and_location_lengths(): void
+    {
+        $this->get(route('frontend.jobs.index', ['q' => str_repeat('x', 101)]))
+            ->assertSessionHasErrors('q');
+
+        $this->get(route('frontend.jobs.index', ['location' => str_repeat('x', 101)]))
+            ->assertSessionHasErrors('location');
     }
 
     public function test_sorting_maps_to_backend_sort_fields(): void
