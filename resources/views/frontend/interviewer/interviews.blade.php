@@ -31,6 +31,7 @@
             <td class="px-4 py-3">{{ \App\Support\Rows::date(data_get($row, 'scheduled_at')) }}</td>
             <td class="px-4 py-3"><div class="flex flex-wrap justify-end gap-2">
                 <x-button variant="light" size="sm" :href="route('frontend.interviewer.interviews.show', ['interviewId' => data_get($row, 'id')])">{{ __('View') }}</x-button>
+                <x-button variant="primary" size="sm" :href="route('frontend.interviewer.interviews.live', ['interviewId' => data_get($row, 'id')])">{{ __('interviewer.live.open_workspace') }}</x-button>
                 <x-button variant="light" size="sm" :href="route('frontend.interviewer.interviews.evaluation', ['interviewId' => data_get($row, 'id')])">{{ __('Evaluate') }}</x-button>
             </div></td>
         </tr>

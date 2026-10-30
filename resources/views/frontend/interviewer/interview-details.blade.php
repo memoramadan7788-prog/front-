@@ -47,7 +47,8 @@
     </dl>
 
     <div class="flex flex-wrap items-center gap-3 pt-6">
-        <x-button :href="route('frontend.interviewer.interviews.evaluation', ['interviewId' => $interviewId])">{{ __('Evaluate') }}</x-button>
+        <x-button :href="route('frontend.interviewer.interviews.live', ['interviewId' => $interviewId])">{{ __('interviewer.live.open_workspace') }}</x-button>
+        <x-button variant="light" :href="route('frontend.interviewer.interviews.evaluation', ['interviewId' => $interviewId])">{{ __('Evaluate') }}</x-button>
         <x-button variant="light" :href="route('frontend.interviewer.interviews.index')">{{ __('Back') }}</x-button>
     </div>
 </x-card>

@@ -16,6 +16,7 @@ use App\Frontend\Exam\ExamController;
 use App\Frontend\Home\HomeController;
 use App\Frontend\Interview\InterviewController;
 use App\Frontend\Interviewer\InterviewerController;
+use App\Frontend\Interviewer\InterviewerLiveWorkspaceController;
 use App\Frontend\Job\JobController;
 use App\Frontend\Lookup\LookupController;
 use App\Frontend\Notifications\NotificationsController;
@@ -204,9 +205,10 @@ Route::prefix('/')->name('frontend.')->group(function () {
     // Interviewer (a company account that has the interviewer role - the backend enforces the permissions)
     Route::prefix('interviewer')->middleware(['auth', 'account:company'])->name('interviewer.')->group(function () {
         Route::get('/interviews', [InterviewerController::class, 'getInterviews'])->name('interviews.index');
-        Route::get('/interviews/{interviewId}', [InterviewerController::class, 'getInterview'])->name('interviews.show');
-        Route::get('/interviews/{interviewId}/evaluation', [InterviewerController::class, 'submitEvaluation'])->name('interviews.evaluation');
-        Route::post('/interviews/{interviewId}/evaluation', [InterviewerController::class, 'submitEvaluation'])->name('interviews.evaluation.submit');
+        Route::get('/interviews/{interviewId}/live', [InterviewerLiveWorkspaceController::class, 'show'])->whereNumber('interviewId')->name('interviews.live');
+        Route::get('/interviews/{interviewId}', [InterviewerController::class, 'getInterview'])->whereNumber('interviewId')->name('interviews.show');
+        Route::get('/interviews/{interviewId}/evaluation', [InterviewerController::class, 'submitEvaluation'])->whereNumber('interviewId')->name('interviews.evaluation');
+        Route::post('/interviews/{interviewId}/evaluation', [InterviewerController::class, 'submitEvaluation'])->whereNumber('interviewId')->name('interviews.evaluation.submit');
         Route::get('/availability/add', [InterviewerController::class, 'addAvailability'])->name('availability.add');
         Route::post('/availability/add', [InterviewerController::class, 'addAvailability'])->name('availability.add.submit');
     });
