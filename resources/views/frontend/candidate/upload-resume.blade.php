@@ -187,7 +187,7 @@
         }
         if (labelIdle) labelIdle.classList.toggle('hidden', busy);
         if (labelBusy) labelBusy.classList.toggle('hidden', !busy);
-        if (input) input.disabled = busy;
+        // Do NOT disable the file input here: disabled fields are excluded from the submitted form data.
     }
 
     if (input) {

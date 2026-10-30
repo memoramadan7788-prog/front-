@@ -10,9 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 
-use App\Frontend\Auth\ApiSession;
 use App\Models\AdminAPI;
-use App\Support\Frontend\SafeApiMessage;
 
 class AdminController extends Controller
 {
@@ -21,9 +19,9 @@ class AdminController extends Controller
     /** account_statuses ids used by the backend (AccountStatus model) */
     private const USER_STATUSES = ['active' => 1, 'deactivated' => 2, 'blocked' => 3];
 
-    public function __construct(AdminAPI $api)
+    public function __construct()
     {
-        $this->api = $api;
+        $this->api = new AdminAPI();
     }
 
     /** Keep only the query-string filters the backend understands (drop empty ones). */
@@ -32,151 +30,29 @@ class AdminController extends Controller
         return array_filter($request->only($allowed), fn ($v) => $v !== null && $v !== '');
     }
 
-    /** Friendly flash message; never surface SQLSTATE / connection dumps. */
-    private function apiFlashError(array $response, string $fallback, string $action): string
+    function dashboard(Request $request)
     {
-        return SafeApiMessage::forUser(
-            is_string($response['message'] ?? null) ? $response['message'] : null,
-            $fallback,
-            [
-                'action' => $action,
-                'status' => $response['statusCode'] ?? null,
-            ]
-        );
-    }
-
-    public function dashboard(Request $request)
-    {
-        $months = (int) $request->integer('months', 6);
-        $months = min(max($months, 3), 12);
-
         $adapter = new AdminDashboardAdapter($this->api);
-        $result = $adapter->load($months);
 
-        if (! empty($result['unauthorized'])) {
-            $loginRoute = ApiSession::isPlatformAdmin()
-                ? 'frontend.account.admin-login'
-                : 'frontend.account.login';
-            ApiSession::forget();
-
-            return redirect()->route($loginRoute)
-                ->withErrors(['error' => __('Your session has expired. Please sign in again.')]);
-        }
+        $result = $adapter->load();
 
         return view('frontend.admin.dashboard', [
-            'stats' => $result['stats'] ?? [],
-            'analytics' => $result['analytics'] ?? null,
-            'analyticsAvailable' => (bool) ($result['analyticsAvailable'] ?? false),
-            'months' => (int) ($result['months'] ?? $months),
-            'loadError' => $result['loadError'] ?? null,
-            'forbidden' => (bool) ($result['forbidden'] ?? false),
+            'stats' => $result['stats'],
+            'loadError' => $result['loadError'],
         ]);
     }
 
     function getCompanies(Request $request)
     {
-        $status = trim((string) $request->query('status', ''));
-        $companyId = trim((string) $request->query('company_id', ''));
-        $page = max(1, (int) $request->integer('page', 1));
+        $response = $this->api->getCompanies($this->filters($request, ['status', 'search', 'page']));
 
-        // Dropdown options: page through the authorized list API (never first-page-only).
-        $catalog = (new AdminCompanyCatalog($this->api))->load();
-
-        // Backend list supports status + search only — no company_id filter.
-        // When a company is selected, use GET /admin/companies/{id} for an exact match.
-        if ($companyId !== '') {
-            $show = $this->api->getCompany($companyId);
-            $showStatus = (int) ($show['statusCode'] ?? 500);
-
-            if ($showStatus === 401) {
-                $loginRoute = ApiSession::isPlatformAdmin()
-                    ? 'frontend.account.admin-login'
-                    : 'frontend.account.login';
-                ApiSession::forget();
-
-                return redirect()->route($loginRoute)
-                    ->withErrors(['error' => __('Your session has expired. Please sign in again.')]);
-            }
-
-            if ($showStatus !== 200) {
-                // Never surface ModelNotFound / SQL dumps for a missing company option.
-                SafeApiMessage::forUser(
-                    is_string($show['message'] ?? null) ? $show['message'] : null,
-                    __('admin.companies.filter_company_unavailable'),
-                    ['action' => 'admin.companies.show', 'status' => $showStatus, 'company_id' => $companyId]
-                );
-
-                return view('frontend.admin.companies', [
-                    'companies' => [],
-                    'pagination' => null,
-                    'companyOptions' => $catalog['options'],
-                    'companyOptionsStatus' => $catalog['status'],
-                    'companyOptionsMessage' => $catalog['message'],
-                    'selectedCompanyId' => $companyId,
-                    'selectedStatus' => $status,
-                    'filterError' => __('admin.companies.filter_company_unavailable'),
-                ]);
-            }
-
-            $company = $this->unwrapCompany($show['data'] ?? null);
-            $matchesStatus = $status === '' || (string) ($company['status'] ?? '') === $status;
-            $rows = ($company !== null && $matchesStatus) ? [$company] : [];
-
-            return view('frontend.admin.companies', [
-                'companies' => $rows,
-                'pagination' => [
-                    'current_page' => 1,
-                    'last_page' => 1,
-                    'per_page' => 1,
-                    'total' => count($rows),
-                ],
-                'companyOptions' => $catalog['options'],
-                'companyOptionsStatus' => $catalog['status'],
-                'companyOptionsMessage' => $catalog['message'],
-                'selectedCompanyId' => $companyId,
-                'selectedStatus' => $status,
-                'filterError' => null,
-            ]);
+        if ($response['statusCode'] === 200) {
+            // Companies retrieval successful, you can perform additional actions here if needed
+            return view('frontend.admin.companies', ['companies' => $response['data'], 'pagination' => $response['meta']]);
+        } else {
+            // Companies retrieval failed, return the error message
+            return redirect()->route('frontend.dashboard')->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
-
-        $filters = array_filter([
-            'status' => $status !== '' ? $status : null,
-            'page' => $page,
-        ], static fn ($v) => $v !== null && $v !== '');
-
-        $response = $this->api->getCompanies($filters);
-        $listStatus = (int) ($response['statusCode'] ?? 500);
-
-        if ($listStatus === 401) {
-            $loginRoute = ApiSession::isPlatformAdmin()
-                ? 'frontend.account.admin-login'
-                : 'frontend.account.login';
-            ApiSession::forget();
-
-            return redirect()->route($loginRoute)
-                ->withErrors(['error' => __('Your session has expired. Please sign in again.')]);
-        }
-
-        if ($listStatus !== 200) {
-            return redirect()->route('frontend.dashboard')->withErrors([
-                'error' => $this->apiFlashError(
-                    $response,
-                    __('admin.companies.load_failed'),
-                    'admin.companies.index'
-                ),
-            ]);
-        }
-
-        return view('frontend.admin.companies', [
-            'companies' => is_array($response['data'] ?? null) ? $response['data'] : [],
-            'pagination' => $response['meta'] ?? null,
-            'companyOptions' => $catalog['options'],
-            'companyOptionsStatus' => $catalog['status'],
-            'companyOptionsMessage' => $catalog['message'],
-            'selectedCompanyId' => '',
-            'selectedStatus' => $status,
-            'filterError' => null,
-        ]);
     }
 
     function approveCompany(Request $request, $companyId)
@@ -184,16 +60,12 @@ class AdminController extends Controller
         $response = $this->api->approveCompany($companyId);
 
         if ($response['statusCode'] === 200) {
+            // Company approval successful, you can perform additional actions here if needed
             return redirect()->back()->with('success_key', 'flash.admin.company_approved');
+        } else {
+            // Company approval failed, return the error message
+            return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
-
-        return redirect()->back()->withErrors([
-            'error' => $this->apiFlashError(
-                $response,
-                __('admin.companies.mutation_failed'),
-                'admin.companies.approve'
-            ),
-        ]);
     }
 
     function rejectCompany(Request $request, $companyId)
@@ -210,16 +82,12 @@ class AdminController extends Controller
             $response = $this->api->rejectCompany($companyId, $data);
 
             if ($response['statusCode'] === 200) {
+                // Company rejection successful, you can perform additional actions here if needed
                 return redirect()->route('frontend.admin.companies.index')->with('success_key', 'flash.admin.company_rejected');
+            } else {
+                // Company rejection failed, return the error message
+                return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
             }
-
-            return redirect()->back()->withErrors([
-                'error' => $this->apiFlashError(
-                    $response,
-                    __('admin.companies.mutation_failed'),
-                    'admin.companies.reject'
-                ),
-            ])->withInput();
         }
 
         return view('frontend.admin.reject-company', get_defined_vars());
@@ -234,36 +102,12 @@ class AdminController extends Controller
         $response = $this->api->suspendCompany($companyId, array_filter(['reason' => $fields['reason'] ?? null]));
 
         if ($response['statusCode'] === 200) {
+            // Company suspension successful, you can perform additional actions here if needed
             return redirect()->back()->with('success_key', 'flash.admin.company_suspended');
+        } else {
+            // Company suspension failed, return the error message
+            return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
-
-        // Backend platform Admin suspend currently fails audit FK (user_id=0) — never claim success.
-        return redirect()->back()->withErrors([
-            'error' => $this->apiFlashError(
-                $response,
-                __('admin.companies.suspend_failed'),
-                'admin.companies.suspend'
-            ),
-        ]);
-    }
-
-    /** @param  mixed  $data */
-    private function unwrapCompany(mixed $data): ?array
-    {
-        if (! is_array($data)) {
-            return null;
-        }
-        if (isset($data['id'], $data['name'])) {
-            return $data;
-        }
-        if (isset($data['data']) && is_array($data['data'])) {
-            return $this->unwrapCompany($data['data']);
-        }
-        if (isset($data['company']) && is_array($data['company'])) {
-            return $this->unwrapCompany($data['company']);
-        }
-
-        return null;
     }
 
     function getUsers(Request $request)
@@ -352,8 +196,8 @@ class AdminController extends Controller
     }
 
     function showCompany(Request $request, $companyId)
-    {
-        // Details endpoint includes documents; management show is used by the companies filter.
+
+
         $response = $this->api->getCompanyDetails($companyId);
 
         if ($response['statusCode'] === 200) {
@@ -375,7 +219,7 @@ class AdminController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        $response = $this->api->updateCompany($companyId, $request->only(['name', 'website', 'industry', 'contact_email', 'contact_phone', 'address']));
+        $response = $this->api->updateCompanyDetails($companyId, $request->only(['name', 'website', 'industry', 'contact_email', 'contact_phone', 'address']));
 
         if ($response['statusCode'] === 200) {
             return redirect()->route('frontend.admin.companies.show', ['companyId' => $companyId])

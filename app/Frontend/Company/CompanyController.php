@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 use App\Frontend\Auth\ApiSession;
 use App\Models\CompanyAPI;
+use App\Models\LookupAPI;
 
 class CompanyController extends Controller
 {
@@ -117,6 +118,9 @@ class CompanyController extends Controller
             }
         }
 
+        // Dropdown options for the Category select (GET /job-categories).
+        $categories = (new LookupAPI())->getCategories()['data'] ?? [];
+
         return view('frontend.company.create-vacancy', get_defined_vars());
     }
 
@@ -155,6 +159,9 @@ class CompanyController extends Controller
                 return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
             }
         }
+
+        // Dropdown options for the Category select (GET /job-categories).
+        $categories = (new LookupAPI())->getCategories()['data'] ?? [];
 
         return view('frontend.company.update-vacancy', get_defined_vars());
     }

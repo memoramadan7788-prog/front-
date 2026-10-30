@@ -201,7 +201,7 @@ class CandidateAPI
         return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
     }
 
-    public function uploadResume($filePath)
+    public function uploadResume($filePath, ?string $originalName = null, ?string $mime = null)
     {
         $message = '';
         $statusCode = 200;
@@ -209,7 +209,7 @@ class CandidateAPI
         $res = $this->api->reset()->method('POST')
             ->url('/candidate/cvs')
             ->bearer(ApiSession::token() ?? '')
-            ->file('cv', $filePath)->send();
+            ->file('cv', $filePath, $mime, $originalName)->send();
 
         if ($res->ok()) {
             $message = $res->message;
