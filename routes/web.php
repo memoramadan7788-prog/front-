@@ -6,6 +6,7 @@ use App\Frontend\Application\ApplicationController;
 use App\Frontend\Ats\AtsController;
 use App\Frontend\Auth\AuthController;
 use App\Frontend\Candidate\CandidateController;
+use App\Frontend\Candidate\CandidatePreferencesController;
 use App\Frontend\Company\CompanyController;
 use App\Frontend\Employee\EmployeeController;
 use App\Frontend\Exam\ExamController;
@@ -102,6 +103,14 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::get('/applications', [CandidateController::class, 'getApplications'])->name('applications.index');
         Route::get('/applications/{applicationId}', [CandidateController::class, 'getApplication'])->name('applications.show');
         Route::post('/applications/{applicationId}/withdraw', [ApplicationController::class, 'withdrawApplication'])->name('applications.withdraw');
+
+        Route::get('/preferences', [CandidatePreferencesController::class, 'show'])->name('preferences');
+        Route::post('/preferences/job', [CandidatePreferencesController::class, 'updatePreferences'])->name('preferences.job');
+        Route::post('/preferences/notifications', [CandidatePreferencesController::class, 'updateNotifications'])->name('preferences.notifications');
+        Route::post('/preferences/privacy', [CandidatePreferencesController::class, 'updatePrivacy'])->name('preferences.privacy');
+        Route::post('/preferences/saved-searches', [CandidatePreferencesController::class, 'storeSavedSearch'])->name('preferences.saved-searches.store');
+        Route::post('/preferences/saved-searches/{searchId}', [CandidatePreferencesController::class, 'updateSavedSearch'])->whereNumber('searchId')->name('preferences.saved-searches.update');
+        Route::post('/preferences/saved-searches/{searchId}/delete', [CandidatePreferencesController::class, 'destroySavedSearch'])->whereNumber('searchId')->name('preferences.saved-searches.destroy');
 
         Route::get('/exams', [ExamController::class, 'getCandidateExams'])->name('exams.index');
         Route::get('/exams/{examId}/start', [ExamController::class, 'startExam'])->name('exams.start');
