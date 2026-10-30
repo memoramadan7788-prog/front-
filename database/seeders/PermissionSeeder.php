@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Permission;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class PermissionSeeder extends Seeder
 {
@@ -50,7 +50,10 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         foreach (self::ALL as $key => $description) {
-            Permission::firstOrCreate(['key' => $key], ['description' => $description]);
+            DB::table('permissions')->updateOrInsert(
+                ['key' => $key],
+                ['description' => $description, 'created_at' => now(), 'updated_at' => now()],
+            );
         }
     }
 }

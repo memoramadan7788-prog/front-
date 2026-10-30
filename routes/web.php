@@ -65,6 +65,7 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::post('/admin-login', [AuthController::class, 'adminLogin'])->name('admin-login.submit');
         Route::get('/register', [AuthController::class, 'register'])->name('register');
         Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+        Route::get('/verification', [AuthController::class, 'verification'])->name('verification');
     });
     Route::prefix('account')->middleware('auth')->name('account.')->group(function () {
         Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
@@ -155,6 +156,7 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::post('/vacancies/create', [CompanyController::class, 'createVacancy'])->name('vacancies.create.submit');
         Route::get('/vacancies/{vacancyId}/update', [CompanyController::class, 'updateVacancy'])->name('vacancies.update');
         Route::post('/vacancies/{vacancyId}/update', [CompanyController::class, 'updateVacancy'])->name('vacancies.update.submit');
+        Route::get('/vacancies/{vacancyId}/overview', [CompanyController::class, 'jobOverview'])->name('vacancies.overview');
         Route::delete('/vacancies/{vacancyId}/delete', [CompanyController::class, 'deleteVacancy'])->name('vacancies.delete');
         Route::get('/vacancies/{vacancyId}/applications', [CompanyController::class, 'getApplications'])->name('vacancies.applications');
         Route::get('/applications/{applicationId}/status', [CompanyController::class, 'updateApplicationStatus'])->name('applications.status');
@@ -173,6 +175,8 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::get('/interviews/{interviewId}/evaluation', [InterviewController::class, 'submitEvaluation'])->name('interviews.evaluation');
         Route::post('/interviews/{interviewId}/evaluation', [InterviewController::class, 'submitEvaluation'])->name('interviews.evaluation.submit');
         Route::get('/salary-benchmark', [JobController::class, 'getSalaryBenchmark'])->name('salary-benchmark');
+        Route::get('/interview-calendar', [CompanyController::class, 'teamInterviewCalendar'])->name('interview-calendar');
+        Route::get('/hiring-analytics', [CompanyController::class, 'hiringAnalytics'])->name('analytics');
 
         Route::get('/change-password', [AccountController::class, 'changePasswordForm'])->name('change-password');
         Route::post('/change-password', [AccountController::class, 'changePassword'])->name('change-password.submit');
@@ -195,9 +199,10 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::post('/availability/add', [InterviewerController::class, 'addAvailability'])->name('availability.add.submit');
     });
 
-    // Admin (Super Admin): session account gate + Backend /auth/me revalidation
+    // Admin (Super Admin): platform-admin realm + Backend /admin/me revalidation.
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->middleware(['auth', 'account:admin', 'admin.session'])->name('dashboard');
     Route::prefix('admin')->middleware(['auth', 'account:admin', 'admin.session'])->name('admin.')->group(function () {
+        Route::get('/jobs', [AdminController::class, 'jobModerationQueue'])->name('jobs.index');
         Route::get('/companies', [AdminController::class, 'getCompanies'])->name('companies.index');
         Route::post('/companies/{companyId}/approve', [AdminController::class, 'approveCompany'])->name('companies.approve');
         Route::post('/companies/{companyId}/suspend', [AdminController::class, 'suspendCompany'])->name('companies.suspend');

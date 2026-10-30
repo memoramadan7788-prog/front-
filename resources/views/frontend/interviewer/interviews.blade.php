@@ -14,7 +14,7 @@
 
 <x-table>
     <x-slot:head>
-        <th class="px-4 py-3 text-start">{{ __('Candidate') }}</th>
+        <th class="px-4 py-3 text-start">{{ __('common.role_labels.candidate') }}</th>
         <th class="px-4 py-3 text-start">{{ __('Job') }}</th>
         <th class="px-4 py-3 text-start">{{ __('Round') }}</th>
         <th class="px-4 py-3 text-start">{{ __('Status') }}</th>

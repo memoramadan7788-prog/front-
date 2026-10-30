@@ -70,7 +70,7 @@
         <th class="px-4 py-3 text-start">{{ __('Name') }}</th>
         <th class="px-4 py-3 text-start">{{ __('Industry') }}</th>
         <th class="px-4 py-3 text-start">{{ __('Contact') }}</th>
-        <th class="px-4 py-3 text-start">{{ __('Jobs') }}</th>
+        <th class="px-4 py-3 text-start">{{ __('common.labels.jobs') }}</th>
         <th class="px-4 py-3 text-start">{{ __('Status') }}</th>
         <th class="px-4 py-3 text-start">{{ __('Registered') }}</th>
         <th class="px-4 py-3 text-end">{{ __('Actions') }}</th>

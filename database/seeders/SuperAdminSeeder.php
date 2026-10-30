@@ -2,28 +2,40 @@
 
 namespace Database\Seeders;
 
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class SuperAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::firstOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'admin@example.com')],
-            [
-                'name' => 'Super Admin',
-                'password' => env('ADMIN_PASSWORD', 'ChangeMe123!'), // hashed by the model cast; change it after the first login
-                'account_type' => 'admin',
-                'account_status' => 'active',
-                'email_verified_at' => now(),
-            ]
-        );
-
-        $role = Role::where('name', 'super_admin')->firstOrFail();
-        $admin->roles()->syncWithoutDetaching([
-            $role->id => ['company_id' => null, 'assigned_at' => now()],
+        $email = env('ADMIN_EMAIL', 'admin@example.com');
+        DB::table('users')->insertOrIgnore([
+            'email' => $email,
+            'name' => 'Super Admin',
+            'password' => Hash::make(env('ADMIN_PASSWORD', 'ChangeMe123!')),
+            'account_type' => 'admin',
+            'account_status' => 'active',
+            'locale' => 'en',
+            'theme' => 'system',
+            'email_verified_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
+
+        $userId = (int) DB::table('users')->where('email', $email)->value('id');
+        $roleId = (int) DB::table('roles')->where('name', 'super_admin')->value('id');
+        if (! DB::table('user_roles')->where('user_id', $userId)->where('role_id', $roleId)->whereNull('company_id')->exists()) {
+            DB::table('user_roles')->insert([
+                'user_id' => $userId,
+                'role_id' => $roleId,
+                'company_id' => null,
+                'assigned_by' => null,
+                'assigned_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 }

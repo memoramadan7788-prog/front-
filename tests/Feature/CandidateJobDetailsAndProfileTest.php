@@ -24,11 +24,25 @@ class CandidateJobDetailsAndProfileTest extends TestCase
             'data' => [
                 'id' => 42,
                 'title' => 'Frontend Engineer',
-                'company' => ['name' => 'Acme'],
                 'location' => 'Remote',
                 'work_mode' => 'remote',
                 'employment_type' => 'full_time',
                 'description' => 'Build great UIs.',
+                'salary' => ['min' => 80000, 'max' => 100000, 'currency' => 'EGP', 'period' => 'year'],
+                'company_overview' => 'A product studio building accessible tools.',
+                'company' => [
+                    'name' => 'Acme',
+                    'industry' => 'Technology',
+                ],
+                'responsibilities' => ['Build accessible interfaces'],
+                'requirements' => ['Experience with React'],
+                'benefits' => ['Flexible work'],
+                'skills' => ['React', 'Accessibility'],
+                'hiring_contact' => [
+                    'name' => 'Sam Recruiter',
+                    'title' => 'Talent Partner',
+                    'email' => 'hiring@example.com',
+                ],
             ],
             'errors' => [],
             'statusCode' => 200,
@@ -41,12 +55,46 @@ class CandidateJobDetailsAndProfileTest extends TestCase
             ->assertSee('Frontend Engineer')
             ->assertSee(__('All jobs'))
             ->assertSee(__('Sign in to apply'))
+            ->assertSee(__('jobs.details.salary_title'))
+            ->assertSee('100,000 EGP / year')
+            ->assertSee('A product studio building accessible tools.')
+            ->assertSee('Build accessible interfaces')
+            ->assertSee('Sam Recruiter')
+            ->assertSee('hiring@example.com')
+            ->assertSee(__('jobs.details.journey_hint'))
+            ->assertSee('data-save-job', false)
             ->assertDontSee('data-sidebar-nav-toggle', false);
 
         $this->assertStringContainsString(
             'frontend.layouts.public',
             file_get_contents(resource_path('views/frontend/job/job-details.blade.php'))
         );
+    }
+
+    public function test_candidate_job_details_require_consent_before_opening_apply_form(): void
+    {
+        $this->actingAsCandidate();
+
+        $jobs = Mockery::mock(JobAPI::class);
+        $jobs->shouldReceive('getJob')->once()->with('42')->andReturn([
+            'message' => 'OK',
+            'data' => [
+                'id' => 42,
+                'title' => 'Frontend Engineer',
+                'company_name' => 'Acme',
+            ],
+            'errors' => [],
+            'statusCode' => 200,
+        ]);
+        $this->app->instance(JobAPI::class, $jobs);
+
+        $response = $this->get(route('frontend.candidate.vacancies.show', ['vacancyId' => 42]));
+
+        $response->assertOk()
+            ->assertSee(__('jobs.details.consent_notice'))
+            ->assertSee('name="consent"', false)
+            ->assertSee('required', false)
+            ->assertSee(route('frontend.candidate.vacancies.apply', ['vacancyId' => 42]), false);
     }
 
     public function test_candidate_job_details_use_workspace_shell_and_apply_link(): void
@@ -113,6 +161,9 @@ class CandidateJobDetailsAndProfileTest extends TestCase
             'errors' => [],
             'statusCode' => 200,
         ]);
+        $api->shouldReceive('getProfile')->once()->andReturn(['data' => [], 'statusCode' => 200]);
+        $api->shouldReceive('getSkills')->once()->andReturn(['data' => [], 'statusCode' => 200]);
+        $api->shouldReceive('getApplications')->once()->andReturn(['data' => [], 'statusCode' => 200]);
         $this->app->instance(CandidateAPI::class, $api);
 
         $html = $this->get(route('frontend.candidate.vacancies.index'))
@@ -131,6 +182,88 @@ class CandidateJobDetailsAndProfileTest extends TestCase
             route('frontend.candidate.vacancies.apply', ['vacancyId' => 7], false),
             $html
         );
+        $this->assertStringContainsString(__('Your preferences'), $html);
+        $this->assertStringContainsString(__('Core skills'), $html);
+        $this->assertStringContainsString(__('Why it fits'), $html);
+        $this->assertStringContainsString(__('Save this search'), $html);
+        $this->assertStringContainsString('data-hide-job', $html);
+    }
+
+    public function test_discover_jobs_uses_profile_skills_when_skills_api_route_is_missing(): void
+    {
+        $this->actingAsCandidate();
+
+        $api = Mockery::mock(CandidateAPI::class);
+        $api->shouldReceive('getVacancies')->once()->andReturn([
+            'message' => 'OK',
+            'data' => [
+                [
+                    'id' => 7,
+                    'title' => 'PHP Engineer',
+                    'location' => 'Remote',
+                    'work_mode' => 'remote',
+                    'skills' => [['id' => 10, 'name' => 'PHP']],
+                ],
+            ],
+            'statusCode' => 200,
+        ]);
+        $api->shouldReceive('getProfile')->once()->andReturn([
+            'message' => 'OK',
+            'data' => ['skills' => [['id' => 10, 'name' => 'PHP']]],
+            'statusCode' => 200,
+        ]);
+        $api->shouldReceive('getSkills')->once()->andReturn([
+            'message' => 'Error: The route api/candidate/skills could not be found.',
+            'data' => [],
+            'statusCode' => 404,
+        ]);
+        $api->shouldReceive('getApplications')->once()->andReturn([
+            'message' => 'OK',
+            'data' => [],
+            'statusCode' => 200,
+        ]);
+        $this->app->instance(CandidateAPI::class, $api);
+
+        $this->get(route('frontend.candidate.vacancies.index'))
+            ->assertOk()
+            ->assertSee('PHP Engineer')
+            ->assertSee('Skills are read from your profile because the dedicated skills endpoint is unavailable.')
+            ->assertSee('Your profile matches 1 listed skill(s): PHP');
+    }
+
+    public function test_discover_jobs_always_uses_the_api_and_never_shows_sample_jobs(): void
+    {
+        $this->actingAsCandidate();
+        $this->app['env'] = 'local';
+
+        $api = Mockery::mock(CandidateAPI::class);
+        $api->shouldReceive('getVacancies')->once()->andReturn([
+            'message' => 'OK',
+            'data' => [[
+                'id' => 7,
+                'title' => 'API Vacancy',
+                'company_name' => 'Live Company',
+                'location' => 'Cairo',
+                'work_mode' => 'onsite',
+                'deadline' => '2026-12-01',
+            ]],
+            'errors' => [],
+            'statusCode' => 200,
+        ]);
+        $api->shouldReceive('getProfile')->once()->andReturn(['data' => [], 'statusCode' => 200]);
+        $api->shouldReceive('getSkills')->once()->andReturn(['data' => [], 'statusCode' => 200]);
+        $api->shouldReceive('getApplications')->once()->andReturn(['data' => [], 'statusCode' => 200]);
+        $this->app->instance(CandidateAPI::class, $api);
+
+        $response = $this->get(route('frontend.candidate.vacancies.index'));
+
+        $response->assertOk()
+            ->assertSee('API Vacancy')
+            ->assertSee('Live Company')
+            ->assertDontSee('Senior Full-Stack Developer')
+            ->assertDontSee('Frontend Vue.js Developer')
+            ->assertDontSee('Tech Solutions')
+            ->assertDontSee('Digital Agency');
     }
 
     public function test_profile_hides_change_password_and_internal_ids(): void

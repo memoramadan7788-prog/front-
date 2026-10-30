@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Frontend\Api\ApiResponse;
+use App\Frontend\Api\CurlClient;
 use App\Frontend\Auth\ApiSession;
 use App\Models\CandidateAPI;
 use App\Models\JobAPI;
@@ -96,6 +98,8 @@ class CandidateApplyAndResumeUploadTest extends TestCase
         $this->assertStringContainsString(__('candidate.resume_upload.file_label', ['max' => 10]), $html);
         $this->assertStringContainsString('data-max-bytes="10485760"', $html);
         $this->assertStringContainsString('data-accept-ext="pdf,doc,docx"', $html);
+        $this->assertStringNotContainsString('if (input) input.disabled = busy;', $html);
+        $this->assertStringContainsString('setBusy(true);', $html);
         $this->assertStringContainsString(route('frontend.candidate.profile', [], false), $html);
         $this->assertStringNotContainsString('name="vacancy_id"', $html);
         $this->assertStringNotContainsString('max 2 MB', $html);
@@ -159,6 +163,31 @@ class CandidateApplyAndResumeUploadTest extends TestCase
         ])
             ->assertRedirect(route('frontend.candidate.profile'))
             ->assertSessionHas('success_key', 'candidate.resume_upload.flash_success');
+    }
+
+    public function test_resume_api_sends_multipart_file_as_resume_with_original_name(): void
+    {
+        $this->actingAsCandidate();
+
+        $client = Mockery::mock(CurlClient::class);
+        $client->shouldReceive('reset')->once()->andReturnSelf();
+        $client->shouldReceive('method')->once()->with('POST')->andReturnSelf();
+        $client->shouldReceive('url')->once()->with('/candidate/cvs')->andReturnSelf();
+        $client->shouldReceive('bearer')->once()->with('cand-token')->andReturnSelf();
+        $client->shouldReceive('file')->once()->with(
+            'cv',
+            'C:\\uploads\\temporary-file',
+            'application/pdf',
+            'candidate-cv.pdf',
+        )->andReturnSelf();
+        $client->shouldReceive('send')->once()->andReturn(new ApiResponse(true, 'OK', [], null, null, null, 201));
+
+        $api = new CandidateAPI;
+        $api->api = $client;
+
+        $response = $api->uploadResume('C:\\uploads\\temporary-file', 'application/pdf', 'candidate-cv.pdf');
+
+        $this->assertSame(200, $response['statusCode']);
     }
 
     public function test_upload_rejects_disallowed_extension_server_side(): void

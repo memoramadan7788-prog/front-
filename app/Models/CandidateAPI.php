@@ -33,7 +33,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function register($data)
@@ -52,7 +52,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function getProfile()
@@ -72,7 +72,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function updateProfile($data)
@@ -93,7 +93,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function logout()
@@ -114,7 +114,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     // TODO(backend): no reset-password endpoint for candidates yet
@@ -134,7 +134,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     /**
@@ -198,10 +198,9 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
-
-    public function uploadResume($filePath, ?string $originalName = null, ?string $mime = null)
+public function uploadResume(string $filePath, ?string $mimeType = null, ?string $fileName = null): array
     {
         $message = '';
         $statusCode = 200;
@@ -209,8 +208,8 @@ class CandidateAPI
         $res = $this->api->reset()->method('POST')
             ->url('/candidate/cvs')
             ->bearer(ApiSession::token() ?? '')
-            ->file('cv', $filePath, $mime, $originalName)->send();
-
+            ->file('cv', $filePath, $mimeType, $fileName)->send();
+            
         if ($res->ok()) {
             $message = $res->message;
             $statusCode = 200; // any 2xx (the backend answers 201 for creates) counts as success
@@ -219,7 +218,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     // TODO(backend): no CV download endpoint yet (GET /candidate/cvs only lists)
@@ -240,7 +239,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function deleteResume($resumeId)
@@ -260,7 +259,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function getVacancies()
@@ -280,7 +279,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function applyForVacancy($vacancyId, $data = [])
@@ -301,7 +300,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function getApplications()
@@ -321,7 +320,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function getApplication($applicationId)
@@ -341,7 +340,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function addEducation($data)
@@ -362,7 +361,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function addExperience($data)
@@ -383,7 +382,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     /**
@@ -464,6 +463,7 @@ class CandidateAPI
 
     /**
      * @deprecated Prefer syncSkills(); kept for older callers — merges one skill via full sync.
+     *
      * @param  array{skill_id?: int, level?: string|null}  $data
      */
     public function addSkill(array $data): array
@@ -535,7 +535,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     // TODO(backend): exams are submitted per attempt - use ExamAPI::submitExam
@@ -557,7 +557,7 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
     public function getInterviews()
@@ -577,6 +577,6 @@ class CandidateAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 }

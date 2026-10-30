@@ -15,7 +15,7 @@
 
     <dl class="grid gap-4 sm:grid-cols-2">
         <div>
-            <dt class="text-xs font-semibold uppercase tracking-wide text-hb-muted">{{ __('Candidate') }}</dt>
+            <dt class="text-xs font-semibold uppercase tracking-wide text-hb-muted">{{ __('common.role_labels.candidate') }}</dt>
             <dd class="mt-1 text-hb-navy">{{ data_get($row, 'application.candidate.name') ?? data_get($row, 'candidate_name') ?? '—' }}</dd>
         </div>
         <div>

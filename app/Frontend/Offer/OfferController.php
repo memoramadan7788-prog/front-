@@ -2,16 +2,10 @@
 
 namespace App\Frontend\Offer;
 
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-
 use App\Models\OfferAPI;
 use App\Support\Frontend\ApiListPage;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
 class OfferController extends Controller
 {
@@ -22,7 +16,7 @@ class OfferController extends Controller
         $this->api = $api;
     }
 
-    function getOffers(Request $request)
+    public function getOffers(Request $request)
     {
         return ApiListPage::render(
             $this->api->getOffers(),
@@ -31,7 +25,7 @@ class OfferController extends Controller
         );
     }
 
-    function getOffer(Request $request, $offerId)
+    public function getOffer(Request $request, $offerId)
     {
         $response = $this->api->getOffer($offerId);
 
@@ -44,8 +38,12 @@ class OfferController extends Controller
         }
     }
 
-    function acceptOffer(Request $request, $offerId)
+    public function acceptOffer(Request $request, $offerId)
     {
+        $request->validate([
+            'offer_reviewed' => 'required|accepted',
+        ]);
+
         $response = $this->api->acceptOffer($offerId);
 
         if ($response['statusCode'] === 200) {
@@ -57,7 +55,7 @@ class OfferController extends Controller
         }
     }
 
-    function rejectOffer(Request $request, $offerId)
+    public function rejectOffer(Request $request, $offerId)
     {
         if ($request->isMethod('post')) {
 
@@ -81,7 +79,7 @@ class OfferController extends Controller
         return view('frontend.offer.reject', get_defined_vars());
     }
 
-    function createOffer(Request $request)
+    public function createOffer(Request $request)
     {
         if ($request->isMethod('post')) {
 

@@ -187,7 +187,10 @@
         }
         if (labelIdle) labelIdle.classList.toggle('hidden', busy);
         if (labelBusy) labelBusy.classList.toggle('hidden', !busy);
+<<<<<<< HEAD
         // Do NOT disable the file input here: disabled fields are excluded from the submitted form data.
+=======
+>>>>>>> 6a58695b (feat: save frontend modules locally without pushing)
     }
 
     if (input) {

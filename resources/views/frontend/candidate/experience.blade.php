@@ -16,7 +16,7 @@
     <form method="POST" action="{{ route('frontend.candidate.experience.add.submit') }}" class="space-y-5">
         @csrf
         <x-form.input name="job_title" :label="__('Job title')" type="text" :required="true" :error="$errors->first('job_title')" value="{{ old('job_title', data_get(($prefill ?? []), 'job_title', '')) }}" />
-        <x-form.input name="company_name" :label="__('Company')" type="text" :required="true" :error="$errors->first('company_name')" value="{{ old('company_name', data_get(($prefill ?? []), 'company_name', '')) }}" />
+        <x-form.input name="company_name" :label="__('common.role_labels.company')" type="text" :required="true" :error="$errors->first('company_name')" value="{{ old('company_name', data_get(($prefill ?? []), 'company_name', '')) }}" />
         <x-form.input name="place" :label="__('Place')" type="text" :error="$errors->first('place')" value="{{ old('place', data_get(($prefill ?? []), 'place', '')) }}" />
         <x-form.input name="start_date" :label="__('Start date')" type="date" :required="true" :error="$errors->first('start_date')" value="{{ old('start_date', data_get(($prefill ?? []), 'start_date', '')) }}" />
         <x-form.input name="end_date" :label="__('End date')" type="date" :error="$errors->first('end_date')" value="{{ old('end_date', data_get(($prefill ?? []), 'end_date', '')) }}" />

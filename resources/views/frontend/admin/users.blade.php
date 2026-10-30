@@ -15,7 +15,7 @@
     <x-form.input name="search" :label="__('Search')" type="search" class="max-w-xs" value="{{ request('search') }}" placeholder="{{ __('Name or email') }}" />
     <div class="w-full max-w-xs"><x-form.select name="account_type" :label="__('Type')">
         <option value="">{{ __('All') }}</option>
-        @foreach (['candidate' => __('Candidate'), 'company' => __('Company'), 'admin' => __('Admin')] as $v => $label)
+        @foreach (['candidate' => __('common.role_labels.candidate'), 'company' => __('common.role_labels.company'), 'admin' => __('common.role_labels.admin')] as $v => $label)
             <option value="{{ $v }}" @selected(request('account_type') === $v)>{{ $label }}</option>
         @endforeach
     </x-form.select></div>
@@ -73,7 +73,7 @@
                                 </div>
                                 <p class="mt-0.5 text-hb-muted">
                                     @if ($companyId)
-                                        {{ __('Company') }} #{{ $companyId }}
+                                        {{ __('common.role_labels.company') }} #{{ $companyId }}
                                     @elseif ($scope === 'company')
                                         {{ __('No company context') }}
                                     @else

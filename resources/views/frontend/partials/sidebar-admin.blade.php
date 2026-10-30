@@ -13,6 +13,11 @@
             'active' => request()->routeIs('frontend.admin.companies.*'),
         ],
         [
+            'label' => __('Job moderation preview'),
+            'route' => 'frontend.admin.jobs.index',
+            'active' => request()->routeIs('frontend.admin.jobs.*'),
+        ],
+        [
             'label' => __('navigation.admin.users'),
             'route' => 'frontend.admin.users.index',
             'active' => request()->routeIs('frontend.admin.users.*'),

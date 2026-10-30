@@ -29,6 +29,7 @@
             <td class="px-4 py-3">{{ data_get($row, 'location', '—') }}</td>
             <td class="px-4 py-3">{{ \App\Support\Rows::date(data_get($row, 'deadline'), 'Y-m-d') }}</td>
             <td class="px-4 py-3"><div class="flex flex-wrap justify-end gap-2">
+                <x-button variant="light" size="sm" :href="route('frontend.company.vacancies.overview', ['vacancyId' => data_get($row, 'id')])">{{ __('Overview') }}</x-button>
                 <x-button variant="light" size="sm" :href="route('frontend.company.vacancies.applications', ['vacancyId' => data_get($row, 'id')])">{{ __('Applications') }}</x-button>
                 <x-button variant="light" size="sm" :href="route('frontend.company.vacancies.update', ['vacancyId' => data_get($row, 'id')])">{{ __('Edit') }}</x-button>
                 <form method="POST" action="{{ route('frontend.company.vacancies.delete', ['vacancyId' => data_get($row, 'id')]) }}" class="inline" onsubmit="return confirm('{{ __('Delete this vacancy?') }}')">@csrf @method('DELETE')<x-button type="submit" size="sm" variant="destructive">{{ __('Delete') }}</x-button></form>

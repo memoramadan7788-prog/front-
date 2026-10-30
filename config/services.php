@@ -2,9 +2,8 @@
 
 return [
 
-   
     'backend' => [
-        'url'     => env('API_URL', 'http://localhost:8000/api'),
+        'url' => env('API_URL', env('EXTERNAL_API_URL', 'https://hrapi.itsolution.solutions/api')),
         'timeout' => (int) env('API_TIMEOUT', 30),
         // Proposed Candidate-safe paths (Backend approval required). Leave null until wired.
         // Example proposals: '/companies/approved', '/candidate/membership'
@@ -17,8 +16,6 @@ return [
         // Unused: unread_count is returned on list meta (kept for optional override / legacy)
         'notifications_unread_path' => env('API_NOTIFICATIONS_UNREAD_PATH'),
     ],
-
-    
 
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),

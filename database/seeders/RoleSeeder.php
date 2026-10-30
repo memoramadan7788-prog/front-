@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Permission;
-use App\Models\Role;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class RoleSeeder extends Seeder
 {
@@ -41,9 +40,21 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($roles as $name => [$scope, $description, $keys]) {
-            $role = Role::firstOrCreate(['name' => $name], ['scope' => $scope, 'description' => $description]);
-            $ids = Permission::whereIn('key', $keys)->pluck('id');
-            $role->permissions()->sync($ids);
+            DB::table('roles')->updateOrInsert(
+                ['name' => $name],
+                ['scope' => $scope, 'description' => $description, 'created_at' => now(), 'updated_at' => now()],
+            );
+            $roleId = (int) DB::table('roles')->where('name', $name)->value('id');
+            $permissionIds = DB::table('permissions')->whereIn('key', $keys)->pluck('id')->all();
+            DB::table('role_permissions')->where('role_id', $roleId)->delete();
+            foreach ($permissionIds as $permissionId) {
+                DB::table('role_permissions')->insert([
+                    'role_id' => $roleId,
+                    'permission_id' => $permissionId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
     }
 }
