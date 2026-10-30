@@ -53,7 +53,7 @@ class AiScreeningPresentation
         $threshold = (float) ($screening['advisory_threshold'] ?? self::ADVISORY_MATCH_THRESHOLD);
         $band = null;
         if ($runStatus === self::RUN_COMPLETED && $score !== null) {
-            $band = $score >= $threshold ? 'high' : 'low';
+            $band = $screening['match_band'] ?? ($score >= $threshold ? 'high' : 'low');
         }
 
         $hrStatus = $screening['hr_review_status'] ?? self::HR_NONE;
@@ -93,13 +93,155 @@ class AiScreeningPresentation
             'human_decision' => $screening['human_decision'] ?? null,
             'human_decision_label' => self::decisionLabel($screening['human_decision'] ?? null),
             'model_version' => $screening['model_version'] ?? 'sample-cv-match-v0',
-            'is_sample' => true,
+            'is_sample' => (bool) ($screening['is_sample'] ?? true),
             'advisory_note' => __('company.applicants.ai.advisory_note'),
             'not_rejection_note' => __('company.applicants.ai.not_rejection_note'),
             'badge_label' => self::badgeLabel($runStatus, $band, $hrStatus),
             'badge_variant' => self::badgeVariant($runStatus, $band, $hrStatus),
             'pipeline_label' => self::pipelineLabel($runStatus, $band, $hrStatus),
         ];
+    }
+
+    /**
+     * Maps the REAL Backend payload (CvMatchResultResource) to the same shape normalize() returns,
+     * plus the extra keys the ATS page needs. Values are NOT escaped here: the view prints them with {{ }}.
+     *
+     * @param  array<string, mixed>  $d
+     * @return array<string, mixed>
+     */
+    public static function fromApi(array $d, string|int|null $applicationId = null): array
+    {
+        $run = match ((string) ($d['status'] ?? '')) {
+            'ok' => self::RUN_COMPLETED,
+            'failed' => self::RUN_FAILED,
+            default => self::RUN_PENDING,
+        };
+
+        $score = isset($d['score']) && is_numeric($d['score']) ? (float) $d['score'] : null;
+        $review = is_array($d['review'] ?? null) ? $d['review'] : null;
+        $opinion = is_array($d['ai_opinion'] ?? null) ? $d['ai_opinion'] : [];
+        $meta = is_array($d['meta'] ?? null) ? $d['meta'] : [];
+
+        [$tierLabel, $tierVariant, $band] = match ((string) ($d['recommendation'] ?? '')) {
+            'Strong Match' => [__('ats.tier_strong'), 'success', 'high'],
+            'Moderate Match' => [__('ats.tier_moderate'), 'info', 'low'],
+            'Weak Match' => [__('ats.tier_weak'), 'pending', 'low'],
+            default => [null, 'neutral', null],
+        };
+
+        $matchedDetail = [];
+        foreach ((array) ($d['matched_skills'] ?? []) as $m) {
+            $name = self::text(is_array($m) ? ($m['skill'] ?? null) : $m);
+            if ($name !== null) {
+                $matchedDetail[] = ['skill' => $name, 'note' => is_array($m) ? self::viaNote($m) : null];
+            }
+        }
+        $missing = array_values(array_filter(array_map(
+            fn ($s) => self::text($s),
+            (array) ($d['missing_skills'] ?? [])
+        )));
+
+        $out = self::normalize([
+            'application_id' => $applicationId,
+            'score' => $score,
+            'summary' => self::text($opinion['summary'] ?? null),
+            'matched_skills' => array_column($matchedDetail, 'skill'),
+            'missing_skills' => $missing,
+            'run_status' => $run,
+            'match_band' => $run === self::RUN_COMPLETED && $score !== null ? $band : null,
+            'hr_review_status' => $review ? self::HR_COMPLETED : self::HR_NONE,
+            'human_decision' => $review['decision'] ?? null,
+            'override_reason' => self::text($review['reason'] ?? null),
+            'model_version' => self::text($meta['model_version'] ?? null),
+            'is_sample' => false,
+        ]);
+
+        // wording for real data (the sample wording in normalize() says "sample")
+        $out['advisory_note'] = __('ats.advisory_note');
+        $out['human_decision_label'] = match ($review['decision'] ?? null) {
+            'accept' => __('ats.decision_accept'),
+            'override' => __('ats.decision_override'),
+            default => null,
+        };
+
+        $stale = false;
+        if ($run === self::RUN_PENDING && ! empty($d['created_at'])) {
+            try {
+                $stale = \Carbon\Carbon::parse((string) $d['created_at'])->lt(now()->subMinutes(15));
+            } catch (\Throwable) {
+                $stale = false;
+            }
+        }
+
+        $breakdown = [];
+        foreach (['skills', 'experience', 'education'] as $key) {
+            $c = is_array($d['score_breakdown'][$key] ?? null) ? $d['score_breakdown'][$key] : [];
+            $value = isset($c['value']) && is_numeric($c['value']) ? (float) $c['value'] : null;
+            $weight = isset($c['effective_weight']) && is_numeric($c['effective_weight']) ? (float) $c['effective_weight'] : null;
+            $breakdown[] = [
+                'key' => $key,
+                'label' => __('ats.component_'.$key),
+                'percent' => $value === null ? null : max(0, min(100, (int) round($value * 100))),
+                'weight_percent' => $weight === null ? null : (int) round($weight * 100),
+            ];
+        }
+
+        $strengths = [];
+        foreach ((array) ($d['verified_strengths'] ?? []) as $s) {
+            $text = self::text($s['text'] ?? null);
+            $evidence = self::text($s['evidence'] ?? null);
+            if ($text !== null && $evidence !== null) {
+                $strengths[] = ['text' => $text, 'evidence' => $evidence];
+            }
+        }
+
+        return array_merge($out, [
+            'id' => $d['id'] ?? null,
+            'tier_label' => $tierLabel,
+            'tier_variant' => $tierVariant,
+            'breakdown' => $breakdown,
+            'matched_detail' => $matchedDetail,
+            'strengths' => $strengths,
+            'weaknesses' => array_values(array_filter(array_map(
+                fn ($w) => self::text($w),
+                (array) ($opinion['weaknesses'] ?? [])
+            ))),
+            'experience_match' => self::text($opinion['experience_match'] ?? null),
+            'education_match' => self::text($opinion['education_match'] ?? null),
+            'cv_truncated' => (bool) ($meta['cv_truncated'] ?? false),
+            'dropped_strengths' => (int) ($meta['dropped_unverified_strengths'] ?? 0),
+            'skills_source' => $meta['skills_source'] ?? null,
+            'error' => self::text($d['error'] ?? null),
+            'stale' => $stale,
+            'can_rerun' => $run !== self::RUN_PENDING || $stale,
+            'auto_refresh' => $run === self::RUN_PENDING && ! $stale,
+            'created_at' => self::text($d['created_at'] ?? null),
+            'finished_at' => self::text($d['finished_at'] ?? null),
+            'decided_at' => self::text($review['decided_at'] ?? null),
+        ]);
+    }
+
+    private static function text(mixed $value): ?string
+    {
+        if (! is_scalar($value)) {
+            return null;
+        }
+        $v = trim((string) $value);
+
+        return $v === '' ? null : $v;
+    }
+
+    /** @param  array<string, mixed>  $m */
+    private static function viaNote(array $m): ?string
+    {
+        $term = self::text($m['evidence'] ?? null) ?? '';
+
+        return match ((string) ($m['via'] ?? 'exact')) {
+            'alias' => __('ats.via_alias', ['term' => $term]),
+            'implied' => __('ats.via_implied', ['term' => $term]),
+            'sub_items' => __('ats.via_sub_items', ['term' => $term]),
+            default => null,
+        };
     }
 
     /**

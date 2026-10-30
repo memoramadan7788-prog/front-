@@ -20,7 +20,7 @@
         <x-form.input name="place" :label="__('Place')" type="text" :error="$errors->first('place')" value="{{ old('place', data_get(($prefill ?? []), 'place', '')) }}" />
         <x-form.input name="start_date" :label="__('Start date')" type="date" :required="true" :error="$errors->first('start_date')" value="{{ old('start_date', data_get(($prefill ?? []), 'start_date', '')) }}" />
         <x-form.input name="end_date" :label="__('End date')" type="date" :error="$errors->first('end_date')" value="{{ old('end_date', data_get(($prefill ?? []), 'end_date', '')) }}" />
-        <x-form.checkbox name="is_current" :label="__('I currently work here')" value="1" @checked(old('is_current', data_get(($prefill ?? []), 'is_current')))/>
+        <x-form.checkbox name="is_current" :label="__('I currently work here')" value="1" :checked="(bool) (old('is_current', data_get(($prefill ?? []), 'is_current')))"/>
     @error('is_current')<p class="hb-field-error" role="alert">{{ $message }}</p>@enderror
         <x-form.textarea name="description" :label="__('Description')" rows="4" :error="$errors->first('description')">{{ old('description', data_get(($prefill ?? []), 'description', '')) }}</x-form.textarea>
         <div class="flex flex-wrap items-center gap-3 pt-1">

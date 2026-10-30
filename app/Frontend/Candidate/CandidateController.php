@@ -114,7 +114,14 @@ class CandidateController extends Controller
             $returnTo = CandidateReturnPath::applyPathFromRequest($request);
             $vacancyId = CandidateReturnPath::vacancyIdFromSafePath($returnTo);
 
-            $response = $this->api->uploadResume($request->file('resume')->getRealPath());
+            $file = $request->file('resume');
+            // Send the real client filename + mime: the temp path is like "phpAbC123" (no extension),
+            // and the backend ATS needs the extension to know how to read the CV.
+            $response = $this->api->uploadResume(
+                $file->getRealPath(),
+                $file->getClientOriginalName(),
+                $file->getClientMimeType()
+            );
 
             if ($response['statusCode'] === 200) {
                 if ($returnTo !== null) {

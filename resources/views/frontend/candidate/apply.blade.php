@@ -92,7 +92,7 @@
                 name="consent"
                 :label="__('candidate.apply_form.consent')"
                 value="1"
-                @checked(old('consent'))
+                :checked="(bool) (old('consent'))"
             />
             @error('consent')
                 <p class="hb-field-error" role="alert">{{ $message }}</p>

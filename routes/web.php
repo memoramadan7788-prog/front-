@@ -3,6 +3,7 @@
 use App\Frontend\Account\AccountController;
 use App\Frontend\Admin\AdminController;
 use App\Frontend\Application\ApplicationController;
+use App\Frontend\Ats\AtsController;
 use App\Frontend\Auth\AuthController;
 use App\Frontend\Candidate\CandidateController;
 use App\Frontend\Company\CompanyController;
@@ -11,14 +12,13 @@ use App\Frontend\Exam\ExamController;
 use App\Frontend\Home\HomeController;
 use App\Frontend\Interview\InterviewController;
 use App\Frontend\Interviewer\InterviewerController;
-use App\Http\Controllers\HallController;
 use App\Frontend\Job\JobController;
 use App\Frontend\Lookup\LookupController;
 use App\Frontend\Notifications\NotificationsController;
 use App\Frontend\Offer\OfferController;
 use App\Http\Controllers\Frontend\LocaleController;
+use App\Http\Controllers\HallController;
 use Illuminate\Support\Facades\Route;
-
 
 // Frontend Routes
 Route::prefix('/')->name('frontend.')->group(function () {
@@ -150,6 +150,10 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::get('/vacancies/{vacancyId}/applications', [CompanyController::class, 'getApplications'])->name('vacancies.applications');
         Route::get('/applications/{applicationId}/status', [CompanyController::class, 'updateApplicationStatus'])->name('applications.status');
         Route::post('/applications/{applicationId}/status', [CompanyController::class, 'updateApplicationStatus'])->name('applications.status.submit');
+
+        Route::get('/applications/{applicationId}/ats', [AtsController::class, 'show'])->whereNumber('applicationId')->name('applications.ats');
+        Route::post('/applications/{applicationId}/ats', [AtsController::class, 'start'])->whereNumber('applicationId')->name('applications.ats.start');
+        Route::post('/applications/{applicationId}/ats/decision', [AtsController::class, 'decide'])->whereNumber('applicationId')->name('applications.ats.decision');
 
         Route::get('/exams/create', [CompanyController::class, 'createExam'])->name('exams.create');
         Route::post('/exams/create', [CompanyController::class, 'createExam'])->name('exams.create.submit');

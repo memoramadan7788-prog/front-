@@ -17,7 +17,7 @@
     <form method="POST" action="{{ route('frontend.candidate.exams.start.submit', ['examId' => $examId]) }}" class="space-y-5">
         @csrf
         <input type="hidden" name="application_id" value="{{ old('application_id', request('application_id')) }}">
-        <x-form.checkbox name="camera_consent" :label="__('I agree to camera monitoring (proctoring) during this exam')" value="1" @checked(old('camera_consent', data_get([], 'camera_consent')))/>
+        <x-form.checkbox name="camera_consent" :label="__('I agree to camera monitoring (proctoring) during this exam')" value="1" :checked="(bool) (old('camera_consent', data_get([], 'camera_consent')))"/>
     @error('camera_consent')<p class="hb-field-error" role="alert">{{ $message }}</p>@enderror
         <div class="flex flex-wrap items-center gap-3 pt-1">
             <x-button type="submit">{{ __('Start exam') }}</x-button>

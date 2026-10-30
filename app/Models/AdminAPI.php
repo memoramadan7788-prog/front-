@@ -17,100 +17,35 @@ class AdminAPI
         );
     }
 
-    /**
-     * POST /api/admin/login — platform Admin (Admin model) only.
-     * Never log plaintext passwords.
-     *
-     * @param  array{email: string, password: string}  $data
-     * @return array{message: string, data: mixed, errors: array<string, mixed>|null, statusCode: int}
-     */
-    public function login(array $data): array
+    public function login($data)
     {
-        $payload = [
-            'email' => (string) ($data['email'] ?? ''),
-            'password' => (string) ($data['password'] ?? ''),
-        ];
-
+        // No bearer here: the admin has no token yet.
         $res = $this->api->reset()->method('POST')
             ->url('/admin/login')
-            ->body($payload)
-            ->send();
+            ->body($data)->send();
 
-        unset($payload, $data);
-
-        if ($res->ok()) {
-            return [
-                'message' => $res->message ?: 'Login successful.',
-                'data' => is_array($res->data) ? $res->data : null,
-                'errors' => null,
-                'statusCode' => 200,
-            ];
-        }
-
-        return [
-            'message' => $res->message ?: "HTTP {$res->statusCode}",
-            'data' => is_array($res->data) ? $res->data : null,
-            'errors' => is_array($res->errors) ? $res->errors : null,
-            'statusCode' => (int) $res->statusCode,
-        ];
+        return $this->companyResult($res);
     }
 
-    /**
-     * GET /api/admin/me — platform Admin identity (not GET /auth/me).
-     *
-     * @return array{message: string, data: mixed, errors: array<string, mixed>|null, statusCode: int}
-     */
-    public function me(): array
+    public function me()
     {
-        $res = $this->api->reset()->method('GET')
-            ->url('/admin/me')
-            ->bearer(ApiSession::token() ?? '')
-            ->send();
-
-        if ($res->ok()) {
-            return [
-                'message' => $res->message ?: 'OK',
-                'data' => $res->data,
-                'errors' => null,
-                'statusCode' => 200,
-            ];
-        }
-
-        return [
-            'message' => $res->message ?: "HTTP {$res->statusCode}",
-            'data' => null,
-            'errors' => is_array($res->errors) ? $res->errors : null,
-            'statusCode' => (int) $res->statusCode,
-        ];
+        return $this->call('GET', '/admin/me');
     }
 
-    /**
-     * POST /api/admin/logout — revokes current platform Admin Sanctum token.
-     *
-     * @return array{message: string, data: mixed, errors: array<string, mixed>|null, statusCode: int}
-     */
-    public function logout(): array
+    public function logout()
     {
-        $res = $this->api->reset()->method('POST')
-            ->url('/admin/logout')
-            ->bearer(ApiSession::token() ?? '')
-            ->send();
+        $result = $this->call('POST', '/admin/logout');
+        ApiSession::forget();
 
-        if ($res->ok()) {
-            return [
-                'message' => $res->message ?: 'Logout successful.',
-                'data' => $res->data,
-                'errors' => null,
-                'statusCode' => 200,
-            ];
-        }
+        return $result;
+    }
 
-        return [
-            'message' => $res->message ?: "HTTP {$res->statusCode}",
-            'data' => null,
-            'errors' => is_array($res->errors) ? $res->errors : null,
-            'statusCode' => (int) $res->statusCode,
-        ];
+    /** GET /api/admin/analytics?months=N — dashboard trends & recent activity. */
+    public function getAnalytics($filters = [])
+    {
+        $query = http_build_query($filters);
+
+        return $this->call('GET', '/admin/analytics'.($query ? '?'.$query : ''));
     }
 
     public function getCompanies($filters = [])
@@ -132,16 +67,6 @@ class AdminAPI
         }
 
         return ["message" => $message, "data" => $res->data, "meta" => $res->pagination(), "statusCode" => $statusCode];
-    }
-
-    /**
-     * GET /api/admin/companies/{id} — single company (no company_id list filter on Backend).
-     *
-     * @return array{message: string, data: mixed, meta: mixed, statusCode: int}
-     */
-    public function getCompany(int|string $companyId): array
-    {
-        return $this->call('GET', '/admin/companies/'.$companyId);
     }
 
     public function approveCompany($companyId)
@@ -254,33 +179,9 @@ class AdminAPI
         return $this->call('GET', '/admin/roles');
     }
 
-    /**
-     * GET /api/admin/dashboard — Super Admin + reports.view.
-     *
-     * @return array{message: string, data: mixed, meta: mixed, statusCode: int, errors?: mixed}
-     */
-    public function getDashboard(): array
+    public function getDashboard()
     {
         return $this->call('GET', '/admin/dashboard');
-    }
-
-    /**
-     * GET /api/admin/analytics?months= — Super Admin + reports.view.
-     * Backend clamps months to 3–12 (default 6).
-     *
-     * @param  array{months?: int}  $query
-     * @return array{message: string, data: mixed, meta: mixed, statusCode: int, errors?: mixed}
-     */
-    public function getAnalytics(array $query = []): array
-    {
-        $months = isset($query['months']) ? (int) $query['months'] : null;
-        $params = [];
-        if ($months !== null) {
-            $params['months'] = min(max($months, 3), 12);
-        }
-        $qs = $params !== [] ? ('?'.http_build_query($params)) : '';
-
-        return $this->call('GET', '/admin/analytics'.$qs);
     }
 
     public function getUser($userId)
@@ -321,13 +222,9 @@ class AdminAPI
         ];
     }
 
-    /**
-     * GET /api/admin/companies/{id}/details — profile + documents payload.
-     * Distinct from getCompany() which hits management show (/admin/companies/{id}).
-     *
-     * @return array{message: string, data: mixed, errors: array, statusCode: int}
-     */
     public function getCompanyDetails($companyId): array
+
+
     {
         $res = $this->api->reset()->method('GET')
             ->url("/admin/companies/{$companyId}/details")
@@ -336,7 +233,7 @@ class AdminAPI
         return $this->companyResult($res);
     }
 
-    public function updateCompany($companyId, $data)
+    public function updateCompanyDetails($companyId, $data)
     {
         $res = $this->api->reset()->method('PUT')
             ->url("/admin/companies/{$companyId}")
