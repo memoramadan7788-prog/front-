@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\JobCategory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class JobCategorySeeder extends Seeder
 {
@@ -13,7 +13,10 @@ class JobCategorySeeder extends Seeder
             'IT & Software', 'Marketing', 'Finance', 'Human Resources', 'Sales',
             'Engineering', 'Design', 'Customer Support', 'Healthcare', 'Education',
         ] as $name) {
-            JobCategory::firstOrCreate(['name' => $name]);
+            DB::table('job_categories')->updateOrInsert(
+                ['name' => $name],
+                ['created_at' => now(), 'updated_at' => now()],
+            );
         }
     }
 }

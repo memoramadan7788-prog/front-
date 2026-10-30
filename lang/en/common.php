@@ -41,6 +41,10 @@ return [
         'admin' => 'Super Admin',
         'legacy_admin' => 'Admin (legacy)',
     ],
+    'labels' => [
+        'jobs' => 'Jobs',
+        'public' => 'Public',
+    ],
     'avatar' => [
         'title' => 'Profile picture',
         'choose' => 'Choose photo',

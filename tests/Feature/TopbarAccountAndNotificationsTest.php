@@ -27,7 +27,13 @@ class TopbarAccountAndNotificationsTest extends TestCase
         $this->assertStringContainsString(__('common.role_labels.candidate'), $html);
         $this->assertStringContainsString(__('common.account_security'), $html);
         $this->assertStringContainsString(__('common.notification_preferences'), $html);
-        $this->assertStringContainsString(__('common.pending_feature'), $html);
+        $this->assertStringContainsString(route('frontend.candidate.preferences', [], false), $html);
+        // Candidate prefs must be a live link — not the disabled "Pending" badge variant.
+        // Do not assert the bare word "Pending" is absent (dashboard copy uses it elsewhere).
+        $this->assertDoesNotMatchRegularExpression(
+            '/'.preg_quote(__('common.notification_preferences'), '/').'\s*<span[^>]*>\s*'.preg_quote(__('common.pending_feature'), '/').'/s',
+            $html
+        );
         $this->assertStringContainsString(__('common.sign_out'), $html);
         $this->assertStringContainsString(route('frontend.account.change-password', [], false), $html);
         $this->assertStringContainsString(route('frontend.account.logout', [], false), $html);

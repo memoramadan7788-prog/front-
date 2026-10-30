@@ -55,7 +55,7 @@ class AdminAPI
         $query = http_build_query($filters);
 
         $res = $this->api->reset()->method('GET')
-            ->url('/admin/companies' . ($query ? '?' . $query : ''))
+            ->url('/admin/companies'.($query ? '?'.$query : ''))
             ->bearer(ApiSession::token() ?? '')->send();
 
         if ($res->ok()) {
@@ -66,7 +66,7 @@ class AdminAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "meta" => $res->pagination(), "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'meta' => $res->pagination(), 'statusCode' => $statusCode];
     }
 
     public function approveCompany($companyId)
@@ -86,7 +86,7 @@ class AdminAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "meta" => $res->pagination(), "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'meta' => $res->pagination(), 'statusCode' => $statusCode];
     }
 
     public function rejectCompany($companyId, $data = [])
@@ -107,7 +107,7 @@ class AdminAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "meta" => $res->pagination(), "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'meta' => $res->pagination(), 'statusCode' => $statusCode];
     }
 
     public function getUsers($filters = [])
@@ -117,7 +117,7 @@ class AdminAPI
         $query = http_build_query($filters);
 
         $res = $this->api->reset()->method('GET')
-            ->url('/admin/users' . ($query ? '?' . $query : ''))
+            ->url('/admin/users'.($query ? '?'.$query : ''))
             ->bearer(ApiSession::token() ?? '')->send();
 
         if ($res->ok()) {
@@ -128,7 +128,7 @@ class AdminAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "meta" => $res->pagination(), "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'meta' => $res->pagination(), 'statusCode' => $statusCode];
     }
 
     public function updateUserStatus($userId, $data)
@@ -149,7 +149,7 @@ class AdminAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "meta" => $res->pagination(), "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'meta' => $res->pagination(), 'statusCode' => $statusCode];
     }
 
     public function getAuditLogs($filters = [])
@@ -159,7 +159,7 @@ class AdminAPI
         $query = http_build_query($filters);
 
         $res = $this->api->reset()->method('GET')
-            ->url('/admin/audit-logs' . ($query ? '?' . $query : ''))
+            ->url('/admin/audit-logs'.($query ? '?'.$query : ''))
             ->bearer(ApiSession::token() ?? '')->send();
 
         if ($res->ok()) {
@@ -170,7 +170,7 @@ class AdminAPI
             $statusCode = $res->statusCode;
         }
 
-        return ["message" => $message, "data" => $res->data, "meta" => $res->pagination(), "statusCode" => $statusCode];
+        return ['message' => $message, 'data' => $res->data, 'meta' => $res->pagination(), 'statusCode' => $statusCode];
     }
 
     /** GET /api/admin/roles — read-only role catalog (Phase 1). */
@@ -204,9 +204,9 @@ class AdminAPI
         $res = $req->send();
 
         return [
-            'message'    => $res->ok() ? $res->message : "Error: {$res->message}\n",
-            'data'       => $res->data,
-            'meta'       => $res->pagination(),
+            'message' => $res->ok() ? $res->message : "Error: {$res->message}\n",
+            'data' => $res->data,
+            'meta' => $res->pagination(),
             'statusCode' => $res->ok() ? 200 : $res->statusCode,
         ];
     }
@@ -215,9 +215,9 @@ class AdminAPI
     private function companyResult($res): array
     {
         return [
-            'message'    => $res->ok() ? $res->message : "Error: {$res->message}\n",
-            'data'       => $res->data,
-            'errors'     => $res->errors ?? [],
+            'message' => $res->ok() ? $res->message : "Error: {$res->message}\n",
+            'data' => $res->data,
+            'errors' => $res->errors ?? [],
             'statusCode' => $res->ok() ? 200 : $res->statusCode,
         ];
     }

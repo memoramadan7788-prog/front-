@@ -2,6 +2,7 @@
 
 namespace App\Frontend\Api;
 
+use App\Frontend\Auth\ApiSession;
 use InvalidArgumentException;
 use JsonException;
 
@@ -24,29 +25,43 @@ use JsonException;
 class CurlClient
 {
     private string $baseUrl;
+
     private string $tokenKey = 'auth_token';
 
     // Per-request state
     private string $url = '';
+
     private string $method = 'GET';
-    private array  $headers = [];
-    private array  $query = [];
-    private mixed  $body = null;
+
+    private array $headers = [];
+
+    private array $query = [];
+
+    private mixed $body = null;
+
     private ?array $form = null;
-    private int    $timeout = 30;
-    private int    $retries = 0;
-    private int    $retryDelay = 500;
-    private bool   $verifySsl = true;
+
+    private int $timeout = 10;
+
+    private int $retries = 0;
+
+    private int $retryDelay = 500;
+
+    private bool $verifySsl = true;
+
     private ?string $token = null;
+
     private ?array $basicAuth = null;
-    private array  $cookies = [];
+
+    private array $cookies = [];
+
     private ?string $cookieFile = null;
 
     public function __construct(string $baseUrl = '', array $defaults = [])
     {
         $this->baseUrl = rtrim($baseUrl, '/');
         $this->headers = array_merge([
-            'Accept'           => 'application/json',
+            'Accept' => 'application/json',
             'X-Requested-With' => 'XMLHttpRequest',
         ], $defaults['headers'] ?? []);
 
@@ -61,6 +76,7 @@ class CurlClient
     public function setToken(string $token): self
     {
         $this->token = $token;
+
         return $this;
     }
 
@@ -72,6 +88,7 @@ class CurlClient
     public function clearToken(): self
     {
         $this->token = null;
+
         return $this;
     }
 
@@ -80,21 +97,22 @@ class CurlClient
     // ─────────────────────────────────────────────
     public function reset(): self
     {
-        $this->url        = '';
-        $this->method     = 'GET';
-        $this->query      = [];
-        $this->body       = null;
-        $this->form       = null;
-        $this->timeout    = 30;
-        $this->retries    = 0;
+        $this->url = '';
+        $this->method = 'GET';
+        $this->query = [];
+        $this->body = null;
+        $this->form = null;
+        $this->timeout = 10;
+        $this->retries = 0;
         $this->retryDelay = 500;
-        $this->basicAuth  = null;
+        $this->basicAuth = null;
         // Preserve headers set at construction, but clear per-request ones
         $this->headers = array_filter(
             $this->headers,
-            fn ($k) => !in_array($k, ['Content-Type', 'Authorization'], true),
+            fn ($k) => ! in_array($k, ['Content-Type', 'Authorization'], true),
             ARRAY_FILTER_USE_KEY
         );
+
         return $this;
     }
 
@@ -102,6 +120,7 @@ class CurlClient
     public function method(string $m): self
     {
         $this->method = strtoupper($m);
+
         return $this;
     }
 
@@ -109,6 +128,7 @@ class CurlClient
     public function url(string $u): self
     {
         $this->url = $u;
+
         return $this;
     }
 
@@ -116,19 +136,22 @@ class CurlClient
     public function header(string $k, string $v): self
     {
         $this->headers[$k] = $v;
+
         return $this;
     }
 
     public function headers(array $h): self
     {
         $this->headers = array_merge($this->headers, $h);
+
         return $this;
     }
 
     /** Bearer token */
     public function bearer(?string $token = null): self
     {
-        $this->headers['Authorization'] = 'Bearer ' . ($token ?? $this->token ?? '');
+        $this->headers['Authorization'] = 'Bearer '.($token ?? $this->token ?? '');
+
         return $this;
     }
 
@@ -136,6 +159,7 @@ class CurlClient
     public function basic(string $username, string $password): self
     {
         $this->basicAuth = [$username, $password];
+
         return $this;
     }
 
@@ -143,6 +167,7 @@ class CurlClient
     public function query(array $params): self
     {
         $this->query = array_merge($this->query, $params);
+
         return $this;
     }
 
@@ -150,9 +175,10 @@ class CurlClient
     public function data(mixed $payload): self
     {
         $this->body = $payload;
-        if (!isset($this->headers['Content-Type'])) {
+        if (! isset($this->headers['Content-Type'])) {
             $this->headers['Content-Type'] = 'application/json';
         }
+
         return $this;
     }
 
@@ -167,6 +193,7 @@ class CurlClient
     {
         $this->form = ($this->form ?? []) + [$field => ['path' => $path, 'mime' => $mime ?? (mime_content_type($path) ?: 'application/octet-stream'), 'name' => $name ?? basename($path)]];
         unset($this->headers['Content-Type']);
+
         return $this;
     }
 
@@ -175,6 +202,7 @@ class CurlClient
     {
         $this->form = $fields;
         unset($this->headers['Content-Type']); // cURL sets boundary
+
         return $this;
     }
 
@@ -182,6 +210,7 @@ class CurlClient
     public function timeout(int $seconds): self
     {
         $this->timeout = $seconds;
+
         return $this;
     }
 
@@ -190,6 +219,7 @@ class CurlClient
     {
         $this->retries = $count;
         $this->retryDelay = $delayMs;
+
         return $this;
     }
 
@@ -197,6 +227,7 @@ class CurlClient
     public function insecure(): self
     {
         $this->verifySsl = false;
+
         return $this;
     }
 
@@ -204,6 +235,7 @@ class CurlClient
     public function cookie(string $name, string $value): self
     {
         $this->cookies[$name] = $value;
+
         return $this;
     }
 
@@ -211,6 +243,7 @@ class CurlClient
     public function cookieFile(string $path): self
     {
         $this->cookieFile = $path;
+
         return $this;
     }
 
@@ -263,6 +296,7 @@ class CurlClient
             if ($res->statusCode >= 500 && $attempt < $this->retries) {
                 $attempt++;
                 usleep($this->retryDelay * 1000 * $attempt);
+
                 continue;
             }
 
@@ -282,7 +316,7 @@ class CurlClient
             $headerLines[] = "{$k}: {$v}";
         }
         if ($this->cookies) {
-            $headerLines[] = 'Cookie: ' . http_build_query($this->cookies, '', '; ');
+            $headerLines[] = 'Cookie: '.http_build_query($this->cookies, '', '; ');
         }
         if ($this->basicAuth) {
             // Handle Basic separately via CURLOPT_USERPWD for correctness
@@ -291,19 +325,23 @@ class CurlClient
 
         // --- Options ---
         curl_setopt_array($ch, [
-            CURLOPT_URL            => $fullUrl,
+            CURLOPT_URL => $fullUrl,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HEADER         => true,          // we parse status
+            CURLOPT_HEADER => true,          // we parse status
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS      => 5,
+            CURLOPT_MAXREDIRS => 5,
             CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT        => $this->timeout,
+            CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_SSL_VERIFYPEER => $this->verifySsl,
             CURLOPT_SSL_VERIFYHOST => $this->verifySsl ? 2 : 0,
-            CURLOPT_HTTPHEADER     => $headerLines,
-            CURLOPT_CUSTOMREQUEST  => $this->method,
-            CURLOPT_ENCODING       => '',            // accept gzip/deflate
+            CURLOPT_HTTPHEADER => $headerLines,
+            CURLOPT_CUSTOMREQUEST => $this->method,
+            CURLOPT_ENCODING => '',            // accept gzip/deflate
         ]);
+
+        if (PHP_OS_FAMILY === 'Windows' && defined('CURLSSLOPT_NATIVE_CA')) {
+            curl_setopt($ch, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
+        }
 
         // Cookie jar
         if ($this->cookieFile) {
@@ -320,7 +358,7 @@ class CurlClient
                     ? $this->body
                     : json_encode($this->body, JSON_THROW_ON_ERROR);
             } catch (JsonException $e) {
-                throw new ApiError('Failed to encode JSON body: ' . $e->getMessage(), 0, null, $e);
+                throw new ApiError('Failed to encode JSON body: '.$e->getMessage(), 0, null, $e);
             }
             curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
         }
@@ -329,9 +367,10 @@ class CurlClient
         $raw = curl_exec($ch);
 
         if ($raw === false) {
-            $errno  = curl_errno($ch);
+            $errno = curl_errno($ch);
             $errmsg = curl_error($ch);
             curl_close($ch);
+
             return new ApiResponse(
                 false,
                 $errno === 28 ? 'The server took too long to respond.' : 'Could not reach the server. Please try again.',
@@ -343,8 +382,8 @@ class CurlClient
             );
         }
 
-        $statusCode  = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        $headerSize  = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        $statusCode = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $headerSize = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
         curl_close($ch);
 
         $body = substr($raw, $headerSize);
@@ -366,7 +405,7 @@ class CurlClient
 
         // Session expired / token rejected: forget it so the `auth` middleware sends the user to login
         if ($statusCode === 401 && isset($this->headers['Authorization'])) {
-            \App\Frontend\Auth\ApiSession::forget();
+            ApiSession::forget();
         }
 
         return $this->normalise($json, $body, $statusCode);
@@ -382,7 +421,7 @@ class CurlClient
     {
         $success = $statusCode >= 200 && $statusCode < 300;
 
-        if (!is_array($json)) {
+        if (! is_array($json)) {
             return new ApiResponse(
                 $success,
                 $success ? 'OK' : "HTTP {$statusCode}",
@@ -396,7 +435,7 @@ class CurlClient
 
         $message = (string) ($json['message'] ?? ($success ? 'OK' : "HTTP {$statusCode}"));
 
-        if (!$success) {
+        if (! $success) {
             $errors = isset($json['errors']) && is_array($json['errors']) ? $json['errors'] : null;
             $code = $statusCode === 422 ? 'VALIDATION_ERROR' : 'HTTP_ERROR';
 
@@ -410,10 +449,10 @@ class CurlClient
             if (isset($json['meta']) && is_array($json['meta'])) {
                 $pagination = [
                     'current_page' => $json['meta']['current_page'] ?? 1,
-                    'last_page'    => $json['meta']['last_page'] ?? 1,
-                    'per_page'     => $json['meta']['per_page'] ?? null,
-                    'total'        => $json['meta']['total'] ?? null,
-                    'links'        => $json['links'] ?? null,
+                    'last_page' => $json['meta']['last_page'] ?? 1,
+                    'per_page' => $json['meta']['per_page'] ?? null,
+                    'total' => $json['meta']['total'] ?? null,
+                    'links' => $json['links'] ?? null,
                 ];
                 // Preserve non-pagination meta keys (e.g. unread_count on notifications).
                 foreach ($json['meta'] as $key => $value) {
@@ -442,26 +481,29 @@ class CurlClient
         }
 
         $isAbsolute = (bool) preg_match('#^https?://#i', $this->url);
-        $base = $isAbsolute ? $this->url : $this->baseUrl . $this->url;
+        $base = $isAbsolute ? $this->url : $this->baseUrl.$this->url;
 
-        if (!$this->query) {
+        if (! $this->query) {
             return $base;
         }
 
         // Flatten arrays → key[]=a&key[]=b
         $pairs = [];
         foreach ($this->query as $k => $v) {
-            if ($v === null) continue;
+            if ($v === null) {
+                continue;
+            }
             if (is_array($v)) {
                 foreach ($v as $item) {
-                    $pairs[] = rawurlencode("{$k}[]") . '=' . rawurlencode((string) $item);
+                    $pairs[] = rawurlencode("{$k}[]").'='.rawurlencode((string) $item);
                 }
             } else {
-                $pairs[] = rawurlencode($k) . '=' . rawurlencode((string) $v);
+                $pairs[] = rawurlencode($k).'='.rawurlencode((string) $v);
             }
         }
         $sep = str_contains($base, '?') ? '&' : '?';
-        return $base . $sep . implode('&', $pairs);
+
+        return $base.$sep.implode('&', $pairs);
     }
 
     /**
@@ -485,6 +527,7 @@ class CurlClient
                 $out[$k] = is_scalar($v) ? (string) $v : json_encode($v);
             }
         }
+
         return $out;
     }
 }

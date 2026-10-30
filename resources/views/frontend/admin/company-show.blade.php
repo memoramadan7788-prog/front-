@@ -1,6 +1,6 @@
 @extends('frontend.layouts.app')
 
-@section('title', data_get($company, 'name', __('Company')))
+@section('title', data_get($company, 'name', __('common.role_labels.company')))
 
 @section('page_header')
     <div class="flex flex-wrap items-center gap-3">
@@ -34,7 +34,7 @@
         <x-slot:header><h2 class="text-lg font-bold text-hb-navy">{{ __('Overview') }}</h2></x-slot:header>
         <dl class="space-y-3 text-sm">
             <div><dt class="text-hb-muted">{{ __('Owner') }}</dt><dd class="font-semibold text-hb-navy">{{ data_get($company, 'owner.name', '—') }}</dd><dd class="text-xs text-hb-muted">{{ data_get($company, 'owner.email') }}</dd></div>
-            <div><dt class="text-hb-muted">{{ __('Jobs') }}</dt><dd class="font-semibold text-hb-navy">{{ data_get($company, 'jobs_count', 0) }}</dd></div>
+            <div><dt class="text-hb-muted">{{ __('common.labels.jobs') }}</dt><dd class="font-semibold text-hb-navy">{{ data_get($company, 'jobs_count', 0) }}</dd></div>
             <div><dt class="text-hb-muted">{{ __('Employees') }}</dt><dd class="font-semibold text-hb-navy">{{ data_get($company, 'employees_count', 0) }}</dd></div>
             <div><dt class="text-hb-muted">{{ __('Registered') }}</dt><dd class="font-semibold text-hb-navy">{{ \App\Support\Rows::date(data_get($company, 'created_at'), 'Y-m-d') }}</dd></div>
             @if (data_get($company, 'reviewed_by'))

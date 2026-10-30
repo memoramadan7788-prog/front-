@@ -2,15 +2,16 @@
 
 namespace App\Frontend\Admin;
 
+use App\Frontend\Auth\ApiSession;
+use App\Models\AdminAPI;
+use App\Support\Frontend\SafeApiMessage;
+use App\Support\Rows;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
-
-use App\Models\AdminAPI;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -27,7 +28,7 @@ class AdminController extends Controller
     /** Keep only the query-string filters the backend understands (drop empty ones). */
     private function filters(Request $request, array $allowed): array
     {
-        return array_filter($request->only($allowed), fn ($v) => $v !== null && $v !== '');
+        return array_filter($request->only($allowed), fn($v) => $v !== null && $v !== '');
     }
 
     function dashboard(Request $request)
@@ -42,7 +43,12 @@ class AdminController extends Controller
         ]);
     }
 
-    function getCompanies(Request $request)
+    public function jobModerationQueue()
+    {
+        return view('frontend.admin.jobs.index');
+    }
+
+    public function getCompanies(Request $request)
     {
         $response = $this->api->getCompanies($this->filters($request, ['status', 'search', 'page']));
 
@@ -55,7 +61,7 @@ class AdminController extends Controller
         }
     }
 
-    function approveCompany(Request $request, $companyId)
+    public function approveCompany(Request $request, $companyId)
     {
         $response = $this->api->approveCompany($companyId);
 
@@ -68,7 +74,7 @@ class AdminController extends Controller
         }
     }
 
-    function rejectCompany(Request $request, $companyId)
+    public function rejectCompany(Request $request, $companyId)
     {
         if ($request->isMethod('post')) {
 
@@ -93,7 +99,7 @@ class AdminController extends Controller
         return view('frontend.admin.reject-company', get_defined_vars());
     }
 
-    function suspendCompany(Request $request, $companyId)
+    public function suspendCompany(Request $request, $companyId)
     {
         $fields = $request->validate([
             'reason' => 'nullable|string|max:500',
@@ -108,9 +114,37 @@ class AdminController extends Controller
             // Company suspension failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
+
+
+        // Backend platform Admin suspend currently fails audit FK (user_id=0) — never claim success.
+        return redirect()->back()->withErrors([
+            'error' => $this->apiFlashError(
+                $response,
+                __('admin.companies.suspend_failed'),
+                'admin.companies.suspend'
+            ),
+        ]);
     }
 
-    function getUsers(Request $request)
+    private function unwrapCompany(mixed $data): ?array
+    {
+        if (! is_array($data)) {
+            return null;
+        }
+        if (isset($data['id'], $data['name'])) {
+            return $data;
+        }
+        if (isset($data['data']) && is_array($data['data'])) {
+            return $this->unwrapCompany($data['data']);
+        }
+        if (isset($data['company']) && is_array($data['company'])) {
+            return $this->unwrapCompany($data['company']);
+        }
+
+        return null;
+    }
+
+    public function getUsers(Request $request)
     {
         $response = $this->api->getUsers($this->filters($request, ['search', 'account_type', 'account_status_id', 'page']));
 
@@ -123,12 +157,12 @@ class AdminController extends Controller
         }
     }
 
-    function updateUserStatus(Request $request, $userId)
+    public function updateUserStatus(Request $request, $userId)
     {
         if ($request->isMethod('post')) {
 
             $fields = $request->validate([
-                'account_status' => 'required|string|in:' . implode(',', array_keys(self::USER_STATUSES)),
+                'account_status' => 'required|string|in:'.implode(',', array_keys(self::USER_STATUSES)),
                 'reason' => 'nullable|string|max:500',
             ]);
 
@@ -151,12 +185,12 @@ class AdminController extends Controller
 
         // show the user being edited (name, email and current status)
         $userResponse = $this->api->getUser($userId);
-        $user = $userResponse['statusCode'] === 200 ? \App\Support\Rows::get($userResponse['data'], 'data', $userResponse['data']) : [];
+        $user = $userResponse['statusCode'] === 200 ? Rows::get($userResponse['data'], 'data', $userResponse['data']) : [];
 
         return view('frontend.admin.update-user-status', get_defined_vars());
     }
 
-    function getAuditLogs(Request $request)
+    public function getAuditLogs(Request $request)
     {
         $response = $this->api->getAuditLogs($this->filters($request, ['action', 'auditable_type', 'page']));
 
@@ -173,7 +207,7 @@ class AdminController extends Controller
      * Read-only role catalog (Phase 1).
      * Does not assign or remove roles — Backend guards remain authoritative.
      */
-    function getRoles(Request $request)
+    public function getRoles(Request $request)
     {
         $response = $this->api->getRoles();
 
@@ -195,7 +229,7 @@ class AdminController extends Controller
         ]);
     }
 
-    function showCompany(Request $request, $companyId)
+    public function showCompany(Request $request, $companyId)
     {
         $response = $this->api->getCompanyDetails($companyId);
 
@@ -207,7 +241,7 @@ class AdminController extends Controller
             ->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
     }
 
-    function updateCompany(Request $request, $companyId)
+    public function updateCompany(Request $request, $companyId)
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -228,7 +262,7 @@ class AdminController extends Controller
         return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
     }
 
-    function uploadCompanyDocument(Request $request, $companyId)
+    public function uploadCompanyDocument(Request $request, $companyId)
     {
         $request->validate([
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
@@ -248,7 +282,7 @@ class AdminController extends Controller
         return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
     }
 
-    function downloadCompanyDocument(Request $request, $companyId, $documentId)
+    public function downloadCompanyDocument(Request $request, $companyId, $documentId)
     {
         $response = $this->api->downloadCompanyDocument($companyId, $documentId);
 
@@ -263,7 +297,7 @@ class AdminController extends Controller
         return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
     }
 
-    function deleteCompanyDocument(Request $request, $companyId, $documentId)
+    public function deleteCompanyDocument(Request $request, $companyId, $documentId)
     {
         $response = $this->api->deleteCompanyDocument($companyId, $documentId);
 

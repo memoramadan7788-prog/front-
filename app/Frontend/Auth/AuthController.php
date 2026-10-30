@@ -28,12 +28,26 @@ class AuthController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|max:255',
                 'password' => 'required|min:8|confirmed',
+                'terms_accepted' => 'required|accepted',
+                'marketing_opt_in' => 'sometimes|boolean',
                 'company_name' => 'required_if:account_type,company|nullable|string|max:255',
                 'industry' => 'nullable|string|max:100',
                 'website' => 'nullable|url|max:2048',
+            ], [
+                'terms_accepted.required' => __('auth.register.terms_required'),
+                'terms_accepted.accepted' => __('auth.register.terms_required'),
             ]);
 
-            $data = $request->only(['account_type', 'name', 'email', 'password', 'password_confirmation']);
+            $data = $request->only([
+                'account_type',
+                'name',
+                'email',
+                'password',
+                'password_confirmation',
+                'terms_accepted',
+            ]);
+            $data['terms_accepted'] = true;
+            $data['marketing_opt_in'] = $request->boolean('marketing_opt_in');
 
             if ($data['account_type'] === 'company') {
                 $data += $request->only(['company_name', 'industry', 'website']);
@@ -44,11 +58,19 @@ class AuthController extends Controller
 
             $response = $this->api->register($data);
 
-            // Backend may answer 201 Created; treat any 2xx as success only when a token is present.
+// Backend may answer 201 Created; treat any 2xx as success only when a token is present.
             $status = (int) ($response['statusCode'] ?? 0);
             $ok = $status >= 200 && $status < 300 && ! empty($response['data']['token'] ?? $response['data']['access_token'] ?? null);
 
             if ($ok) {
+                if (data_get($response, 'data.verification_required') === true) {
+                    ApiSession::forget();
+                    $request->session()->put('pending_verification_email', $request->input('email'));
+
+                    return redirect()->route('frontend.account.verification');
+                }
+
+                $request->session()->forget('pending_verification_email');
                 $user = (array) ($response['data']['user'] ?? []);
                 // register answers {user, company, token}: the company is not inside user, so the session keeps it
                 if (! empty($response['data']['company'])) {
@@ -65,13 +87,24 @@ class AuthController extends Controller
                     ->with('success_key', 'auth.flash.register_candidate');
             }
 
-            // Never flash SQLSTATE / schema dumps from Backend APP_DEBUG; do not claim success.
+// Never flash SQLSTATE / schema dumps from Backend APP_DEBUG; do not claim success.
             return redirect()->back()
                 ->withErrors($this->safeRegisterErrors($response))
-                ->withInput();
+                ->withInput($request->except(['password', 'password_confirmation']));
         }
 
         return view('frontend.account.auth.register', get_defined_vars());
+    }
+
+    public function verification(Request $request): View|RedirectResponse
+    {
+        $email = $request->session()->get('pending_verification_email');
+
+        if (! is_string($email) || $email === '') {
+            return redirect()->route('frontend.account.register');
+        }
+
+        return view('frontend.account.auth.verification', compact('email'));
     }
 
     public function login(Request $request): View|RedirectResponse
@@ -363,7 +396,6 @@ class AuthController extends Controller
         return $safe;
     }
 
-    /** @param  mixed  $data */
     private function normalizePlatformAdminIdentity(mixed $data): ?array
     {
         if (! is_array($data)) {

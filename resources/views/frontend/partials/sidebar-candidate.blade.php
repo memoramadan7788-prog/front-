@@ -37,6 +37,11 @@
             'route' => 'frontend.candidate.profile',
             'active' => request()->routeIs('frontend.candidate.profile*'),
         ],
+        [
+            'label' => __('navigation.candidate.preferences'),
+            'route' => 'frontend.candidate.preferences',
+            'active' => request()->routeIs('frontend.candidate.preferences*'),
+        ],
         // Employee onboarding (WF2), separate from apply→offer. Join UI ready; discovery/status APIs proposed.
         [
             'label' => __('navigation.candidate.membership'),

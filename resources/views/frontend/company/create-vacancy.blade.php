@@ -59,7 +59,7 @@
         <x-form.input name="deadline" :label="__('Deadline')" type="date" :error="$errors->first('deadline')" value="{{ old('deadline', data_get([], 'deadline', '')) }}" />
         <x-form.select name="visibility" :label="__('Visibility')" :required="true" :error="$errors->first('visibility')">
         <option value="">{{ __('Select…') }}</option>
-        <option value="public" @selected((string) old('visibility', data_get([], 'visibility', '')) === 'public')>{{ __('Public') }}</option>
+        <option value="public" @selected((string) old('visibility', data_get([], 'visibility', '')) === 'public')>{{ __('common.labels.public') }}</option>
         <option value="private" @selected((string) old('visibility', data_get([], 'visibility', '')) === 'private')>{{ __('Private') }}</option>
     </x-form.select>
         <x-form.select name="private_apply_mode" :label="__('Who can apply (private jobs)')" :error="$errors->first('private_apply_mode')">

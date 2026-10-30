@@ -18,6 +18,16 @@
             'active' => request()->routeIs('frontend.company.vacancies.*'),
         ],
         [
+            'label' => __('Team interview calendar'),
+            'route' => 'frontend.company.interview-calendar',
+            'active' => request()->routeIs('frontend.company.interview-calendar'),
+        ],
+        [
+            'label' => __('Hiring analytics'),
+            'route' => 'frontend.company.analytics',
+            'active' => request()->routeIs('frontend.company.analytics'),
+        ],
+        [
             'label' => __('navigation.company.assessments'),
             'route' => 'frontend.company.exams.create',
             'active' => request()->routeIs('frontend.company.exams.*'),

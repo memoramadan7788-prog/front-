@@ -117,15 +117,25 @@
                         </a>
                     </li>
                     <li>
-                        <span
-                            class="block cursor-not-allowed px-4 py-2 text-hb-muted"
-                            role="menuitem"
-                            aria-disabled="true"
-                            title="{{ __('common.notification_preferences_pending_hint') }}"
-                        >
-                            {{ __('common.notification_preferences') }}
-                            <span class="ms-1 text-[10px] font-semibold uppercase tracking-wide">{{ __('common.pending_feature') }}</span>
-                        </span>
+                        @if (($account['account_type'] ?? null) === 'candidate')
+                            <a
+                                href="{{ route('frontend.candidate.preferences') }}"
+                                class="block px-4 py-2 text-hb-text hover:bg-hb-page focus-visible:bg-hb-page focus-visible:outline-none"
+                                role="menuitem"
+                            >
+                                {{ __('common.notification_preferences') }}
+                            </a>
+                        @else
+                            <span
+                                class="block cursor-not-allowed px-4 py-2 text-hb-muted"
+                                role="menuitem"
+                                aria-disabled="true"
+                                title="{{ __('common.notification_preferences_pending_hint') }}"
+                            >
+                                {{ __('common.notification_preferences') }}
+                                <span class="ms-1 text-[10px] font-semibold uppercase tracking-wide">{{ __('common.pending_feature') }}</span>
+                            </span>
+                        @endif
                     </li>
                     <li class="border-t border-hb-border">
                         <form method="POST" action="{{ route('frontend.account.logout') }}">

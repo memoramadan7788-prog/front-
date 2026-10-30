@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Frontend\Auth\ApiSession;
 use App\Support\Frontend\CandidateDashboard\CandidateDashboardKpiGateway;
 use App\Support\Frontend\CandidateDashboard\HttpCandidateDashboardKpiGateway;
+use App\Support\Frontend\CandidateSettings\CandidateSettingsGateway;
+use App\Support\Frontend\CandidateSettings\HttpCandidateSettingsGateway;
 use App\Support\Frontend\CompanyMembership\CompanyMembershipGateway;
 use App\Support\Frontend\CompanyMembership\HttpCompanyMembershipGateway;
 use App\Support\Frontend\Notifications\HttpNotificationsGateway;
@@ -21,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CompanyMembershipGateway::class, HttpCompanyMembershipGateway::class);
         $this->app->bind(NotificationsGateway::class, HttpNotificationsGateway::class);
         $this->app->bind(CandidateDashboardKpiGateway::class, HttpCandidateDashboardKpiGateway::class);
+        $this->app->bind(CandidateSettingsGateway::class, HttpCandidateSettingsGateway::class);
     }
 
     public function boot(): void

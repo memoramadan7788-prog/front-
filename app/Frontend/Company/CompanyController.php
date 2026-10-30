@@ -2,28 +2,17 @@
 
 namespace App\Frontend\Company;
 
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-
-use App\Frontend\Auth\ApiSession;
 use App\Models\CompanyAPI;
 use App\Models\LookupAPI;
+use App\Support\Rows;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
 class CompanyController extends Controller
 {
-    private $api = null;
+    public function __construct(private readonly CompanyAPI $api) {}
 
-    public function __construct()
-    {
-        $this->api = new CompanyAPI();
-    }
-
-    function getProfile(Request $request)
+    public function getProfile(Request $request)
     {
         $response = $this->api->getProfile();
 
@@ -36,7 +25,7 @@ class CompanyController extends Controller
         }
     }
 
-    function updateProfile(Request $request)
+    public function updateProfile(Request $request)
     {
         if ($request->isMethod('post')) {
 
@@ -69,7 +58,7 @@ class CompanyController extends Controller
         return view('frontend.company.update-profile', compact('prefill', 'documents'));
     }
 
-    function getVacancies(Request $request)
+    public function getVacancies(Request $request)
     {
         $response = $this->api->getVacancies();
 
@@ -82,7 +71,74 @@ class CompanyController extends Controller
         }
     }
 
-    function createVacancy(Request $request)
+    public function jobOverview(Request $request, string $vacancyId)
+    {
+        $jobsResponse = $this->api->getVacancies();
+
+        if (($jobsResponse['statusCode'] ?? 500) !== 200) {
+            return redirect()->route('frontend.company.vacancies.index')
+                ->withErrors(($jobsResponse['errors'] ?? []) ?: ['error' => $jobsResponse['message'] ?? __('Could not load jobs.')]);
+        }
+
+        $vacancy = collect(Rows::from($jobsResponse['data'] ?? []))
+            ->first(fn ($job) => (string) data_get($job, 'id') === $vacancyId);
+
+        if (! is_array($vacancy)) {
+            abort(404);
+        }
+
+        $applicationsResponse = $this->api->getApplications($vacancyId);
+        $applicationsAvailable = (int) ($applicationsResponse['statusCode'] ?? 500) === 200;
+        $applications = $applicationsAvailable ? Rows::from($applicationsResponse['data'] ?? []) : [];
+
+        return view('frontend.company.job-overview', [
+            'vacancy' => $vacancy,
+            'applications' => $applications,
+            'applicationsAvailable' => $applicationsAvailable,
+        ]);
+    }
+
+    public function teamInterviewCalendar(Request $request)
+    {
+        return view('frontend.company.interview-calendar');
+    }
+
+    public function hiringAnalytics(Request $request)
+    {
+        $filters = $request->validate([
+            'from' => 'nullable|date',
+            'to' => 'nullable|date|after_or_equal:from',
+        ]);
+        $response = $this->api->getVacancies();
+        $available = (int) ($response['statusCode'] ?? 500) === 200;
+        $jobs = $available ? Rows::from($response['data'] ?? []) : [];
+        $from = $filters['from'] ?? null;
+        $to = $filters['to'] ?? null;
+
+        if ($from || $to) {
+            $jobs = array_values(array_filter($jobs, static function ($job) use ($from, $to): bool {
+                $createdAt = data_get($job, 'created_at') ?? data_get($job, 'published_at');
+
+                if (! is_string($createdAt) || $createdAt === '') {
+                    return false;
+                }
+
+                $date = substr($createdAt, 0, 10);
+
+                return (! $from || $date >= $from) && (! $to || $date <= $to);
+            }));
+        }
+
+        return view('frontend.company.hiring-analytics', [
+            'jobs' => $jobs,
+            'analyticsAvailable' => $available,
+            'apiMessage' => $available ? null : ($response['message'] ?? __('Could not load jobs.')),
+            'from' => $from,
+            'to' => $to,
+        ]);
+    }
+
+    public function createVacancy(Request $request)
     {
         if ($request->isMethod('post')) {
 
@@ -124,7 +180,7 @@ class CompanyController extends Controller
         return view('frontend.company.create-vacancy', get_defined_vars());
     }
 
-    function updateVacancy(Request $request, $vacancyId)
+    public function updateVacancy(Request $request, $vacancyId)
     {
         if ($request->isMethod('post')) {
 
@@ -166,7 +222,7 @@ class CompanyController extends Controller
         return view('frontend.company.update-vacancy', get_defined_vars());
     }
 
-    function deleteVacancy(Request $request, $vacancyId)
+    public function deleteVacancy(Request $request, $vacancyId)
     {
         $response = $this->api->deleteVacancy($vacancyId);
 
@@ -179,7 +235,7 @@ class CompanyController extends Controller
         }
     }
 
-    function getApplications(Request $request, $vacancyId)
+    public function getApplications(Request $request, $vacancyId)
     {
         $response = $this->api->getApplications($vacancyId);
 
@@ -192,7 +248,7 @@ class CompanyController extends Controller
         }
     }
 
-    function updateApplicationStatus(Request $request, $applicationId)
+    public function updateApplicationStatus(Request $request, $applicationId)
     {
         if ($request->isMethod('post')) {
 
@@ -217,7 +273,7 @@ class CompanyController extends Controller
         return view('frontend.company.update-application-status', get_defined_vars());
     }
 
-    function createExam(Request $request)
+    public function createExam(Request $request)
     {
         if ($request->isMethod('post')) {
 
@@ -244,7 +300,7 @@ class CompanyController extends Controller
         return view('frontend.company.create-exam', get_defined_vars());
     }
 
-    function createOffer(Request $request)
+    public function createOffer(Request $request)
     {
         if ($request->isMethod('post')) {
 
@@ -273,7 +329,7 @@ class CompanyController extends Controller
         return view('frontend.company.create-offer', get_defined_vars());
     }
 
-    function uploadDocument(Request $request)
+    public function uploadDocument(Request $request)
     {
         $request->validate([
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
@@ -293,7 +349,7 @@ class CompanyController extends Controller
         return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
     }
 
-    function downloadDocument(Request $request, $documentId)
+    public function downloadDocument(Request $request, $documentId)
     {
         $response = $this->api->downloadDocument($documentId);
 
@@ -308,7 +364,7 @@ class CompanyController extends Controller
         return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
     }
 
-    function deleteDocument(Request $request, $documentId)
+    public function deleteDocument(Request $request, $documentId)
     {
         $response = $this->api->deleteDocument($documentId);
 

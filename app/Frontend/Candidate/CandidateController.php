@@ -2,22 +2,17 @@
 
 namespace App\Frontend\Candidate;
 
-use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-
 use App\Frontend\Auth\ApiSession;
 use App\Models\CandidateAPI;
 use App\Models\JobAPI;
 use App\Models\LookupAPI;
 use App\Support\Frontend\ApiListPage;
 use App\Support\Frontend\CandidateReturnPath;
-use Illuminate\Http\RedirectResponse;
+use App\Support\Rows;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
 class CandidateController extends Controller
 {
@@ -49,7 +44,7 @@ class CandidateController extends Controller
         ]);
     }
 
-    function getProfile(Request $request)
+    public function getProfile(Request $request)
     {
         $response = $this->api->getProfile();
 
@@ -62,7 +57,7 @@ class CandidateController extends Controller
         }
     }
 
-    function updateProfile(Request $request)
+    public function updateProfile(Request $request)
     {
         if ($request->isMethod('post')) {
 
@@ -95,7 +90,7 @@ class CandidateController extends Controller
         return view('frontend.candidate.update-profile', get_defined_vars());
     }
 
-    function uploadResume(Request $request)
+public function uploadResume(Request $request)
     {
         // Backend UploadCvRequest: mimes pdf,doc,docx · max 10240 KB (10 MB).
         $maxKilobytes = 10240;
@@ -115,13 +110,14 @@ class CandidateController extends Controller
             $returnTo = CandidateReturnPath::applyPathFromRequest($request);
             $vacancyId = CandidateReturnPath::vacancyIdFromSafePath($returnTo);
 
-            $file = $request->file('resume');
+            $uploadedResume = $request->file('resume');
+
             // Send the real client filename + mime: the temp path is like "phpAbC123" (no extension),
             // and the backend ATS needs the extension to know how to read the CV.
             $response = $this->api->uploadResume(
-                $file->getRealPath(),
-                $file->getClientOriginalName(),
-                $file->getClientMimeType()
+                $uploadedResume->getRealPath(),
+                $uploadedResume->getClientMimeType(),
+                $uploadedResume->getClientOriginalName()
             );
 
             if ($response['statusCode'] === 200) {
@@ -147,8 +143,7 @@ class CandidateController extends Controller
             'maxBytes' => $maxKilobytes * 1024,
         ]);
     }
-
-    function downloadResume(Request $request, $resumeId)
+    public function downloadResume(Request $request, $resumeId)
     {
         $response = $this->api->downloadResume($resumeId);
 
@@ -165,7 +160,7 @@ class CandidateController extends Controller
         }
     }
 
-    function deleteResume(Request $request, $resumeId)
+    public function deleteResume(Request $request, $resumeId)
     {
         $response = $this->api->deleteResume($resumeId);
 
@@ -178,13 +173,18 @@ class CandidateController extends Controller
         }
     }
 
-    function getVacancies(Request $request)
+    public function getVacancies(Request $request)
     {
         $response = $this->api->getVacancies();
 
         if ($response['statusCode'] === 200) {
+            $discoverContext = $this->discoverContext();
+
             // Vacancies retrieval successful, you can perform additional actions here if needed
-            return view('frontend.candidate.vacancies', ['vacancies' => $response['data']]);
+            return view('frontend.candidate.vacancies', [
+                'vacancies' => $response['data'],
+                ...$discoverContext,
+            ]);
         } else {
             // Vacancies retrieval failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
@@ -192,10 +192,59 @@ class CandidateController extends Controller
     }
 
     /**
+     * Load existing profile, skills, and application APIs to enrich discovery without inventing preferences.
+     *
+     * @return array{profile: array, coreSkills: array, appliedJobIds: array, contextErrors: array, skillsSource: string}
+     */
+    private function discoverContext(): array
+    {
+        $profileResponse = $this->api->getProfile();
+        $skillsResponse = $this->api->getSkills();
+        $applicationsResponse = $this->api->getApplications();
+        $profile = $profileResponse['statusCode'] === 200 && is_array($profileResponse['data'] ?? null)
+            ? $profileResponse['data']
+            : [];
+        $profileSkills = Rows::from(
+            data_get($profile, 'skills', data_get($profile, 'candidate_skills', []))
+        );
+        $skillsAvailable = (int) ($skillsResponse['statusCode'] ?? 500) === 200;
+        $skills = $skillsAvailable
+            ? Rows::from($skillsResponse['data'] ?? [])
+            : $profileSkills;
+        $skillsSource = $skillsAvailable ? 'candidate_skills_api' : ($profileSkills ? 'profile' : 'unavailable');
+        $applications = $applicationsResponse['statusCode'] === 200
+            ? Rows::from($applicationsResponse['data'] ?? [])
+            : [];
+        $appliedJobIds = [];
+
+        foreach ($applications as $application) {
+            $jobId = data_get($application, 'job_id') ?? data_get($application, 'job.id') ?? data_get($application, 'vacancy_id');
+
+            if (is_scalar($jobId) && (string) $jobId !== '') {
+                $appliedJobIds[] = (string) $jobId;
+            }
+        }
+
+        $contextErrors = array_filter([
+            $profileResponse['statusCode'] !== 200 ? 'profile' : null,
+            $skillsResponse['statusCode'] !== 200 && ! $profileSkills ? 'skills' : null,
+            $applicationsResponse['statusCode'] !== 200 ? 'applications' : null,
+        ]);
+
+        return [
+            'profile' => $profile,
+            'coreSkills' => $skills,
+            'appliedJobIds' => array_values(array_unique($appliedJobIds)),
+            'contextErrors' => array_values($contextErrors),
+            'skillsSource' => $skillsSource,
+        ];
+    }
+
+    /**
      * Candidate workspace job details. Reuses the public JobAPI GET /jobs/{id} payload
      * (no extra Backend contract) and renders the Candidate Workspace shell.
      */
-    function showVacancy(Request $request, $vacancyId, JobAPI $jobs)
+    public function showVacancy(Request $request, $vacancyId, JobAPI $jobs)
     {
         $response = $jobs->getJob($vacancyId);
 
@@ -210,7 +259,7 @@ class CandidateController extends Controller
         return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
     }
 
-    function applyForVacancy(Request $request, $vacancyId, JobAPI $jobs)
+    public function applyForVacancy(Request $request, $vacancyId, JobAPI $jobs)
     {
         if ($request->isMethod('post')) {
             // Align with Backend SubmitApplicationRequest: cover_note optional max 3000;
@@ -249,7 +298,7 @@ class CandidateController extends Controller
         ]);
     }
 
-    function getApplications(Request $request, CandidateApplicationsAdapter $adapter)
+public function getApplications(Request $request, CandidateApplicationsAdapter $adapter)
     {
         $payload = $adapter->load($request);
 
@@ -276,7 +325,7 @@ class CandidateController extends Controller
         ]);
     }
 
-    function getApplication(Request $request, $applicationId)
+    public function getApplication(Request $request, $applicationId)
     {
         $response = $this->api->getApplication($applicationId);
 
@@ -289,7 +338,7 @@ class CandidateController extends Controller
         }
     }
 
-    function addEducation(Request $request)
+    public function addEducation(Request $request)
     {
         if ($request->isMethod('post')) {
 
@@ -317,7 +366,7 @@ class CandidateController extends Controller
         return view('frontend.candidate.education', get_defined_vars());
     }
 
-    function addExperience(Request $request)
+    public function addExperience(Request $request)
     {
         if ($request->isMethod('post')) {
 
@@ -351,7 +400,9 @@ class CandidateController extends Controller
     {
         if ($request->isMethod('post')) {
             $request->validate([
-                'skill_id' => 'required|integer|min:1',
+                'skill_id' => 'required_without:skill_ids|nullable|integer|min:1',
+                'skill_ids' => 'required_without:skill_id|array|min:1|max:50',
+                'skill_ids.*' => 'required|integer|min:1|distinct',
                 'level' => 'nullable|string|max:50',
             ]);
 
@@ -372,13 +423,21 @@ class CandidateController extends Controller
 
             if ($currentStatus !== 200) {
                 return redirect()->back()->withErrors(
-                    ($current['errors'] ?? []) ?: ['error' => $current['message'] ?? __('candidate.skills.load_error')]
-                )->withInput($request->only(['skill_id', 'level']));
+                    ($current['errors'] ?? []) ?: ['error' => $this->skillsLoadError($current)]
+                )->withInput($request->only(['skill_id', 'skill_ids', 'level']));
             }
 
-            $skillId = (int) $request->input('skill_id');
             $level = $request->filled('level') ? (string) $request->input('level') : null;
-            $payload = $this->skillsSyncPayload((array) ($current['data'] ?? []), $skillId, $level, remove: false);
+            $currentSkills = (array) ($current['data'] ?? []);
+            $skillIds = collect($request->input('skill_ids', [$request->input('skill_id')]))
+                ->filter(fn ($skillId) => is_numeric($skillId) && (int) $skillId > 0)
+                ->map(fn ($skillId) => (int) $skillId)
+                ->unique()
+                ->values();
+            $payload = $currentSkills;
+            foreach ($skillIds as $skillId) {
+                $payload = $this->skillsSyncPayload($payload, $skillId, $level, remove: false);
+            }
 
             $response = $this->api->syncSkills($payload);
 
@@ -412,7 +471,7 @@ class CandidateController extends Controller
 
         if ($currentStatus !== 200) {
             return redirect()->route('frontend.candidate.skills.add')->withErrors(
-                ($current['errors'] ?? []) ?: ['error' => $current['message'] ?? __('candidate.skills.load_error')]
+                ($current['errors'] ?? []) ?: ['error' => $this->skillsLoadError($current)]
             );
         }
 
@@ -439,16 +498,45 @@ class CandidateController extends Controller
                 ->withErrors(['error' => __('candidate.skills.forbidden')]);
         }
 
+        $usingProfileFallback = false;
+        $usingLocalFallback = false;
+        if ($assignedStatus === 404) {
+            $profileResponse = $this->api->getProfile();
+            $profileStatus = (int) ($profileResponse['statusCode'] ?? 500);
+
+            if ($profileStatus === 401) {
+                ApiSession::forget();
+
+                return redirect()->route('frontend.account.login')
+                    ->withErrors(['error' => __('candidate.skills.session_expired')]);
+            }
+
+            if ($profileStatus === 200 && is_array($profileResponse['data'] ?? null)) {
+                $profileSkills = data_get(
+                    $profileResponse['data'],
+                    'skills',
+                    data_get($profileResponse['data'], 'candidate_skills', [])
+                );
+
+                if (is_array($profileSkills)) {
+                    $assigned['data'] = Rows::from($profileSkills);
+                    $usingProfileFallback = true;
+                }
+            }
+
+            $usingLocalFallback = ! $usingProfileFallback;
+        }
+
         $q = trim((string) $request->query('q', ''));
         $catalog = $this->lookups->getSkills($q);
         $catalogStatus = (int) ($catalog['statusCode'] ?? 500);
 
-        $assignedSkills = $assignedStatus === 200
+        $assignedSkills = $assignedStatus === 200 || $usingProfileFallback
             ? (is_array($assigned['data'] ?? null) ? $assigned['data'] : [])
             : [];
 
         $catalogSkills = $catalogStatus === 200
-            ? \App\Support\Rows::from($catalog['data'] ?? [])
+            ? Rows::from($catalog['data'] ?? [])
             : [];
 
         $assignedIds = collect($assignedSkills)
@@ -464,16 +552,29 @@ class CandidateController extends Controller
 
         return view('frontend.candidate.skills', [
             'assignedSkills' => $assignedSkills,
-            'assignedError' => $assignedStatus === 200
+            'assignedError' => $assignedStatus === 200 || $usingProfileFallback || $usingLocalFallback
                 ? null
-                : (trim((string) ($assigned['message'] ?? '')) ?: __('candidate.skills.load_error')),
+                : $this->skillsLoadError($assigned),
             'catalogSkills' => $availableCatalog,
             'catalogError' => $catalogStatus === 200
                 ? null
                 : (trim((string) ($catalog['message'] ?? '')) ?: __('candidate.skills.catalog_error')),
             'catalogQuery' => $q,
             'skillsAvailable' => $assignedStatus === 200,
+            'skillsSource' => $usingProfileFallback
+                ? 'profile'
+                : ($usingLocalFallback ? 'local' : ($assignedStatus === 200 ? 'candidate_skills_api' : 'unavailable')),
+            'candidateId' => (string) (ApiSession::user()['id'] ?? 'candidate'),
         ]);
+    }
+
+    private function skillsLoadError(array $response): string
+    {
+        if ((int) ($response['statusCode'] ?? 500) === 404) {
+            return __('candidate.skills.load_error');
+        }
+
+        return trim((string) ($response['message'] ?? '')) ?: __('candidate.skills.load_error');
     }
 
     /**
@@ -559,7 +660,7 @@ class CandidateController extends Controller
         )->withInput($request->only(['skill_id', 'level']));
     }
 
-    function getExams(Request $request)
+    public function getExams(Request $request)
     {
         $response = $this->api->getExams();
 
@@ -572,7 +673,7 @@ class CandidateController extends Controller
         }
     }
 
-    function submitExam(Request $request, $examId)
+    public function submitExam(Request $request, $examId)
     {
         if ($request->isMethod('post')) {
 
@@ -596,7 +697,7 @@ class CandidateController extends Controller
         return view('frontend.candidate.exams.take', get_defined_vars());
     }
 
-    function getInterviews(Request $request)
+    public function getInterviews(Request $request)
     {
         $response = $this->api->getInterviews();
 
