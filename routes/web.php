@@ -6,6 +6,7 @@ use App\Frontend\Application\ApplicationController;
 use App\Frontend\Ats\AtsController;
 use App\Frontend\Auth\AuthController;
 use App\Frontend\Candidate\CandidateController;
+use App\Frontend\Candidate\CandidateOnboardingController;
 use App\Frontend\Candidate\CandidatePreferencesController;
 use App\Frontend\Company\CompanyController;
 use App\Frontend\Employee\EmployeeController;
@@ -81,6 +82,8 @@ Route::prefix('/')->name('frontend.')->group(function () {
 
     // Candidate
     Route::prefix('candidate')->middleware(['auth', 'account:candidate'])->name('candidate.')->group(function () {
+        Route::get('/onboarding', [CandidateOnboardingController::class, 'show'])->name('onboarding');
+        Route::post('/onboarding', [CandidateOnboardingController::class, 'save'])->name('onboarding.save');
         Route::get('/dashboard', [CandidateController::class, 'dashboard'])->name('dashboard');
         Route::post('/notifications/read-all', [NotificationsController::class, 'markAllRead'])->name('notifications.read-all');
         Route::post('/notifications/{id}/read', [NotificationsController::class, 'markRead'])->name('notifications.read');

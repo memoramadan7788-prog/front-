@@ -218,6 +218,28 @@ document.addEventListener('submit', (event) => {
     }
 });
 
+/* ---------- Busy state for synchronous onboarding and list filter submissions ---------- */
+document.addEventListener('submit', (event) => {
+    const form = event.target.closest('[data-loading-form]');
+    if (!form) return;
+    if (form.dataset.submitting === '1') {
+        event.preventDefault();
+        return;
+    }
+    form.dataset.submitting = '1';
+    const button = form.querySelector('[data-loading-submit]');
+    if (!button) return;
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    const idle = button.querySelector('[data-submit-idle]');
+    const loading = button.querySelector('[data-submit-loading]');
+    if (idle) idle.classList.add('hidden');
+    if (loading) {
+        loading.classList.remove('hidden');
+        loading.removeAttribute('aria-hidden');
+    }
+});
+
 /* ---------- Guard duplicate submits on change-password forms ---------- */
 document.addEventListener('submit', (event) => {
     const form = event.target.closest('[data-password-change-form]');
