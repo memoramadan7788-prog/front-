@@ -8,12 +8,14 @@ use App\Frontend\Auth\AuthController;
 use App\Frontend\Candidate\CandidateController;
 use App\Frontend\Candidate\CandidatePreferencesController;
 use App\Frontend\Company\CompanyController;
+use App\Frontend\Company\CompanyCreateJobController;
+use App\Frontend\Company\CompanyScheduleInterviewController;
+use App\Frontend\Company\CompanyTeamPermissionsController;
 use App\Frontend\Employee\EmployeeController;
 use App\Frontend\Exam\ExamController;
 use App\Frontend\Home\HomeController;
 use App\Frontend\Interview\InterviewController;
 use App\Frontend\Interviewer\InterviewerController;
-use App\Frontend\Company\CompanyCreateJobController;
 use App\Frontend\Job\JobController;
 use App\Frontend\Lookup\LookupController;
 use App\Frontend\Notifications\NotificationsController;
@@ -181,17 +183,22 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::post('/interviews/{interviewId}/evaluation', [InterviewController::class, 'submitEvaluation'])->name('interviews.evaluation.submit');
         Route::get('/salary-benchmark', [JobController::class, 'getSalaryBenchmark'])->name('salary-benchmark');
         Route::get('/interview-calendar', [CompanyController::class, 'teamInterviewCalendar'])->name('interview-calendar');
+        Route::get('/interviews/schedule', [CompanyScheduleInterviewController::class, 'show'])->name('interviews.schedule');
+        Route::post('/interviews/schedule', [CompanyScheduleInterviewController::class, 'handle'])->name('interviews.schedule.submit');
         Route::get('/hiring-analytics', [CompanyController::class, 'hiringAnalytics'])->name('analytics');
 
         Route::get('/change-password', [AccountController::class, 'changePasswordForm'])->name('change-password');
         Route::post('/change-password', [AccountController::class, 'changePassword'])->name('change-password.submit');
         Route::delete('/delete-account', [AccountController::class, 'deleteAccount'])->name('delete-account');
 
-        Route::get('/employees', [EmployeeController::class, 'getEmployees'])->name('employees.index');
-        Route::post('/employees/{employeeId}/approve', [EmployeeController::class, 'approveEmployee'])->name('employees.approve');
-        Route::get('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->name('employees.reject');
-        Route::post('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->name('employees.reject.submit');
-        Route::delete('/employees/{employeeId}/remove', [EmployeeController::class, 'removeEmployee'])->name('employees.remove');
+        Route::get('/employees', [CompanyTeamPermissionsController::class, 'show'])->name('employees.index');
+        Route::post('/employees/{employeeId}/approve', [CompanyTeamPermissionsController::class, 'approve'])->whereNumber('employeeId')->name('employees.approve');
+        Route::put('/employees/{employeeId}/role', [CompanyTeamPermissionsController::class, 'updateRole'])->whereNumber('employeeId')->name('employees.role.update');
+        Route::get('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->whereNumber('employeeId')->name('employees.reject');
+        Route::post('/employees/{employeeId}/reject', [EmployeeController::class, 'rejectEmployee'])->whereNumber('employeeId')->name('employees.reject.submit');
+        Route::delete('/employees/{employeeId}/remove', [CompanyTeamPermissionsController::class, 'remove'])->whereNumber('employeeId')->name('employees.remove');
+        Route::post('/employees/invitations', [CompanyTeamPermissionsController::class, 'createInvitation'])->name('employees.invitations.store');
+        Route::delete('/employees/invitations/{invitationId}', [CompanyTeamPermissionsController::class, 'deleteInvitation'])->whereNumber('invitationId')->name('employees.invitations.destroy');
     });
 
     // Interviewer (a company account that has the interviewer role - the backend enforces the permissions)

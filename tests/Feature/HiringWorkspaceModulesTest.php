@@ -222,7 +222,9 @@ class HiringWorkspaceModulesTest extends TestCase
             ->assertOk()
             ->assertSee(__('Local planning view'))
             ->assertSee(__('Not synced'))
-            ->assertSee(__('Add slot to this device'));
+            ->assertSee(__('Add slot to this device'))
+            ->assertSee(__('company.interviews.schedule_interview'))
+            ->assertSee(route('frontend.company.interviews.schedule', absolute: false), false);
     }
 
     public function test_candidate_application_detail_exposes_tabs_and_existing_withdraw_action(): void
