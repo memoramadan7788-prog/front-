@@ -12,12 +12,17 @@
 @section('content')
 @php
     $items = \App\Support\Rows::from($vacancies ?? []);
-    $meta = \App\Support\Rows::meta($vacancies ?? null);
+    $meta = $pagination ?? \App\Support\Rows::meta($vacancies ?? null);
     $skillRows = \App\Support\Rows::from($coreSkills ?? []);
     $skillNames = collect($skillRows)->map(fn ($skill) => is_string($skill) ? $skill : data_get($skill, 'name'))->filter(fn ($name) => is_string($name) && $name !== '')->values()->all();
     $preferences = data_get($profile ?? [], 'preferences', []);
     $preferredLocation = data_get($preferences, 'location') ?? data_get($profile ?? [], 'preferred_location') ?? data_get($profile ?? [], 'location') ?? '';
     $preferredMode = data_get($preferences, 'work_mode') ?? data_get($profile ?? [], 'work_mode') ?? '';
+    $queryParameters = request()->query->all();
+    $hasFilterQuery = count(array_intersect(['q', 'location', 'work_mode'], array_keys($queryParameters))) > 0;
+    $searchQuery = (string) ($queryParameters['q'] ?? '');
+    $selectedLocation = array_key_exists('location', $queryParameters) ? (string) $queryParameters['location'] : ($hasFilterQuery ? '' : $preferredLocation);
+    $selectedMode = array_key_exists('work_mode', $queryParameters) ? (string) $queryParameters['work_mode'] : ($hasFilterQuery ? '' : $preferredMode);
 @endphp
 
 <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,0.42fr)]">
@@ -31,22 +36,35 @@
                     </div>
                     <span class="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800">{{ __('Filters') }}</span>
                 </div>
-                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                <form method="GET" action="{{ route('frontend.candidate.vacancies.index') }}" class="mt-4" data-vacancy-search-form>
+                    <input type="hidden" name="page" value="{{ request()->query('page', 1) }}" data-vacancy-page>
+                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        <label class="text-sm font-medium text-hb-text">
+                            {{ __('candidate.vacancies_search.search_label') }}
+                            <span class="mt-1.5 flex gap-2">
+                                <input type="search" name="q" value="{{ $searchQuery }}" maxlength="100" data-vacancy-search class="w-full min-w-0 rounded-lg border border-hb-border px-3 py-2 text-sm focus:border-hb-blue focus:outline-none focus:ring-2 focus:ring-hb-blue/20" placeholder="{{ __('candidate.vacancies_search.search_placeholder') }}">
+                                <button type="button" data-clear-vacancy-search class="rounded-lg border border-hb-border px-3 py-2 text-sm font-semibold text-hb-navy transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50" @disabled($searchQuery === '')>{{ __('candidate.vacancies_search.clear_search') }}</button>
+                            </span>
+                        </label>
                     <label class="text-sm font-medium text-hb-text">
                         {{ __('Location') }}
-                        <input type="search" value="{{ $preferredLocation }}" data-preference-location class="mt-1.5 w-full rounded-lg border border-hb-border px-3 py-2 text-sm focus:border-hb-blue focus:outline-none focus:ring-2 focus:ring-hb-blue/20" placeholder="{{ __('Any location') }}">
+                        <input type="search" name="location" value="{{ $selectedLocation }}" maxlength="100" data-preference-location class="mt-1.5 w-full rounded-lg border border-hb-border px-3 py-2 text-sm focus:border-hb-blue focus:outline-none focus:ring-2 focus:ring-hb-blue/20" placeholder="{{ __('Any location') }}">
                     </label>
                     <label class="text-sm font-medium text-hb-text">
                         {{ __('Work mode') }}
-                        <select data-preference-mode class="mt-1.5 w-full rounded-lg border border-hb-border bg-white px-3 py-2 text-sm focus:border-hb-blue focus:outline-none focus:ring-2 focus:ring-hb-blue/20">
+                        <select name="work_mode" data-preference-mode class="mt-1.5 w-full rounded-lg border border-hb-border bg-white px-3 py-2 text-sm focus:border-hb-blue focus:outline-none focus:ring-2 focus:ring-hb-blue/20">
                             <option value="">{{ __('Any mode') }}</option>
-                            <option value="remote" @selected(strtolower((string) $preferredMode) === 'remote')>{{ __('Remote') }}</option>
-                            <option value="hybrid" @selected(strtolower((string) $preferredMode) === 'hybrid')>{{ __('Hybrid') }}</option>
-                            <option value="onsite" @selected(strtolower((string) $preferredMode) === 'onsite')>{{ __('On-site') }}</option>
+                            <option value="remote" @selected(strtolower((string) $selectedMode) === 'remote')>{{ __('Remote') }}</option>
+                            <option value="hybrid" @selected(strtolower((string) $selectedMode) === 'hybrid')>{{ __('Hybrid') }}</option>
+                            <option value="onsite" @selected(strtolower((string) $selectedMode) === 'onsite')>{{ __('On-site') }}</option>
                         </select>
                     </label>
-                </div>
-                <p class="mt-3 text-xs text-hb-muted">{{ __('Preferences on this page filter the current results and are saved on this device only.') }}</p>
+                    </div>
+                    @if ($errors->hasAny(['q', 'location', 'work_mode', 'page']))
+                        <p class="mt-3 text-sm text-hb-error" role="alert">{{ __('candidate.vacancies_search.validation_error') }}</p>
+                    @endif
+                </form>
+                <p class="mt-3 text-xs text-hb-muted">{{ __('candidate.vacancies_search.filter_hint') }}</p>
             </section>
 
             <section class="rounded-2xl border border-hb-border bg-white p-5 shadow-sm" aria-labelledby="skills-heading">
@@ -84,6 +102,12 @@
         </div>
         <p class="text-sm text-hb-muted" data-discovery-status role="status" aria-live="polite"></p>
 
+        @if ($loadError ?? false)
+            <div class="rounded-2xl border border-hb-error/30 bg-white p-6" role="alert" data-vacancies-load-error>
+                <p class="font-semibold text-hb-error">{{ $loadError }}</p>
+                <a href="{{ request()->fullUrl() }}" class="mt-3 inline-flex font-semibold text-hb-blue hover:underline">{{ __('candidate.vacancies_search.retry') }}</a>
+            </div>
+        @else
         <div class="grid gap-4 lg:grid-cols-2" data-job-list>
             @forelse ($items as $row)
                 @php
@@ -136,18 +160,19 @@
                     </div>
                 </article>
             @empty
-                <div class="rounded-2xl border border-dashed border-hb-border bg-white px-6 py-12 text-center text-hb-muted lg:col-span-2">{{ __('No matching roles were returned.') }}</div>
+                <div class="rounded-2xl border border-dashed border-hb-border bg-white px-6 py-12 text-center text-hb-muted lg:col-span-2" data-empty-results>{{ __('candidate.vacancies_search.empty') }}</div>
             @endforelse
         </div>
-        <p class="hidden rounded-xl border border-hb-border bg-white p-6 text-center text-sm text-hb-muted" data-empty-filter>{{ __('No roles match these filters. Clear a preference or show hidden roles.') }}</p>
-        @include('frontend.partials.pagination', ['meta' => $meta])
+        <p class="hidden rounded-xl border border-hb-border bg-white p-6 text-center text-sm text-hb-muted" data-empty-filter>{{ __('candidate.vacancies_search.hidden_empty') }}</p>
+        @include('frontend.partials.pagination', ['meta' => $meta, 'ariaLabel' => __('candidate.vacancies_search.pagination')])
+        @endif
     </section>
 
     <aside class="h-fit rounded-2xl border border-hb-border bg-slate-900 p-5 text-white xl:sticky xl:top-6" aria-labelledby="discover-guide">
         <p class="text-xs font-bold uppercase tracking-[0.16em] text-sky-300">{{ __('Your search') }}</p>
         <h2 id="discover-guide" class="mt-2 text-lg font-bold">{{ __('Make discovery work for you') }}</h2>
         <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-300">
-            <li>{{ __('Use location and work mode to filter the current results.') }}</li>
+            <li>{{ __('candidate.vacancies_search.guide') }}</li>
             <li>{{ __('Hide roles to remove them from this device’s results.') }}</li>
             <li>{{ __('Saved search and hidden-role preferences are browser-local, not synced to your account.') }}</li>
         </ul>
@@ -159,10 +184,12 @@
 
 <script>
     (() => {
+        const form = document.querySelector('[data-vacancy-search-form]');
+        const searchInput = document.querySelector('[data-vacancy-search]');
+        const clearSearchButton = document.querySelector('[data-clear-vacancy-search]');
+        const pageInput = document.querySelector('[data-vacancy-page]');
         const list = document.querySelector('[data-job-list]');
-        if (!list) return;
-
-        const cards = [...list.querySelectorAll('[data-job-card]')];
+        const cards = list ? [...list.querySelectorAll('[data-job-card]')] : [];
         const locationInput = document.querySelector('[data-preference-location]');
         const modeSelect = document.querySelector('[data-preference-mode]');
         const saveButton = document.querySelector('[data-save-search]');
@@ -172,14 +199,18 @@
         const storageKey = 'candidate-discovery-v1';
         let hiddenIds = [];
         let showHidden = false;
+        let filterTimer = null;
+        const queryParameters = new URLSearchParams(window.location.search);
+        const hasFilterQuery = ['q', 'location', 'work_mode'].some((key) => queryParameters.has(key));
 
         function readPreferences() {
             try {
                 const stored = JSON.parse(localStorage.getItem(storageKey) || '{}');
                 hiddenIds = Array.isArray(stored.hiddenIds) ? stored.hiddenIds.map(String) : [];
-                if (stored.search && typeof stored.search === 'object') {
-                    locationInput.value = String(stored.search.location || locationInput.value || '');
-                    modeSelect.value = String(stored.search.mode || modeSelect.value || '');
+                if (!hasFilterQuery && stored.search && typeof stored.search === 'object') {
+                    searchInput.value = String(stored.search.q ?? searchInput.value ?? '');
+                    locationInput.value = String(stored.search.location ?? locationInput.value ?? '');
+                    modeSelect.value = String(stored.search.mode ?? modeSelect.value ?? '');
                 }
             } catch {
                 status.textContent = @json(__('Your browser could not load saved discovery preferences.'));
@@ -192,7 +223,7 @@
                 localStorage.setItem(storageKey, JSON.stringify({
                     ...current,
                     hiddenIds,
-                    search: { location: locationInput.value.trim(), mode: modeSelect.value },
+                    search: { q: searchInput.value.trim(), location: locationInput.value.trim(), mode: modeSelect.value },
                     ...extra,
                 }));
                 return true;
@@ -203,30 +234,51 @@
         }
 
         function updateCards() {
-            const location = locationInput.value.trim().toLocaleLowerCase();
-            const mode = modeSelect.value.toLocaleLowerCase();
             let visible = 0;
             cards.forEach((card) => {
                 const hidden = hiddenIds.includes(card.dataset.jobId);
-                const locationMatch = !location || card.dataset.location.toLocaleLowerCase().includes(location);
-                const normalizeMode = (value) => value.toLocaleLowerCase().replace(/[^a-z]/g, '');
-                const modeMatch = !mode || normalizeMode(card.dataset.mode) === normalizeMode(mode);
-                const isVisible = (showHidden || !hidden) && locationMatch && modeMatch;
+                const isVisible = showHidden || !hidden;
                 card.hidden = !isVisible;
                 visible += Number(isVisible);
                 const hideButton = card.querySelector('[data-hide-job]');
                 hideButton.textContent = hidden ? @json(__('Unhide role')) : @json(__('Hide role'));
                 hideButton.setAttribute('aria-pressed', String(hidden));
             });
-            empty.classList.toggle('hidden', visible !== 0 || cards.length === 0);
+            empty?.classList.toggle('hidden', visible !== 0 || cards.length === 0);
             hiddenToggle.textContent = showHidden ? @json(__('Hide hidden roles')) : @json(__('Show hidden roles'));
             hiddenToggle.setAttribute('aria-pressed', String(showHidden));
         }
 
+        function scheduleFilterSubmit(delay = 250) {
+            window.clearTimeout(filterTimer);
+            filterTimer = window.setTimeout(() => {
+                pageInput.value = '1';
+                form.requestSubmit();
+            }, delay);
+        }
+
         readPreferences();
         updateCards();
-        locationInput.addEventListener('input', updateCards);
-        modeSelect.addEventListener('change', updateCards);
+        searchInput.addEventListener('input', () => {
+            clearSearchButton.disabled = searchInput.value.trim() === '';
+            scheduleFilterSubmit(300);
+        });
+        clearSearchButton.addEventListener('click', () => {
+            searchInput.value = '';
+            clearSearchButton.disabled = true;
+            scheduleFilterSubmit(0);
+            searchInput.focus();
+        });
+        locationInput.addEventListener('input', () => scheduleFilterSubmit(300));
+        modeSelect.addEventListener('change', () => scheduleFilterSubmit(0));
+        form.addEventListener('submit', () => {
+            pageInput.value = '1';
+            status.textContent = @json(__('candidate.vacancies_search.loading'));
+        });
+        if (!hasFilterQuery && !document.querySelector('[data-vacancies-load-error]')
+            && (searchInput.value.trim() || locationInput.value.trim() || modeSelect.value)) {
+            scheduleFilterSubmit(0);
+        }
         saveButton.addEventListener('click', () => {
             status.textContent = persist({ savedAt: new Date().toISOString() })
                 ? @json(__('Search saved on this device.'))

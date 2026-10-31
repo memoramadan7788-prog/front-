@@ -8,11 +8,13 @@ use App\Models\JobAPI;
 use App\Models\LookupAPI;
 use App\Support\Frontend\CandidateDashboard\CandidateDashboardKpiGateway;
 use App\Support\Frontend\CandidateReturnPath;
+use App\Support\Frontend\SafeApiMessage;
 use App\Support\Rows;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\Rule;
 
 class CandidateController extends Controller
 {
@@ -90,7 +92,7 @@ class CandidateController extends Controller
         return view('frontend.candidate.update-profile', get_defined_vars());
     }
 
-public function uploadResume(Request $request)
+    public function uploadResume(Request $request)
     {
         // Backend UploadCvRequest: mimes pdf,doc,docx · max 10240 KB (10 MB).
         $maxKilobytes = 10240;
@@ -143,6 +145,7 @@ public function uploadResume(Request $request)
             'maxBytes' => $maxKilobytes * 1024,
         ]);
     }
+
     public function downloadResume(Request $request, $resumeId)
     {
         $response = $this->api->downloadResume($resumeId);
@@ -173,22 +176,37 @@ public function uploadResume(Request $request)
         }
     }
 
-    public function getVacancies(Request $request)
+    public function getVacancies(Request $request, JobAPI $jobs): View
     {
-        $response = $this->api->getVacancies();
+        $validated = $request->validate([
+            'q' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'location' => ['sometimes', 'nullable', 'string', 'max:100'],
+            'work_mode' => ['sometimes', 'nullable', 'string', Rule::in(['remote', 'hybrid', 'onsite'])],
+            'page' => ['sometimes', 'nullable', 'integer', 'min:1'],
+        ]);
+        $filters = array_filter([
+            'q' => isset($validated['q']) ? trim($validated['q']) : null,
+            'location' => isset($validated['location']) ? trim($validated['location']) : null,
+            'work_mode' => $validated['work_mode'] ?? null,
+            'page' => $validated['page'] ?? null,
+        ], fn ($value) => $value !== null && $value !== '');
+        $response = $jobs->getJobs($filters);
+        $loadError = null;
 
-        if ($response['statusCode'] === 200) {
-            $discoverContext = $this->discoverContext();
-
-            // Vacancies retrieval successful, you can perform additional actions here if needed
-            return view('frontend.candidate.vacancies', [
-                'vacancies' => $response['data'],
-                ...$discoverContext,
-            ]);
-        } else {
-            // Vacancies retrieval failed, return the error message
-            return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+        if ((int) ($response['statusCode'] ?? 500) !== 200) {
+            $loadError = SafeApiMessage::forUser(
+                is_string($response['message'] ?? null) ? $response['message'] : null,
+                __('candidate.vacancies_search.load_error'),
+                ['action' => 'candidate.vacancies.index', 'status' => $response['statusCode'] ?? null]
+            );
         }
+
+        return view('frontend.candidate.vacancies', [
+            'vacancies' => $loadError === null && is_array($response['data'] ?? null) ? $response['data'] : [],
+            'pagination' => is_array($response['meta']['pagination'] ?? null) ? $response['meta']['pagination'] : null,
+            'loadError' => $loadError,
+            ...$this->discoverContext(),
+        ]);
     }
 
     /**
@@ -319,7 +337,7 @@ public function uploadResume(Request $request)
         ]);
     }
 
-public function getApplications(Request $request, CandidateApplicationsAdapter $adapter)
+    public function getApplications(Request $request, CandidateApplicationsAdapter $adapter)
     {
         $payload = $adapter->load($request);
 

@@ -975,6 +975,21 @@ return [
         'status_removed' => 'Removed',
     ],
 
+    'vacancies_search' => [
+        'search_label' => 'Search jobs and companies',
+        'search_placeholder' => 'Job title or company name',
+        'clear_search' => 'Clear',
+        'filter_hint' => 'Search, location, and work mode are combined for each results page.',
+        'loading' => 'Updating vacancies…',
+        'load_error' => 'We could not load vacancies right now. Please try again.',
+        'retry' => 'Try again',
+        'empty' => 'No vacancies match this search and the selected filters.',
+        'hidden_empty' => 'All matching roles are hidden. Show hidden roles to see them again.',
+        'guide' => 'Search by job title or company name, then combine location and work mode.',
+        'pagination' => 'Vacancy pages',
+        'validation_error' => 'Check the search and filter values, then try again.',
+    ],
+
     'apply_form' => [
         'page_title' => 'Apply · TalentBridge',
         'title' => 'Apply for this job',

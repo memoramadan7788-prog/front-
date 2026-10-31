@@ -146,7 +146,8 @@ class CandidateJobDetailsAndProfileTest extends TestCase
         $this->actingAsCandidate();
 
         $api = Mockery::mock(CandidateAPI::class);
-        $api->shouldReceive('getVacancies')->once()->andReturn([
+        $jobs = Mockery::mock(JobAPI::class);
+        $jobs->shouldReceive('getJobs')->once()->with([])->andReturn([
             'message' => 'OK',
             'data' => [
                 [
@@ -165,6 +166,7 @@ class CandidateJobDetailsAndProfileTest extends TestCase
         $api->shouldReceive('getSkills')->once()->andReturn(['data' => [], 'statusCode' => 200]);
         $api->shouldReceive('getApplications')->once()->andReturn(['data' => [], 'statusCode' => 200]);
         $this->app->instance(CandidateAPI::class, $api);
+        $this->app->instance(JobAPI::class, $jobs);
 
         $html = $this->get(route('frontend.candidate.vacancies.index'))
             ->assertOk()
@@ -194,7 +196,8 @@ class CandidateJobDetailsAndProfileTest extends TestCase
         $this->actingAsCandidate();
 
         $api = Mockery::mock(CandidateAPI::class);
-        $api->shouldReceive('getVacancies')->once()->andReturn([
+        $jobs = Mockery::mock(JobAPI::class);
+        $jobs->shouldReceive('getJobs')->once()->with([])->andReturn([
             'message' => 'OK',
             'data' => [
                 [
@@ -223,6 +226,7 @@ class CandidateJobDetailsAndProfileTest extends TestCase
             'statusCode' => 200,
         ]);
         $this->app->instance(CandidateAPI::class, $api);
+        $this->app->instance(JobAPI::class, $jobs);
 
         $this->get(route('frontend.candidate.vacancies.index'))
             ->assertOk()
@@ -237,7 +241,8 @@ class CandidateJobDetailsAndProfileTest extends TestCase
         $this->app['env'] = 'local';
 
         $api = Mockery::mock(CandidateAPI::class);
-        $api->shouldReceive('getVacancies')->once()->andReturn([
+        $jobs = Mockery::mock(JobAPI::class);
+        $jobs->shouldReceive('getJobs')->once()->with([])->andReturn([
             'message' => 'OK',
             'data' => [[
                 'id' => 7,
@@ -254,6 +259,7 @@ class CandidateJobDetailsAndProfileTest extends TestCase
         $api->shouldReceive('getSkills')->once()->andReturn(['data' => [], 'statusCode' => 200]);
         $api->shouldReceive('getApplications')->once()->andReturn(['data' => [], 'statusCode' => 200]);
         $this->app->instance(CandidateAPI::class, $api);
+        $this->app->instance(JobAPI::class, $jobs);
 
         $response = $this->get(route('frontend.candidate.vacancies.index'));
 
