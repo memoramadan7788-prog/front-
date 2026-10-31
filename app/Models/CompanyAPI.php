@@ -172,13 +172,14 @@ class CompanyAPI
         return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
     }
 
-    public function getVacancies()
+    public function getVacancies(?int $page = null): array
     {
         $message = '';
         $statusCode = 200;
 
         $res = $this->api->reset()->method('GET')
             ->url('/company/jobs')
+            ->query($page === null ? [] : ['page' => $page])
             ->bearer(ApiSession::token() ?? '')->send();
 
         if ($res->ok()) {
@@ -189,7 +190,12 @@ class CompanyAPI
             $statusCode = $res->statusCode;
         }
 
-        return ['message' => $message, 'data' => $res->data, 'statusCode' => $statusCode];
+        return [
+            'message' => $message,
+            'data' => $res->data,
+            'meta' => $res->pagination(),
+            'statusCode' => $statusCode,
+        ];
     }
 
     /** The backend asks for company_id on create: it is the company of the logged-in user. */

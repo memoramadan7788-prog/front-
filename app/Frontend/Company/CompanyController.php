@@ -2,11 +2,15 @@
 
 namespace App\Frontend\Company;
 
+use App\Frontend\Auth\ApiSession;
 use App\Models\CompanyAPI;
 use App\Models\LookupAPI;
 use App\Support\Rows;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\Rule;
 
 class CompanyController extends Controller
 {
@@ -65,8 +69,11 @@ class CompanyController extends Controller
             'q' => ['nullable', 'string', 'max:120'],
             'location' => ['nullable', 'string', 'max:120'],
             'hiring_model' => ['nullable', 'string', 'in:direct,agency'],
+            'page' => ['nullable', 'integer', 'min:1'],
         ]);
-        $response = $this->api->getVacancies();
+        $page = (int) ($filters['page'] ?? 1);
+        unset($filters['page']);
+        $response = $this->api->getVacancies($page);
 
         if ($response['statusCode'] === 200) {
             $items = Rows::from($response['data'] ?? []);
@@ -96,6 +103,7 @@ class CompanyController extends Controller
                 'vacancies' => $response['data'] ?? [],
                 'items' => $items,
                 'filters' => array_merge(['status' => $status, 'q' => '', 'location' => '', 'hiring_model' => ''], $filters),
+                'pagination' => $this->normalizeVacancyPagination($response['meta'] ?? null),
                 'loadError' => null,
             ]);
         } else {
@@ -103,9 +111,33 @@ class CompanyController extends Controller
                 'vacancies' => [],
                 'items' => [],
                 'filters' => array_merge(['status' => 'all', 'q' => '', 'location' => '', 'hiring_model' => ''], $filters),
+                'pagination' => null,
                 'loadError' => __('company.vacancies_management.load_error'),
             ]);
         }
+    }
+
+    /** @param mixed $meta */
+    private function normalizeVacancyPagination(mixed $meta): ?array
+    {
+        if (! is_array($meta)) {
+            return null;
+        }
+
+        $currentPage = filter_var($meta['current_page'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $lastPage = filter_var($meta['last_page'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+        if ($currentPage === false || $lastPage === false || $currentPage > $lastPage) {
+            return null;
+        }
+
+        $total = filter_var($meta['total'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+
+        return [
+            'current_page' => $currentPage,
+            'last_page' => $lastPage,
+            'total' => $total === false ? null : $total,
+        ];
     }
 
     public function jobOverview(Request $request, string $vacancyId)
@@ -283,6 +315,33 @@ class CompanyController extends Controller
             // Applications retrieval failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
+    }
+
+    public function getApplicantProfile(Request $request, int $applicationId): View|RedirectResponse
+    {
+        $filters = $request->validate([
+            'tab' => ['nullable', Rule::in(['profile', 'interview_plan', 'notes_activity', 'contact_consent'])],
+        ]);
+        $response = $this->api->getApplication($applicationId);
+        $status = (int) ($response['statusCode'] ?? 500);
+
+        if ($status === 401) {
+            ApiSession::forget();
+
+            return redirect()->route('frontend.account.login')
+                ->withErrors(['error' => __('company.applicant_profile.session_expired')]);
+        }
+
+        if ($status === 404) {
+            abort(404);
+        }
+
+        return view('frontend.company.applicant-profile', [
+            'applicationId' => $applicationId,
+            'application' => $status === 200 && is_array($response['data'] ?? null) ? $response['data'] : [],
+            'tab' => $filters['tab'] ?? 'profile',
+            'state' => $status === 200 ? 'loaded' : ($status === 403 ? 'forbidden' : 'error'),
+        ]);
     }
 
     public function updateApplicationStatus(Request $request, $applicationId)
