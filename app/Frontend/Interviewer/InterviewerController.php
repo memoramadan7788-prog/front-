@@ -4,10 +4,13 @@ namespace App\Frontend\Interviewer;
 
 use App\Frontend\Auth\ApiSession;
 use App\Models\InterviewerAPI;
+use App\Support\Frontend\SafeApiMessage;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\View\View;
 
 class InterviewerController extends Controller
 {
@@ -26,17 +29,114 @@ class InterviewerController extends Controller
         }
     }
 
-    public function getInterview(Request $request, $interviewId)
+    public function getInterview(Request $request, int $interviewId): View|RedirectResponse
     {
         $response = $this->api->getInterview($interviewId);
+        $status = (int) ($response['statusCode'] ?? 500);
 
-        if ($response['statusCode'] === 200) {
-            // Interview retrieval successful, you can perform additional actions here if needed
-            return view('frontend.interviewer.interview-details', ['interview' => $response['data'], 'interviewId' => $interviewId]);
-        } else {
-            // Interview retrieval failed, return the error message
-            return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+        if ($status === 401) {
+            ApiSession::forget();
+
+            return redirect()->route('frontend.account.login')
+                ->withErrors(['error' => __('interviewer.details.session_expired')]);
         }
+
+        if ($status === 404) {
+            abort(404);
+        }
+
+        if ($status === 403) {
+            return view('frontend.interviewer.interview-details', [
+                'state' => 'forbidden',
+                'interviewId' => $interviewId,
+                'interview' => [],
+                'bookings' => [],
+                'prompts' => $this->genericPrompts(),
+                'message' => __('interviewer.details.forbidden'),
+            ]);
+        }
+
+        if ($status !== 200 || ! is_array($response['data'] ?? null)) {
+            return view('frontend.interviewer.interview-details', [
+                'state' => 'error',
+                'interviewId' => $interviewId,
+                'interview' => [],
+                'bookings' => [],
+                'prompts' => $this->genericPrompts(),
+                'message' => SafeApiMessage::forUser(
+                    is_string($response['message'] ?? null) ? $response['message'] : null,
+                    __('interviewer.details.load_error'),
+                    ['action' => 'interviewer.interviews.show', 'status' => $status]
+                ),
+            ]);
+        }
+
+        return view('frontend.interviewer.interview-details', [
+            'state' => 'loaded',
+            'details' => $this->interviewDetails($response['data'], $interviewId),
+            'interviewId' => $interviewId,
+            'prompts' => $this->genericPrompts(),
+            'message' => null,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $interview
+     * @return array<string, mixed>
+     */
+    private function interviewDetails(array $interview, int $interviewId): array
+    {
+        $bookings = data_get($interview, 'bookings', []);
+        $bookings = is_array($bookings) ? $bookings : [];
+        $bookings = array_values(array_filter($bookings, static fn ($booking): bool => is_array($booking)
+            && strtolower((string) data_get($booking, 'booking_status', '')) !== 'cancelled'));
+        $bookings = array_map(fn (array $booking): array => [
+            'interviewer_name' => $this->stringOrNull(data_get($booking, 'interviewer.name')),
+            'start_at' => $this->stringOrNull(data_get($booking, 'start_at')),
+            'end_at' => $this->stringOrNull(data_get($booking, 'end_at')),
+        ], $bookings);
+
+        $meetingLink = $this->stringOrNull(data_get($interview, 'meeting_link') ?? data_get($interview, 'meeting_url'));
+        if ($meetingLink !== null && ! preg_match('#^https?://#i', $meetingLink)) {
+            $meetingLink = null;
+        }
+
+        return [
+            'id' => data_get($interview, 'id', $interviewId),
+            'job_title' => $this->stringOrNull(data_get($interview, 'application.job.title')
+                ?? data_get($interview, 'job.title')
+                ?? data_get($interview, 'job_title')),
+            'status' => $this->stringOrNull(data_get($interview, 'status')),
+            'round_no' => is_scalar(data_get($interview, 'round_no')) ? (string) data_get($interview, 'round_no') : null,
+            'interview_type' => $this->stringOrNull(data_get($interview, 'interview_type')),
+            'location' => $this->stringOrNull(data_get($interview, 'location')),
+            'instructions' => $this->stringOrNull(data_get($interview, 'instructions')),
+            'meeting_link' => $meetingLink,
+            'candidate_name' => $this->stringOrNull(data_get($interview, 'candidate.name')
+                ?? data_get($interview, 'application.candidate.name')
+                ?? data_get($interview, 'candidate_name')),
+            'candidate_headline' => $this->stringOrNull(data_get($interview, 'candidate.headline')),
+            'bookings' => $bookings,
+        ];
+    }
+
+    private function stringOrNull(mixed $value): ?string
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        return trim($value);
+    }
+
+    /** @return list<string> */
+    private function genericPrompts(): array
+    {
+        return [
+            __('interviewer.live.q_problem'),
+            __('interviewer.live.q_systems'),
+            __('interviewer.live.q_collaboration'),
+        ];
     }
 
     public function addAvailability(Request $request)

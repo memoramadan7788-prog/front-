@@ -2,6 +2,7 @@
 
 namespace App\Frontend\Admin;
 
+use App\Frontend\Auth\ApiSession;
 use App\Models\AdminAPI;
 use App\Support\Frontend\SafeApiMessage;
 use App\Support\Rows;
@@ -15,9 +16,9 @@ class AdminController extends Controller
     /** account_statuses ids used by the backend (AccountStatus model) */
     private const USER_STATUSES = ['active' => 1, 'deactivated' => 2, 'blocked' => 3];
 
-    public function __construct()
+    public function __construct(?AdminAPI $api = null)
     {
-        $this->api = new AdminAPI;
+        $this->api = $api ?? new AdminAPI;
     }
 
     /** Keep only the query-string filters the backend understands (drop empty ones). */
@@ -45,15 +46,108 @@ class AdminController extends Controller
 
     public function getCompanies(Request $request)
     {
-        $response = $this->api->getCompanies($this->filters($request, ['status', 'search', 'page']));
+        $status = trim((string) $request->query('status', ''));
+        $companyId = trim((string) $request->query('company_id', ''));
+        $page = max(1, (int) $request->integer('page', 1));
 
-        if ($response['statusCode'] === 200) {
-            // Companies retrieval successful, you can perform additional actions here if needed
-            return view('frontend.admin.companies', ['companies' => $response['data'], 'pagination' => $response['meta']]);
-        } else {
-            // Companies retrieval failed, return the error message
-            return redirect()->route('frontend.dashboard')->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+        // Dropdown options: page through the authorized list API (never first-page-only).
+        $catalog = (new AdminCompanyCatalog($this->api))->load();
+
+        // Backend list supports status + search only — no company_id filter.
+        // When a company is selected, use GET /admin/companies/{id} for an exact match.
+        if ($companyId !== '') {
+            $show = $this->api->getCompany($companyId);
+            $showStatus = (int) ($show['statusCode'] ?? 500);
+
+            if ($showStatus === 401) {
+                $loginRoute = ApiSession::isPlatformAdmin()
+                    ? 'frontend.account.admin-login'
+                    : 'frontend.account.login';
+                ApiSession::forget();
+
+                return redirect()->route($loginRoute)
+                    ->withErrors(['error' => __('Your session has expired. Please sign in again.')]);
+            }
+
+            if ($showStatus !== 200) {
+                // Never surface ModelNotFound / SQL dumps for a missing company option.
+                SafeApiMessage::forUser(
+                    is_string($show['message'] ?? null) ? $show['message'] : null,
+                    __('admin.companies.filter_company_unavailable'),
+                    ['action' => 'admin.companies.show', 'status' => $showStatus, 'company_id' => $companyId]
+                );
+
+                return view('frontend.admin.companies', [
+                    'companies' => [],
+                    'pagination' => null,
+                    'companyOptions' => $catalog['options'],
+                    'companyOptionsStatus' => $catalog['status'],
+                    'companyOptionsMessage' => $catalog['message'],
+                    'selectedCompanyId' => $companyId,
+                    'selectedStatus' => $status,
+                    'filterError' => __('admin.companies.filter_company_unavailable'),
+                ]);
+            }
+
+            $company = $this->unwrapCompany($show['data'] ?? null);
+            $matchesStatus = $status === '' || (string) ($company['status'] ?? '') === $status;
+            $rows = ($company !== null && $matchesStatus) ? [$company] : [];
+
+            return view('frontend.admin.companies', [
+                'companies' => $rows,
+                'pagination' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => 1,
+                    'total' => count($rows),
+                ],
+                'companyOptions' => $catalog['options'],
+                'companyOptionsStatus' => $catalog['status'],
+                'companyOptionsMessage' => $catalog['message'],
+                'selectedCompanyId' => $companyId,
+                'selectedStatus' => $status,
+                'filterError' => null,
+            ]);
         }
+
+        $filters = array_filter([
+            'status' => $status !== '' ? $status : null,
+            'page' => $page,
+        ], static fn ($v) => $v !== null && $v !== '');
+
+        $response = $this->api->getCompanies($filters);
+        $listStatus = (int) ($response['statusCode'] ?? 500);
+
+        if ($listStatus === 401) {
+            $loginRoute = ApiSession::isPlatformAdmin()
+                ? 'frontend.account.admin-login'
+                : 'frontend.account.login';
+            ApiSession::forget();
+
+            return redirect()->route($loginRoute)
+                ->withErrors(['error' => __('Your session has expired. Please sign in again.')]);
+        }
+
+        if ($listStatus !== 200) {
+            return redirect()->route('frontend.dashboard')->withErrors([
+                'error' => SafeApiMessage::forUser(
+                    is_string($response['message'] ?? null) ? $response['message'] : null,
+                    __('admin.companies.load_failed'),
+                    ['action' => 'admin.companies.index', 'status' => $listStatus]
+                ),
+            ]);
+        }
+
+        return view('frontend.admin.companies', [
+            'companies' => is_array($response['data'] ?? null) ? $response['data'] : [],
+            'pagination' => $response['meta'] ?? null,
+            'companyOptions' => $catalog['options'],
+            'companyOptionsStatus' => $catalog['status'],
+            'companyOptionsMessage' => $catalog['message'],
+            'selectedCompanyId' => '',
+            'selectedStatus' => $status,
+            'filterError' => null,
+        ]);
     }
 
     public function approveCompany(Request $request, $companyId)
@@ -96,28 +190,25 @@ class AdminController extends Controller
 
     public function suspendCompany(Request $request, $companyId)
     {
-        $fields = $request->validate([
-            'reason' => 'nullable|string|max:500',
-        ]);
-
-        $response = $this->api->suspendCompany($companyId, array_filter(['reason' => $fields['reason'] ?? null]));
-
-        if ($response['statusCode'] === 200) {
-            // Company suspension successful, you can perform additional actions here if needed
-            return redirect()->back()->with('success_key', 'flash.admin.company_suspended');
-        } else {
-            // Company suspension failed, return the error message
-            return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+        $permissions = data_get(auth()->user(), 'permissions', []);
+        if (! is_array($permissions) || ! in_array('companies.suspend', $permissions, true)) {
+            abort(403);
         }
 
-        // Backend platform Admin suspend currently fails audit FK (user_id=0) — never claim success.
-        return redirect()->back()->withErrors([
-            'error' => $this->apiFlashError(
-                $response,
-                __('admin.companies.suspend_failed'),
-                'admin.companies.suspend'
-            ),
+        $fields = $request->validate([
+            'reason' => 'required|string|max:500',
+            'acknowledged' => 'accepted',
         ]);
+
+        $response = $this->api->suspendCompany($companyId, ['reason' => $fields['reason']]);
+
+        if ($response['statusCode'] === 200) {
+            return redirect()->back()->with('success_key', 'flash.admin.company_suspended');
+        }
+
+        return redirect()->back()->withErrors([
+            'error' => SafeApiMessage::forUser((string) ($response['message'] ?? ''), __('admin.companies.suspend_failed'), ['action' => 'admin.companies.suspend']),
+        ])->withInput();
     }
 
     private function unwrapCompany(mixed $data): ?array

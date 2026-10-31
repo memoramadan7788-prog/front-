@@ -164,8 +164,8 @@ class AdminCompaniesFilterAndSuspendTest extends TestCase
 
         $api = Mockery::mock(AdminAPI::class);
         $this->expectPlatformMe($api);
-        $api->shouldReceive('suspendCompany')->once()->with('7', [])->andReturn([
-            'message' => "SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`recruitment_audit`.`audit_logs`, CONSTRAINT `audit_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL) (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: recruitment_audit, SQL: insert into `audit_logs` (`user_id`, `admin_id`, `action`) values (0, 1, company.suspended))",
+        $api->shouldReceive('suspendCompany')->once()->with('7', ['reason' => 'Policy review requested'])->andReturn([
+            'message' => 'SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`recruitment_audit`.`audit_logs`, CONSTRAINT `audit_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL) (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: recruitment_audit, SQL: insert into `audit_logs` (`user_id`, `admin_id`, `action`) values (0, 1, company.suspended))',
             'data' => null,
             'errors' => null,
             'statusCode' => 500,
@@ -173,7 +173,10 @@ class AdminCompaniesFilterAndSuspendTest extends TestCase
         $this->app->instance(AdminAPI::class, $api);
 
         $this->from(route('frontend.admin.companies.index'))
-            ->post(route('frontend.admin.companies.suspend', ['companyId' => 7]))
+            ->post(route('frontend.admin.companies.suspend', ['companyId' => 7]), [
+                'reason' => 'Policy review requested',
+                'acknowledged' => '1',
+            ])
             ->assertRedirect(route('frontend.admin.companies.index'))
             ->assertSessionHasErrors('error')
             ->assertSessionMissing('success_key');
@@ -184,6 +187,46 @@ class AdminCompaniesFilterAndSuspendTest extends TestCase
         $this->assertStringNotContainsString('SQLSTATE', $message);
         $this->assertStringNotContainsString('127.0.0.1', $message);
         $this->assertStringNotContainsString('audit_logs', $message);
+    }
+
+    public function test_suspend_requires_reason_and_acknowledgement_before_backend_call(): void
+    {
+        $this->actingAsPlatformAdmin();
+
+        $api = Mockery::mock(AdminAPI::class);
+        $this->expectPlatformMe($api);
+        $api->shouldNotReceive('suspendCompany');
+        $this->app->instance(AdminAPI::class, $api);
+
+        $this->from(route('frontend.admin.companies.index'))
+            ->post(route('frontend.admin.companies.suspend', ['companyId' => 7]))
+            ->assertRedirect(route('frontend.admin.companies.index'))
+            ->assertSessionHasErrors(['reason', 'acknowledged']);
+    }
+
+    public function test_suspend_requires_company_suspend_permission(): void
+    {
+        $this->actingAsPlatformAdmin();
+
+        $api = Mockery::mock(AdminAPI::class);
+        $api->shouldReceive('me')->once()->andReturn([
+            'message' => 'OK',
+            'data' => [
+                'id' => 1,
+                'email' => 'admin@example.com',
+                'name' => 'Platform Admin',
+                'roles' => ['super_admin'],
+                'permissions' => ['companies.review'],
+            ],
+            'statusCode' => 200,
+        ]);
+        $api->shouldNotReceive('suspendCompany');
+        $this->app->instance(AdminAPI::class, $api);
+
+        $this->post(route('frontend.admin.companies.suspend', ['companyId' => 7]), [
+            'reason' => 'Policy review requested',
+            'acknowledged' => '1',
+        ])->assertForbidden();
     }
 
     public function test_catalog_error_state_is_surfaced_without_hardcoded_companies(): void

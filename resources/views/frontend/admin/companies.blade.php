@@ -98,8 +98,6 @@
                 @if ($st === 'pending')
                     <form method="POST" action="{{ route('frontend.admin.companies.approve', ['companyId' => data_get($row, 'id')]) }}" class="inline">@csrf <x-button type="submit" size="sm" variant="primary">{{ __('Approve') }}</x-button></form>
                     <x-button variant="destructive" size="sm" :href="route('frontend.admin.companies.reject', ['companyId' => data_get($row, 'id')])">{{ __('Reject') }}</x-button>
-                @elseif ($st === 'approved')
-                    <form method="POST" action="{{ route('frontend.admin.companies.suspend', ['companyId' => data_get($row, 'id')]) }}" class="inline" onsubmit="return confirm('{{ __('Suspend this company?') }}')">@csrf <x-button type="submit" size="sm" variant="light">{{ __('Suspend') }}</x-button></form>
                 @elseif ($st === 'suspended')
                     <form method="POST" action="{{ route('frontend.admin.companies.approve', ['companyId' => data_get($row, 'id')]) }}" class="inline">@csrf <x-button type="submit" size="sm" variant="primary">{{ __('Reactivate') }}</x-button></form>
                 @endif
