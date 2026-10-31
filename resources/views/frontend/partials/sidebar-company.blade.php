@@ -18,6 +18,11 @@
             'active' => request()->routeIs('frontend.company.vacancies.*'),
         ],
         [
+            'label' => __('navigation.company.talent_pool'),
+            'route' => 'frontend.company.talent-pool.index',
+            'active' => request()->routeIs('frontend.company.talent-pool.*'),
+        ],
+        [
             'label' => __('Team interview calendar'),
             'route' => 'frontend.company.interview-calendar',
             'active' => request()->routeIs('frontend.company.interview-calendar'),
