@@ -3,18 +3,29 @@
 namespace Tests\Feature;
 
 use App\Frontend\Auth\ApiSession;
+use App\Models\ContactAPI;
 use Illuminate\Support\Facades\App;
+use Mockery;
 use Tests\TestCase;
 
 class PublicContactWorkflowsTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
+
     public function test_guest_contact_page_has_only_general_contact_fields(): void
     {
         $this->get(route('frontend.contact'))
             ->assertOk()
             ->assertSee('name="name"', false)
             ->assertSee('name="email"', false)
-            ->assertSee('name="message"', false)
+            ->assertSee('name="subject"', false)
+            ->assertSee('name="description"', false)
+            ->assertSee('data-submit-loading', false)
+            ->assertSee('button.disabled = true', false)
             ->assertDontSee('name="hiring_model"', false)
             ->assertSee(route('frontend.consultation'));
     }
@@ -28,49 +39,111 @@ class PublicContactWorkflowsTest extends TestCase
             ->assertSee('Taylor Example')
             ->assertSee('taylor@example.test')
             ->assertDontSee('name="name"', false)
-            ->assertDontSee('name="email"', false);
+            ->assertDontSee('name="email"', false)
+            ->assertSee('name="subject"', false)
+            ->assertSee('name="description"', false);
     }
 
-    public function test_general_contact_validation_preserves_values_and_valid_submission_is_unavailable(): void
+    public function test_general_contact_validation_and_guest_success_state(): void
     {
-        $this->from(route('frontend.contact'))
-            ->post(route('frontend.contact.submit'), ['name' => '', 'email' => 'invalid', 'message' => ''])
-            ->assertRedirect(route('frontend.contact'))
-            ->assertSessionHasErrors(['name', 'email', 'message'])
-            ->assertSessionHas('_old_input.email', 'invalid');
+        $api = Mockery::mock(ContactAPI::class);
+        $api->shouldReceive('submitContactMessage')->once()->with([
+            'name' => 'Guest Example',
+            'email' => 'guest@example.test',
+            'title' => 'Account question',
+            'description' => 'A general question',
+        ], false)->andReturn(['statusCode' => 200, 'message' => 'Sent', 'errors' => []]);
+        $this->app->instance(ContactAPI::class, $api);
 
         $this->from(route('frontend.contact'))
-            ->post(route('frontend.contact.submit'), [
-                'name' => 'Guest Example',
-                'email' => 'guest@example.test',
-                'message' => 'A general question',
-            ])
+            ->post(route('frontend.contact.submit'), ['name' => '', 'email' => 'invalid', 'subject' => '', 'description' => ''])
             ->assertRedirect(route('frontend.contact'))
-            ->assertSessionHas('submission_unavailable', __('public.contact.unavailable'));
+            ->assertSessionHasErrors(['name', 'email', 'subject', 'description'])
+            ->assertSessionHas('_old_input.email', 'invalid');
 
         $response = $this->followingRedirects()
             ->from(route('frontend.contact'))
             ->post(route('frontend.contact.submit'), [
                 'name' => 'Guest Example',
                 'email' => 'guest@example.test',
-                'message' => 'A general question',
+                'subject' => 'Account question',
+                'description' => 'A general question',
             ])->assertOk()
-            ->assertSee(__('public.contact.unavailable'));
-        $this->assertSame(1, substr_count($response->getContent(), __('public.contact.unavailable')));
+            ->assertSee(__('public.contact.success'));
+        $this->assertSame(1, substr_count($response->getContent(), __('public.contact.success')));
     }
 
-    public function test_authenticated_contact_requires_no_submitted_identity_and_ignores_editable_identity(): void
+    public function test_authenticated_contact_uses_session_identity_not_submitted_identity(): void
     {
         $this->loginAsUser();
+        $api = Mockery::mock(ContactAPI::class);
+        $api->shouldReceive('submitContactMessage')->once()->with([
+            'name' => 'Taylor Example',
+            'email' => 'taylor@example.test',
+            'title' => 'Profile question',
+            'description' => 'A question from my account',
+        ], true)->andReturn(['statusCode' => 200, 'message' => 'Sent', 'errors' => []]);
+        $this->app->instance(ContactAPI::class, $api);
 
         $this->from(route('frontend.contact'))->post(route('frontend.contact.submit'), [
             'name' => 'Spoofed Name',
             'email' => 'spoof@example.test',
-            'message' => 'A general question',
+            'subject' => 'Profile question',
+            'description' => 'A question from my account',
         ])->assertRedirect(route('frontend.contact'))
-            ->assertSessionHas('submission_unavailable', __('public.contact.unavailable'))
+            ->assertSessionHas('contact_submitted', true)
             ->assertSessionMissing('_old_input.name')
             ->assertSessionMissing('_old_input.email');
+    }
+
+    public function test_authenticated_contact_requires_account_identity_from_session(): void
+    {
+        ApiSession::store('session-token', ['account_type' => 'candidate']);
+        $api = Mockery::mock(ContactAPI::class);
+        $api->shouldNotReceive('submitContactMessage');
+        $this->app->instance(ContactAPI::class, $api);
+
+        $this->from(route('frontend.contact'))->post(route('frontend.contact.submit'), [
+            'subject' => 'Profile question',
+            'description' => 'A question from my account',
+        ])->assertRedirect(route('frontend.contact'))
+            ->assertSessionHasErrors('error');
+    }
+
+    public function test_backend_validation_and_failure_are_reported_without_exposing_sensitive_errors(): void
+    {
+        $api = Mockery::mock(ContactAPI::class);
+        $api->shouldReceive('submitContactMessage')->twice()->andReturn(...[
+            [
+                'statusCode' => 422,
+                'message' => 'Validation failed.',
+                'errors' => ['title' => ['Subject was rejected.'], 'description' => ['Description was rejected.']],
+            ],
+            [
+                'statusCode' => 500,
+                'message' => 'SQLSTATE[23000] private database failure',
+                'errors' => [],
+            ],
+        ]);
+        $this->app->instance(ContactAPI::class, $api);
+
+        $this->from(route('frontend.contact'))->post(route('frontend.contact.submit'), [
+            'name' => 'Guest Example',
+            'email' => 'guest@example.test',
+            'subject' => 'A subject',
+            'description' => 'A message body',
+        ])->assertRedirect(route('frontend.contact'))
+            ->assertSessionHasErrors(['subject', 'description']);
+
+        $response = $this->followingRedirects()->from(route('frontend.contact'))
+            ->post(route('frontend.contact.submit'), [
+                'name' => 'Guest Example',
+                'email' => 'guest@example.test',
+                'subject' => 'A subject',
+                'description' => 'A message body',
+            ])->assertOk()->assertSee(__('public.contact.unavailable'));
+
+        $this->assertStringNotContainsString('SQLSTATE', $response->getContent());
     }
 
     public function test_consultation_is_separate_and_about_calls_to_action_link_to_it(): void
@@ -163,11 +236,11 @@ class PublicContactWorkflowsTest extends TestCase
     public function test_english_and_arabic_pages_render_their_translations(): void
     {
         App::setLocale('en');
-        $this->get(route('frontend.contact'))->assertOk()->assertSee(__('public.contact.general_form_title'));
+        $this->get(route('frontend.contact'))->assertOk()->assertSee(__('public.contact.general_form_title'))->assertSee(__('public.contact.subject'));
         $this->get(route('frontend.consultation'))->assertOk()->assertSee(__('public.consultation.form_title'));
 
         App::setLocale('ar');
-        $this->get(route('frontend.contact'))->assertOk()->assertSee(__('public.contact.general_form_title'));
+        $this->get(route('frontend.contact'))->assertOk()->assertSee(__('public.contact.general_form_title'))->assertSee(__('public.contact.subject'));
         $this->get(route('frontend.consultation'))->assertOk()->assertSee(__('public.consultation.form_title'));
     }
 

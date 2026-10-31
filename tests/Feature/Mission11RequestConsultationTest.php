@@ -61,14 +61,15 @@ class Mission11RequestConsultationTest extends TestCase
     {
         $this->get(route('frontend.contact'))
             ->assertOk()
-            ->assertSee('name="message"', false)
+            ->assertSee('name="subject"', false)
+            ->assertSee('name="description"', false)
             ->assertDontSee('name="hiring_model"', false)
             ->assertDontSee('name="privacy_consent"', false)
             ->assertSee(route('frontend.consultation'));
 
         $this->get(route('frontend.consultation'))
             ->assertOk()
-            ->assertDontSee('name="message"', false)
+            ->assertDontSee('name="description"', false)
             ->assertSee('name="hiring_model"', false)
             ->assertSee(route('frontend.contact'));
 

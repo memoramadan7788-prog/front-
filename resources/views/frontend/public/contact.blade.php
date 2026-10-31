@@ -18,6 +18,13 @@
                             <span class="rounded-full bg-hb-pending-soft px-2 py-0.5 text-[10px] font-semibold text-hb-pending uppercase">{{ __('public.contact.badge') }}</span>
                         </div>
 
+                        @if (session('contact_submitted'))
+                            <p class="rounded-lg border border-hb-success/40 bg-hb-success-soft px-4 py-3 text-sm text-hb-success" role="status">{{ __('public.contact.success') }}</p>
+                        @endif
+                        @if ($errors->has('error'))
+                            <p class="rounded-lg border border-hb-error/40 bg-hb-error-soft px-4 py-3 text-sm text-hb-error" role="alert">{{ $errors->first('error') }}</p>
+                        @endif
+
                         @guest
                             <div class="grid gap-5 sm:grid-cols-2">
                                 <div>
@@ -39,15 +46,22 @@
                         @endguest
 
                         <div>
-                            <label for="message" class="hb-label">{{ __('public.contact.message') }} <span class="text-hb-error">*</span></label>
-                            <textarea id="message" name="message" rows="6" required class="hb-input mt-1.5" aria-describedby="message-error">{{ old('message') }}</textarea>
-                            <p id="message-error" class="mt-1 text-xs text-hb-error" data-error-for="message">{{ $errors->first('message') }}</p>
+                            <label for="subject" class="hb-label">{{ __('public.contact.subject') }} <span class="text-hb-error">*</span></label>
+                            <input id="subject" name="subject" type="text" required value="{{ old('subject') }}" class="hb-input mt-1.5" aria-describedby="subject-error">
+                            <p id="subject-error" class="mt-1 text-xs text-hb-error" data-error-for="subject">{{ $errors->first('subject') }}</p>
+                        </div>
+                        <div>
+                            <label for="description" class="hb-label">{{ __('public.contact.description') }} <span class="text-hb-error">*</span></label>
+                            <textarea id="description" name="description" rows="6" required class="hb-input mt-1.5" aria-describedby="description-error">{{ old('description') }}</textarea>
+                            <p id="description-error" class="mt-1 text-xs text-hb-error" data-error-for="description">{{ $errors->first('description') }}</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-3">
-                            <x-button type="submit" variant="primary" data-submit-button>{{ __('public.contact.submit_legacy') }}</x-button>
+                            <x-button type="submit" variant="primary" data-submit-button>
+                                <span data-submit-label>{{ __('public.contact.submit_legacy') }}</span>
+                                <span class="hidden" data-submit-loading>{{ __('public.contact.sending') }}</span>
+                            </x-button>
                             <p class="text-xs text-hb-muted">{{ __('common.required_fields') }}</p>
                         </div>
-                        <p class="rounded-lg border border-hb-pending/40 bg-hb-pending-soft px-4 py-3 text-sm text-hb-pending" role="status">{{ session('submission_unavailable', __('public.contact.unavailable')) }}</p>
                     </form>
                 </div>
                 <aside class="space-y-6">
@@ -91,6 +105,8 @@
                 if (button) {
                     button.disabled = true;
                     button.setAttribute('aria-busy', 'true');
+                    button.querySelector('[data-submit-label]')?.classList.add('hidden');
+                    button.querySelector('[data-submit-loading]')?.classList.remove('hidden');
                 }
             });
         });
