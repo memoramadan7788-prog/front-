@@ -165,6 +165,7 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::delete('/profile/documents/{documentId}', [CompanyController::class, 'deleteDocument'])->name('documents.delete');
 
         Route::get('/vacancies', [CompanyController::class, 'getVacancies'])->name('vacancies.index');
+        Route::view('/talent-pool', 'frontend.company.talent-pool')->name('talent-pool.index');
         Route::get('/vacancies/create', [CompanyCreateJobController::class, 'show'])->name('vacancies.create');
         Route::post('/vacancies/create', [CompanyCreateJobController::class, 'handle'])->name('vacancies.create.submit');
         Route::get('/vacancies/create/preview', [CompanyCreateJobController::class, 'preview'])->name('vacancies.create.preview');
@@ -173,6 +174,7 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::get('/vacancies/{vacancyId}/overview', [CompanyController::class, 'jobOverview'])->name('vacancies.overview');
         Route::delete('/vacancies/{vacancyId}/delete', [CompanyController::class, 'deleteVacancy'])->name('vacancies.delete');
         Route::get('/vacancies/{vacancyId}/applications', [CompanyController::class, 'getApplications'])->name('vacancies.applications');
+        Route::get('/applications/{applicationId}', [CompanyController::class, 'getApplicantProfile'])->whereNumber('applicationId')->name('applications.show');
         Route::get('/applications/{applicationId}/status', [CompanyController::class, 'updateApplicationStatus'])->name('applications.status');
         Route::post('/applications/{applicationId}/status', [CompanyController::class, 'updateApplicationStatus'])->name('applications.status.submit');
 
