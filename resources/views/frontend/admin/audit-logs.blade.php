@@ -9,10 +9,14 @@
 @section('content')
 @php $items = \App\Support\Rows::from($logs ?? []); $meta = $pagination ?? null; @endphp
 <form method="GET" action="{{ route('frontend.admin.audit-logs.index') }}" class="mb-4 flex flex-wrap items-end gap-3">
+    <x-form.input name="search" :label="__('Search')" class="max-w-xs" value="{{ request('search') }}" placeholder="{{ __('Search logs...') }}" />
+    <x-form.input name="date_from" :label="__('Date From')" type="date" class="max-w-xs" value="{{ request('date_from') }}" />
+    <x-form.input name="date_to" :label="__('Date To')" type="date" class="max-w-xs" value="{{ request('date_to') }}" />
     <x-form.input name="action" :label="__('Action')" class="max-w-xs" value="{{ request('action') }}" placeholder="user.status_changed" />
     <x-form.input name="auditable_type" :label="__('Entity')" class="max-w-xs" value="{{ request('auditable_type') }}" placeholder="Company" />
+    
     <x-button type="submit" variant="light">{{ __('Filter') }}</x-button>
-    @if (request()->hasAny(['action', 'auditable_type']))
+    @if (request()->hasAny(['search', 'date_from', 'date_to', 'action', 'auditable_type']))
         <x-button variant="ghost" :href="route('frontend.admin.audit-logs.index')">{{ __('Reset') }}</x-button>
     @endif
 </form>

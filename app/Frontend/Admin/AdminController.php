@@ -307,15 +307,16 @@ class AdminController extends Controller
 
     public function getAuditLogs(Request $request)
     {
-        $response = $this->api->getAuditLogs($this->filters($request, ['action', 'auditable_type', 'page']));
+        $response = $this->api->getAuditLogs($this->filters($request, ['action', 'auditable_type', 'date_from', 'date_to', 'search', 'page']));
 
-        if ($response['statusCode'] === 200) {
-            // Audit logs retrieval successful, you can perform additional actions here if needed
-            return view('frontend.admin.audit-logs', ['logs' => $response['data'], 'pagination' => $response['meta']]);
-        } else {
-            // Audit logs retrieval failed, return the error message
-            return redirect()->route('frontend.dashboard')->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
+        if (($response['statusCode'] ?? 500) === 200) {
+            return view('frontend.admin.audit-logs', [
+                'logs' => $response['data'] ?? [],
+                'pagination' => $response['meta'] ?? null,
+            ]);
         }
+
+        return redirect()->route('frontend.dashboard')->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message'] ?? 'Could not load audit logs.']);
     }
 
     /**
