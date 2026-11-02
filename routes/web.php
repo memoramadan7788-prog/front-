@@ -46,7 +46,7 @@ Route::prefix('/')->name('frontend.')->group(function () {
     Route::get('/workspace', [HomeController::class, 'workspace'])->middleware('auth')->name('workspace');
     Route::get('/locale/{locale}', LocaleController::class)->name('locale.switch');
 
-    // Public jobs + lookups (no login needed)
+    // Public jobs, companies + lookups (no login needed)
     Route::prefix('jobs')->name('jobs.')->group(function () {
         Route::get('/', [JobController::class, 'getJobs'])->name('index');
         Route::get('/search', [JobController::class, 'searchJobs'])->name('search');
@@ -60,6 +60,14 @@ Route::prefix('/')->name('frontend.')->group(function () {
             ->name('unsave');
         Route::get('/{jobId}', [JobController::class, 'getJob'])->whereNumber('jobId')->name('show');
     });
+
+    // Public Company Page Route (Task 6 - مريم)
+    Route::prefix('companies')->name('companies.')->group(function () {
+        Route::get('/{id}', [CompanyController::class, 'showPublicProfile'])
+            ->whereNumber('id')
+            ->name('show');
+    });
+
     Route::prefix('lookup')->name('lookup.')->group(function () {
         Route::get('/countries', [LookupController::class, 'getCountries'])->name('countries');
         Route::get('/categories', [LookupController::class, 'getCategories'])->name('categories');
@@ -76,7 +84,14 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::get('/register', [AuthController::class, 'register'])->name('register');
         Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
         Route::get('/verification', [AuthController::class, 'verification'])->name('verification');
+
+        // Task 11: Forgot & Reset Password Routes
+        Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password');
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('forgot-password.submit');
+        Route::get('/reset-password/{token?}', [AuthController::class, 'resetPassword'])->name('reset-password');
+        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password.submit');
     });
+
     Route::prefix('account')->middleware('auth')->name('account.')->group(function () {
         Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/profile', [AccountController::class, 'profile'])->name('profile');
@@ -95,6 +110,11 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::get('/profile', [CandidateController::class, 'getProfile'])->name('profile');
         Route::get('/profile/update', [CandidateController::class, 'updateProfile'])->name('profile.update');
         Route::post('/profile/update', [CandidateController::class, 'updateProfile'])->name('profile.update.submit');
+
+        // Task 20: Candidate Messages & Conversations Routes
+        Route::get('/messages', [CandidateController::class, 'getMessages'])->name('messages.index');
+        Route::get('/messages/{conversationId}', [CandidateController::class, 'showConversation'])->whereNumber('conversationId')->name('messages.show');
+        Route::post('/messages/{conversationId}/send', [CandidateController::class, 'sendMessage'])->whereNumber('conversationId')->name('messages.send');
 
         Route::get('/resume/upload', [CandidateController::class, 'uploadResume'])->name('resume.upload');
         Route::post('/resume/upload', [CandidateController::class, 'uploadResume'])->name('resume.upload.submit');
@@ -155,7 +175,8 @@ Route::prefix('/')->name('frontend.')->group(function () {
 
     // Company
     Route::prefix('company')->middleware(['auth', 'account:company'])->name('company.')->group(function () {
-        Route::view('/dashboard', 'frontend.company.dashboard')->name('dashboard');
+        // Task 26: Updated company dashboard route pointing to CompanyController@dashboard
+        Route::get('/dashboard', [CompanyController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [CompanyController::class, 'getProfile'])->name('profile');
         Route::get('/profile/update', [CompanyController::class, 'updateProfile'])->name('profile.update');
         Route::post('/profile/update', [CompanyController::class, 'updateProfile'])->name('profile.update.submit');

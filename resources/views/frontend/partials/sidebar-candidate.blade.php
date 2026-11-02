@@ -32,6 +32,12 @@
             'route' => 'frontend.candidate.offers.index',
             'active' => request()->routeIs('frontend.candidate.offers.*'),
         ],
+        // Task 20: Candidate Messages Link
+        [
+            'label' => __('candidate.messages.title') ?? __('navigation.candidate.messages', 'الرسائل'),
+            'route' => 'frontend.candidate.messages.index',
+            'active' => request()->routeIs('frontend.candidate.messages*'),
+        ],
         [
             'label' => __('navigation.candidate.profile'),
             'route' => 'frontend.candidate.profile',
