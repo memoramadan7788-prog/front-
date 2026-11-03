@@ -116,6 +116,9 @@ Route::prefix('/')->name('frontend.')->group(function () {
         Route::get('/messages/{conversationId}', [CandidateController::class, 'showConversation'])->whereNumber('conversationId')->name('messages.show');
         Route::post('/messages/{conversationId}/send', [CandidateController::class, 'sendMessage'])->whereNumber('conversationId')->name('messages.send');
 
+        // Candidate Platforms Route
+        Route::get('/platforms', [CandidateController::class, 'getPlatforms'])->name('platforms.index');
+
         Route::get('/resume/upload', [CandidateController::class, 'uploadResume'])->name('resume.upload');
         Route::post('/resume/upload', [CandidateController::class, 'uploadResume'])->name('resume.upload.submit');
         Route::get('/resume/{resumeId}/download', [CandidateController::class, 'downloadResume'])->name('resume.download');

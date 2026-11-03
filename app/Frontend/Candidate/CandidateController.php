@@ -51,10 +51,8 @@ class CandidateController extends Controller
         $response = $this->api->getProfile();
 
         if ($response['statusCode'] === 200) {
-            // Profile retrieval successful, you can perform additional actions here if needed
             return view('frontend.candidate.profile', ['profile' => $response['data']]);
         } else {
-            // Profile retrieval failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
     }
@@ -62,7 +60,6 @@ class CandidateController extends Controller
     public function updateProfile(Request $request)
     {
         if ($request->isMethod('post')) {
-
             $fields = $request->validate([
                 'phone' => 'nullable|string|max:30',
                 'location' => 'nullable|string|max:255',
@@ -77,15 +74,12 @@ class CandidateController extends Controller
             $response = $this->api->updateProfile($data);
 
             if ($response['statusCode'] === 200) {
-                // Profile update successful, you can perform additional actions here if needed
                 return redirect()->route('frontend.candidate.profile')->with('success_key', 'flash.candidate.profile_updated');
             } else {
-                // Profile update failed, return the error message
                 return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
             }
         }
 
-        // pre-fill the form with the current profile
         $response = $this->api->getProfile();
         $profile = $response['statusCode'] === 200 ? $response['data'] : [];
 
@@ -94,7 +88,6 @@ class CandidateController extends Controller
 
     public function uploadResume(Request $request)
     {
-        // Backend UploadCvRequest: mimes pdf,doc,docx · max 10240 KB (10 MB).
         $maxKilobytes = 10240;
         $allowedMimes = 'pdf,doc,docx';
 
@@ -108,14 +101,11 @@ class CandidateController extends Controller
                 'return_to' => 'nullable|string|max:255',
             ]);
 
-            // Re-resolve after validation so forged absolute return_to cannot win.
             $returnTo = CandidateReturnPath::applyPathFromRequest($request);
             $vacancyId = CandidateReturnPath::vacancyIdFromSafePath($returnTo);
 
             $uploadedResume = $request->file('resume');
 
-            // Send the real client filename + mime: the temp path is like "phpAbC123" (no extension),
-            // and the backend ATS needs the extension to know how to read the CV.
             $response = $this->api->uploadResume(
                 $uploadedResume->getRealPath(),
                 $uploadedResume->getClientMimeType(),
@@ -151,14 +141,12 @@ class CandidateController extends Controller
         $response = $this->api->downloadResume($resumeId);
 
         if ($response['statusCode'] === 200) {
-            // Resume download successful, you can perform additional actions here if needed
             return response()->streamDownload(function () use ($response) {
                 echo $response['data'];
             }, 'resume.pdf', [
                 'Content-Type' => 'application/pdf',
             ]);
         } else {
-            // Resume download failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
     }
@@ -168,10 +156,8 @@ class CandidateController extends Controller
         $response = $this->api->deleteResume($resumeId);
 
         if ($response['statusCode'] === 200) {
-            // Resume deletion successful, you can perform additional actions here if needed
             return redirect()->back()->with('success_key', 'flash.candidate.resume_deleted');
         } else {
-            // Resume deletion failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
     }
@@ -209,11 +195,6 @@ class CandidateController extends Controller
         ]);
     }
 
-    /**
-     * Load existing profile, skills, and application APIs to enrich discovery without inventing preferences.
-     *
-     * @return array{profile: array, coreSkills: array, appliedJobIds: array, contextErrors: array, skillsSource: string}
-     */
     private function discoverContext(): array
     {
         $profileResponse = $this->api->getProfile();
@@ -258,10 +239,6 @@ class CandidateController extends Controller
         ];
     }
 
-    /**
-     * Candidate workspace job details. Reuses the public JobAPI GET /jobs/{id} payload
-     * (no extra Backend contract) and renders the Candidate Workspace shell.
-     */
     public function showVacancy(Request $request, $vacancyId, JobAPI $jobs)
     {
         $response = $jobs->getJob($vacancyId);
@@ -280,8 +257,6 @@ class CandidateController extends Controller
     public function applyForVacancy(Request $request, $vacancyId, JobAPI $jobs)
     {
         if ($request->isMethod('post')) {
-            // Align with Backend SubmitApplicationRequest: cover_note optional max 3000;
-            // Frontend still requires a resume when applying from this form.
             $request->validate([
                 'cv_id' => 'required|integer|min:1',
                 'cover_note' => 'nullable|string|max:3000',
@@ -298,7 +273,6 @@ class CandidateController extends Controller
                     ->with('application_submitted_vacancy', (int) $vacancyId);
             }
 
-            // Preserve Backend validation / duplicate-application errors — no success claim.
             return redirect()->back()
                 ->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message'] ?? __('candidate.apply_form.flash_error')])
                 ->withInput();
@@ -369,18 +343,30 @@ class CandidateController extends Controller
         $response = $this->api->getApplication($applicationId);
 
         if ($response['statusCode'] === 200) {
-            // Application details retrieval successful, you can perform additional actions here if needed
             return view('frontend.candidate.application-details', ['application' => $response['data']]);
         } else {
-            // Application details retrieval failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
+    }
+
+    public function getMessages(Request $request)
+    {
+        return view('frontend.candidate.messages.index');
+    }
+
+    public function getPlatforms(Request $request)
+    {
+        $response = $this->api->getProfile();
+        $platforms = $response['statusCode'] === 200 ? data_get($response['data'], 'platforms', []) : [];
+
+        return view('frontend.candidate.platforms.index', [
+            'platforms' => $platforms,
+        ]);
     }
 
     public function addEducation(Request $request)
     {
         if ($request->isMethod('post')) {
-
             $fields = $request->validate([
                 'institution' => 'required|string|max:255',
                 'degree' => 'required|string|max:255',
@@ -394,10 +380,8 @@ class CandidateController extends Controller
             $response = $this->api->addEducation($data);
 
             if ($response['statusCode'] === 200) {
-                // Education creation successful, you can perform additional actions here if needed
                 return redirect()->back()->with('success_key', 'flash.candidate.education_added');
             } else {
-                // Education creation failed, return the error message
                 return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
             }
         }
@@ -408,7 +392,6 @@ class CandidateController extends Controller
     public function addExperience(Request $request)
     {
         if ($request->isMethod('post')) {
-
             $fields = $request->validate([
                 'job_title' => 'required|string|max:255',
                 'company_name' => 'required|string|max:255',
@@ -424,10 +407,8 @@ class CandidateController extends Controller
             $response = $this->api->addExperience($data);
 
             if ($response['statusCode'] === 200) {
-                // Experience creation successful, you can perform additional actions here if needed
                 return redirect()->back()->with('success_key', 'flash.candidate.experience_added');
             } else {
-                // Experience creation failed, return the error message
                 return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
             }
         }
@@ -583,7 +564,6 @@ class CandidateController extends Controller
             ->filter(fn ($id) => $id > 0)
             ->all();
 
-        // Prefer catalog options that are not already assigned.
         $availableCatalog = array_values(array_filter(
             $catalogSkills,
             static fn ($row) => ! in_array((int) data_get($row, 'id'), $assignedIds, true)
@@ -616,10 +596,6 @@ class CandidateController extends Controller
         return trim((string) ($response['message'] ?? '')) ?: __('candidate.skills.load_error');
     }
 
-    /**
-     * @param  list<array<string, mixed>>  $current
-     * @return list<array{skill_id: int, level: string|null}>
-     */
     private function skillsSyncPayload(array $current, int $targetId, ?string $level, bool $remove): array
     {
         $payload = [];
@@ -704,10 +680,8 @@ class CandidateController extends Controller
         $response = $this->api->getExams();
 
         if ($response['statusCode'] === 200) {
-            // Exams retrieval successful, you can perform additional actions here if needed
             return view('frontend.candidate.exams', ['exams' => $response['data']]);
         } else {
-            // Exams retrieval failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
     }
@@ -715,7 +689,6 @@ class CandidateController extends Controller
     public function submitExam(Request $request, $examId)
     {
         if ($request->isMethod('post')) {
-
             $fields = $request->validate([
                 'answers' => 'required|array',
             ]);
@@ -725,10 +698,8 @@ class CandidateController extends Controller
             $response = $this->api->submitExam($examId, $data);
 
             if ($response['statusCode'] === 200) {
-                // Exam submission successful, you can perform additional actions here if needed
                 return redirect()->back()->with('success_key', 'flash.candidate.exam_submitted');
             } else {
-                // Exam submission failed, return the error message
                 return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
             }
         }
@@ -741,10 +712,8 @@ class CandidateController extends Controller
         $response = $this->api->getInterviews();
 
         if ($response['statusCode'] === 200) {
-            // Interviews retrieval successful, you can perform additional actions here if needed
             return view('frontend.candidate.interviews', ['interviews' => $response['data']]);
         } else {
-            // Interviews retrieval failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
     }
