@@ -1,4 +1,8 @@
+
 <?php
 
-// This app is a frontend only: the real API lives behind API_URL (see config/services.php).
-// No local API routes are needed.
+// This application is Frontend only.
+// All API requests are handled by the external Backend
+// through API_URL configured in config/services.php.
+//
+// No local API routes are required.

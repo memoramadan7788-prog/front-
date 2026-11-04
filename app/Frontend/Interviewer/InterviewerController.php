@@ -18,15 +18,29 @@ class InterviewerController extends Controller
 
     public function getInterviews(Request $request)
     {
+        $tab = $request->query('tab', 'upcoming');
+        $view = $request->query('view', 'list');
+
         $response = $this->api->getInterviews();
 
-        if ($response['statusCode'] === 200) {
-            // Interviews retrieval successful, you can perform additional actions here if needed
-            return view('frontend.interviewer.interviews', ['interviews' => $response['data']]);
+        $interviews = [];
+        if (($response['statusCode'] ?? 500) === 200) {
+            $allInterviews = \App\Support\Rows::from($response['data'] ?? []);
+
+            $interviews = array_values(array_filter($allInterviews, function ($item) use ($tab) {
+                $scheduledAt = data_get($item, 'scheduled_at');
+                if (!$scheduledAt) {
+                    return true;
+                }
+
+                $isPast = Carbon::parse($scheduledAt)->isPast();
+                return $tab === 'past' ? $isPast : !$isPast;
+            }));
         } else {
-            // Interviews retrieval failed, return the error message
             return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']]);
         }
+
+        return view('frontend.interviewer.interviews', compact('interviews', 'tab', 'view'));
     }
 
     public function getInterview(Request $request, int $interviewId): View|RedirectResponse
@@ -36,7 +50,6 @@ class InterviewerController extends Controller
 
         if ($status === 401) {
             ApiSession::forget();
-
             return redirect()->route('frontend.account.login')
                 ->withErrors(['error' => __('interviewer.details.session_expired')]);
         }
@@ -56,7 +69,7 @@ class InterviewerController extends Controller
             ]);
         }
 
-        if ($status !== 200 || ! is_array($response['data'] ?? null)) {
+        if ($status !== 200 || !is_array($response['data'] ?? null)) {
             return view('frontend.interviewer.interview-details', [
                 'state' => 'error',
                 'interviewId' => $interviewId,
@@ -80,16 +93,13 @@ class InterviewerController extends Controller
         ]);
     }
 
-    /**
-     * @param  array<string, mixed>  $interview
-     * @return array<string, mixed>
-     */
     private function interviewDetails(array $interview, int $interviewId): array
     {
         $bookings = data_get($interview, 'bookings', []);
         $bookings = is_array($bookings) ? $bookings : [];
         $bookings = array_values(array_filter($bookings, static fn ($booking): bool => is_array($booking)
             && strtolower((string) data_get($booking, 'booking_status', '')) !== 'cancelled'));
+        
         $bookings = array_map(fn (array $booking): array => [
             'interviewer_name' => $this->stringOrNull(data_get($booking, 'interviewer.name')),
             'start_at' => $this->stringOrNull(data_get($booking, 'start_at')),
@@ -97,24 +107,20 @@ class InterviewerController extends Controller
         ], $bookings);
 
         $meetingLink = $this->stringOrNull(data_get($interview, 'meeting_link') ?? data_get($interview, 'meeting_url'));
-        if ($meetingLink !== null && ! preg_match('#^https?://#i', $meetingLink)) {
+        if ($meetingLink !== null && !preg_match('#^https?://#i', $meetingLink)) {
             $meetingLink = null;
         }
 
         return [
             'id' => data_get($interview, 'id', $interviewId),
-            'job_title' => $this->stringOrNull(data_get($interview, 'application.job.title')
-                ?? data_get($interview, 'job.title')
-                ?? data_get($interview, 'job_title')),
+            'job_title' => $this->stringOrNull(data_get($interview, 'application.job.title') ?? data_get($interview, 'job.title') ?? data_get($interview, 'job_title')),
             'status' => $this->stringOrNull(data_get($interview, 'status')),
             'round_no' => is_scalar(data_get($interview, 'round_no')) ? (string) data_get($interview, 'round_no') : null,
             'interview_type' => $this->stringOrNull(data_get($interview, 'interview_type')),
             'location' => $this->stringOrNull(data_get($interview, 'location')),
             'instructions' => $this->stringOrNull(data_get($interview, 'instructions')),
             'meeting_link' => $meetingLink,
-            'candidate_name' => $this->stringOrNull(data_get($interview, 'candidate.name')
-                ?? data_get($interview, 'application.candidate.name')
-                ?? data_get($interview, 'candidate_name')),
+            'candidate_name' => $this->stringOrNull(data_get($interview, 'candidate.name') ?? data_get($interview, 'application.candidate.name') ?? data_get($interview, 'candidate_name')),
             'candidate_headline' => $this->stringOrNull(data_get($interview, 'candidate.headline')),
             'bookings' => $bookings,
         ];
@@ -122,14 +128,12 @@ class InterviewerController extends Controller
 
     private function stringOrNull(mixed $value): ?string
     {
-        if (! is_string($value) || trim($value) === '') {
+        if (!is_string($value) || trim($value) === '') {
             return null;
         }
-
         return trim($value);
     }
 
-    /** @return list<string> */
     private function genericPrompts(): array
     {
         return [
@@ -142,7 +146,6 @@ class InterviewerController extends Controller
     public function addAvailability(Request $request)
     {
         if ($request->isMethod('post')) {
-
             $fields = $request->validate([
                 'start_at' => 'required|date|after:now',
                 'end_at' => 'required|date|after:start_at',
@@ -156,10 +159,8 @@ class InterviewerController extends Controller
             $response = $this->api->addAvailability($data);
 
             if ($response['statusCode'] === 200) {
-                // Availability added successfully, you can perform additional actions here if needed
                 return redirect()->back()->with('success_key', 'flash.interviewer.slot_added');
             } else {
-                // Adding availability failed, return the error message
                 return redirect()->back()->withErrors(($response['errors'] ?? []) ?: ['error' => $response['message']])->withInput();
             }
         }
@@ -178,7 +179,6 @@ class InterviewerController extends Controller
 
         if ($interviewStatus === 401) {
             ApiSession::forget();
-
             return redirect()->route('frontend.account.login')
                 ->withErrors(['error' => __('Your session has expired. Please sign in again.')]);
         }
@@ -189,8 +189,7 @@ class InterviewerController extends Controller
         }
 
         $interview = $interviewResponse['data'] ?? null;
-
-        if (! is_array($interview)) {
+        if (!is_array($interview)) {
             return redirect()->route('frontend.interviewer.interviews.index')
                 ->withErrors(['error' => __('Could not verify this interview or your access to it.')]);
         }
@@ -214,7 +213,7 @@ class InterviewerController extends Controller
                 $hasNumericRating = is_array($ratings)
                     && collect($competencies)->contains(fn ($key) => is_numeric($ratings[$key] ?? null));
 
-                if (! $hasNumericRating) {
+                if (!$hasNumericRating) {
                     $validator->errors()->add('ratings', __('Rate at least one competency from 1 to 5.'));
                 }
             });
@@ -223,6 +222,7 @@ class InterviewerController extends Controller
             $ratingLines = collect($competencies)->map(function ($competency) use ($fields): string {
                 return str($competency)->replace('_', ' ')->headline().': '.$fields['ratings'][$competency];
             });
+
             $internalNotes = implode("\n", [
                 __('Competency ratings'),
                 ...$ratingLines->all(),
@@ -231,6 +231,7 @@ class InterviewerController extends Controller
                 __('Concerns').': '.$fields['concerns'],
                 __('Overall recommendation').': '.str($fields['recommendation'])->replace('_', ' ')->headline(),
             ]);
+
             $numericRatings = collect($fields['ratings'])->filter(fn ($rating) => is_numeric($rating));
             $data = [
                 'numeric_score' => (int) round($numericRatings->avg() * 20),

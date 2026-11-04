@@ -46,6 +46,7 @@ class AuthController extends Controller
                 'password_confirmation',
                 'terms_accepted',
             ]);
+
             $data['terms_accepted'] = true;
             $data['marketing_opt_in'] = $request->boolean('marketing_opt_in');
 
@@ -53,30 +54,55 @@ class AuthController extends Controller
                 $data += $request->only(['company_name', 'industry', 'website']);
             }
 
-            // optional fields that were left empty are not sent
-            $data = array_filter($data, fn ($value) => $value !== null && $value !== '');
+            $data = array_filter(
+                $data,
+                fn ($value) => $value !== null && $value !== ''
+            );
 
             $response = $this->api->register($data);
 
-// Backend may answer 201 Created; treat any 2xx as success only when a token is present.
             $status = (int) ($response['statusCode'] ?? 0);
-            $ok = $status >= 200 && $status < 300 && ! empty($response['data']['token'] ?? $response['data']['access_token'] ?? null);
+
+            $ok = $status >= 200
+                && $status < 300
+                && ! empty(
+                    $response['data']['token']
+                    ?? $response['data']['access_token']
+                    ?? null
+                );
 
             if ($ok) {
                 if (data_get($response, 'data.verification_required') === true) {
                     ApiSession::forget();
-                    $request->session()->put('pending_verification_email', $request->input('email'));
+
+                    $request->session()->put(
+                        'pending_verification_email',
+                        $request->input('email')
+                    );
 
                     return redirect()->route('frontend.account.verification');
                 }
 
                 $request->session()->forget('pending_verification_email');
+
                 $user = (array) ($response['data']['user'] ?? []);
-                // register answers {user, company, token}: the company is not inside user, so the session keeps it
+
                 if (! empty($response['data']['company'])) {
-                    $user['company'] = array_intersect_key((array) $response['data']['company'], array_flip(['id', 'name', 'status']));
+                    $user['company'] = array_intersect_key(
+                        (array) $response['data']['company'],
+                        array_flip(['id', 'name', 'status'])
+                    );
                 }
-                ApiSession::store((string) ($response['data']['token'] ?? $response['data']['access_token'] ?? ''), $user, ApiSession::REALM_USER);
+
+                ApiSession::store(
+                    (string) (
+                        $response['data']['token']
+                        ?? $response['data']['access_token']
+                        ?? ''
+                    ),
+                    $user,
+                    ApiSession::REALM_USER
+                );
 
                 if (($user['account_type'] ?? 'candidate') === 'company') {
                     return redirect()->route('frontend.company.dashboard')
@@ -87,10 +113,12 @@ class AuthController extends Controller
                     ->with('success_key', 'auth.flash.register_candidate');
             }
 
-// Never flash SQLSTATE / schema dumps from Backend APP_DEBUG; do not claim success.
             return redirect()->back()
                 ->withErrors($this->safeRegisterErrors($response))
-                ->withInput($request->except(['password', 'password_confirmation']));
+                ->withInput($request->except([
+                    'password',
+                    'password_confirmation',
+                ]));
         }
 
         return view('frontend.account.auth.register', get_defined_vars());
@@ -107,6 +135,105 @@ class AuthController extends Controller
         return view('frontend.account.auth.verification', compact('email'));
     }
 
+    /**
+     * Forgot Password
+     *
+     * GET  /account/forgot-password
+     * POST /account/forgot-password
+     */
+    public function forgotPassword(Request $request): View|RedirectResponse
+    {
+        if ($request->isMethod('post')) {
+
+            $request->validate([
+                'email' => 'required|email|max:255',
+            ]);
+
+            $response = $this->api->forgotPassword([
+                'email' => $request->input('email'),
+            ]);
+
+            $status = (int) ($response['statusCode'] ?? 500);
+
+            if ($status === 200) {
+                return redirect()->back()
+                    ->with('success_key', 'auth.flash.password_reset_link_sent');
+            }
+
+            $message = $status === 429
+                ? 'Please wait before requesting another reset link.'
+                : 'Unable to send the password reset link. Please try again later.';
+
+            return redirect()->back()
+                ->withErrors([
+                    'email' => SafeApiMessage::forUser(
+                        $response['message'] ?? null,
+                        $message,
+                        [
+                            'action' => 'auth.forgot_password',
+                            'status' => $status,
+                        ]
+                    ),
+                ])
+                ->withInput($request->only('email'));
+        }
+
+        return view('frontend.account.auth.forgot-password', get_defined_vars());
+    }
+
+    /**
+     * Reset Password
+     *
+     * GET  /account/reset-password?token=...&email=...
+     * POST /account/reset-password
+     */
+    public function resetPassword(Request $request): View|RedirectResponse
+    {
+        if ($request->isMethod('post')) {
+
+            $request->validate([
+                'email' => 'required|email|max:255',
+                'token' => 'required|string',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+
+            $response = $this->api->resetPassword([
+                'email' => $request->input('email'),
+                'token' => $request->input('token'),
+                'password' => $request->input('password'),
+                'password_confirmation' => $request->input('password_confirmation'),
+            ]);
+
+            $status = (int) ($response['statusCode'] ?? 500);
+
+            if ($status === 200) {
+                return redirect()->route('frontend.account.login')
+                    ->with('success_key', 'auth.flash.password_reset_success');
+            }
+
+            return redirect()->back()
+                ->withErrors([
+                    'error' => SafeApiMessage::forUser(
+                        $response['message'] ?? null,
+                        'The password reset link is invalid or expired. Please request a new one.',
+                        [
+                            'action' => 'auth.reset_password',
+                            'status' => $status,
+                        ]
+                    ),
+                ])
+                ->withInput($request->only('email', 'token'));
+        }
+
+        $email = $request->query('email');
+        $token = $request->query('token');
+
+        return view(
+            'frontend.account.auth.reset-password',
+            compact('email', 'token')
+        );
+    }
+
     public function login(Request $request): View|RedirectResponse
     {
         if ($request->isMethod('post')) {
@@ -114,14 +241,11 @@ class AuthController extends Controller
             $request->validate([
                 'email' => 'required|email',
                 'password' => 'required',
-                // redirect is optional and sanitized separately; never trust raw open redirects.
                 'redirect' => 'nullable|string|max:2048',
             ]);
 
-            // Backend LoginRequest accepts email + password only (no remember / OAuth).
             $data = $request->only(['email', 'password']);
 
-            // Candidate/Company (and legacy User) only — do not fall back to /admin/login.
             $response = $this->api->login($data);
             unset($data);
 
@@ -131,25 +255,34 @@ class AuthController extends Controller
                 $user = (array) ($response['data']['user'] ?? []);
                 $type = $user['account_type'] ?? 'candidate';
 
-                // Legacy User account_type=admin cannot use platform Admin APIs (EnsureSuperAdmin).
-                // Do not persist that token into a Frontend Admin session — send them to the Admin portal.
                 if ($type === 'admin') {
                     return redirect()->route('frontend.account.admin-login')
-                        ->withErrors(['error' => __('auth.admin_login.platform_required')])
+                        ->withErrors([
+                            'error' => __('auth.admin_login.platform_required'),
+                        ])
                         ->withInput($request->only('email'));
                 }
 
-                ApiSession::store((string) ($response['data']['token'] ?? ''), $user, ApiSession::REALM_USER);
+                ApiSession::store(
+                    (string) ($response['data']['token'] ?? ''),
+                    $user,
+                    ApiSession::REALM_USER
+                );
 
                 $defaultPath = $type === 'company'
                     ? route('frontend.company.dashboard', [], false)
                     : route('frontend.candidate.dashboard', [], false);
-                $successKey = ($type === 'company' && data_get($user, 'company.status') === 'pending')
+
+                $successKey = (
+                    $type === 'company'
+                    && data_get($user, 'company.status') === 'pending'
+                )
                     ? 'auth.flash.login_company_pending'
                     : 'auth.flash.login_success';
 
-                return redirect()->to($this->safePostLoginPath($request, $defaultPath))
-                    ->with('success_key', $successKey);
+                return redirect()->to(
+                    $this->safePostLoginPath($request, $defaultPath)
+                )->with('success_key', $successKey);
             }
 
             return redirect()->back()
@@ -164,16 +297,17 @@ class AuthController extends Controller
 
     /**
      * Same-app continuation target for Welcome Back messaging / post-login return.
-     * Rejects external hosts, schemes, and auth pages themselves.
      */
     private function safeLoginContinuationPath(Request $request): ?string
     {
         $raw = $request->query('redirect');
+
         if (! is_string($raw) || trim($raw) === '') {
             return null;
         }
 
         $path = SafeInternalRedirect::sanitize($raw, '/__unsafe__');
+
         if ($path === '/__unsafe__' || $this->isAuthPagePath($path)) {
             return null;
         }
@@ -187,11 +321,13 @@ class AuthController extends Controller
     private function safePostLoginPath(Request $request, string $defaultPath): string
     {
         $raw = $request->input('redirect');
+
         if (! is_string($raw) || trim($raw) === '') {
             return $defaultPath;
         }
 
         $path = SafeInternalRedirect::sanitize($raw, $defaultPath);
+
         if ($this->isAuthPagePath($path)) {
             return $defaultPath;
         }
@@ -204,50 +340,70 @@ class AuthController extends Controller
         $onlyPath = parse_url($path, PHP_URL_PATH);
         $onlyPath = is_string($onlyPath) ? $onlyPath : $path;
 
-        return preg_match('#^/account/(login|register|admin-login)(/|$)#', $onlyPath) === 1;
+        return preg_match(
+            '#^/account/(login|register|admin-login)(/|$)#',
+            $onlyPath
+        ) === 1;
     }
 
     /**
      * Public login errors must never include SQLSTATE, table names, hosts, or stack traces.
      *
-     * @param  array<string, mixed>  $response
+     * @param array<string, mixed> $response
      * @return array<string, string>
      */
     private function safeLoginErrors(array $response): array
     {
         $fallback = __('auth.login.unavailable');
-        $rawMessage = is_string($response['message'] ?? null) ? $response['message'] : null;
-        $errors = is_array($response['errors'] ?? null) ? $response['errors'] : [];
+
+        $rawMessage = is_string($response['message'] ?? null)
+            ? $response['message']
+            : null;
+
+        $errors = is_array($response['errors'] ?? null)
+            ? $response['errors']
+            : [];
 
         $safe = [];
+
         foreach ($errors as $key => $value) {
             if (is_array($value)) {
                 $value = reset($value);
             }
+
             if (! is_string($value) || trim($value) === '') {
                 continue;
             }
+
             $field = is_string($key) ? $key : 'error';
-            $safe[$field] = SafeApiMessage::forUser($value, $fallback, [
-                'action' => 'auth.login',
-                'field' => $field,
-                'status' => $response['statusCode'] ?? null,
-            ]);
+
+            $safe[$field] = SafeApiMessage::forUser(
+                $value,
+                $fallback,
+                [
+                    'action' => 'auth.login',
+                    'field' => $field,
+                    'status' => $response['statusCode'] ?? null,
+                ]
+            );
         }
 
         if ($safe === []) {
-            $safe['error'] = SafeApiMessage::forUser($rawMessage, $fallback, [
-                'action' => 'auth.login',
-                'status' => $response['statusCode'] ?? null,
-            ]);
+            $safe['error'] = SafeApiMessage::forUser(
+                $rawMessage,
+                $fallback,
+                [
+                    'action' => 'auth.login',
+                    'status' => $response['statusCode'] ?? null,
+                ]
+            );
         }
 
         return $safe;
     }
 
     /**
-     * Platform Super Admin portal login → POST /api/admin/login (Admin model).
-     * Does not use POST /api/auth/login and never mixes realms.
+     * Platform Super Admin portal login.
      */
     public function adminLogin(Request $request): View|RedirectResponse
     {
@@ -258,19 +414,32 @@ class AuthController extends Controller
             ]);
 
             $data = $request->only(['email', 'password']);
+
             $response = $this->admins->login($data);
             unset($data);
 
             $status = (int) ($response['statusCode'] ?? 500);
 
             if ($status === 200) {
-                $payload = is_array($response['data'] ?? null) ? $response['data'] : [];
-                $token = (string) ($payload['token'] ?? $payload['access_token'] ?? '');
-                $admin = is_array($payload['admin'] ?? null) ? $payload['admin'] : [];
+                $payload = is_array($response['data'] ?? null)
+                    ? $response['data']
+                    : [];
+
+                $token = (string) (
+                    $payload['token']
+                    ?? $payload['access_token']
+                    ?? ''
+                );
+
+                $admin = is_array($payload['admin'] ?? null)
+                    ? $payload['admin']
+                    : [];
 
                 if ($token === '' || blank($admin['email'] ?? null)) {
                     return redirect()->back()
-                        ->withErrors(['error' => __('auth.admin_login.invalid_response')])
+                        ->withErrors([
+                            'error' => __('auth.admin_login.invalid_response'),
+                        ])
                         ->withInput($request->only('email'));
                 }
 
@@ -282,10 +451,13 @@ class AuthController extends Controller
                     'identity' => ApiSession::REALM_PLATFORM_ADMIN,
                 ], ApiSession::REALM_PLATFORM_ADMIN);
 
-                // Hydrate roles/permissions from Backend identity endpoint (not client claims).
                 $me = $this->admins->me();
+
                 if ((int) ($me['statusCode'] ?? 500) === 200) {
-                    $hydrated = $this->normalizePlatformAdminIdentity($me['data'] ?? null);
+                    $hydrated = $this->normalizePlatformAdminIdentity(
+                        $me['data'] ?? null
+                    );
+
                     if ($hydrated !== null) {
                         ApiSession::refreshUser($hydrated);
                     }
@@ -297,25 +469,44 @@ class AuthController extends Controller
 
             if ($status === 403) {
                 return redirect()->back()
-                    ->withErrors(['error' => $this->safeAdminLoginMessage($response['message'] ?? null, __('auth.admin_login.inactive'))])
+                    ->withErrors([
+                        'error' => $this->safeAdminLoginMessage(
+                            $response['message'] ?? null,
+                            __('auth.admin_login.inactive')
+                        ),
+                    ])
                     ->withInput($request->only('email'));
             }
 
             if ($status === 422) {
                 return redirect()->back()
-                    ->withErrors(($response['errors'] ?? []) ?: ['error' => $this->safeAdminLoginMessage($response['message'] ?? null, __('auth.admin_login.failed'))])
+                    ->withErrors(
+                        ($response['errors'] ?? [])
+                        ?: [
+                            'error' => $this->safeAdminLoginMessage(
+                                $response['message'] ?? null,
+                                __('auth.admin_login.failed')
+                            ),
+                        ]
+                    )
                     ->withInput($request->only('email'));
             }
 
             if ($status === 401) {
                 return redirect()->back()
-                    ->withErrors(['error' => $this->safeAdminLoginMessage($response['message'] ?? null, __('auth.admin_login.failed'))])
+                    ->withErrors([
+                        'error' => $this->safeAdminLoginMessage(
+                            $response['message'] ?? null,
+                            __('auth.admin_login.failed')
+                        ),
+                    ])
                     ->withInput($request->only('email'));
             }
 
-            // Never surface SQLSTATE / stack traces from Backend 5xx (APP_DEBUG).
             return redirect()->back()
-                ->withErrors(['error' => __('auth.admin_login.unavailable')])
+                ->withErrors([
+                    'error' => __('auth.admin_login.unavailable'),
+                ])
                 ->withInput($request->only('email'));
         }
 
@@ -326,7 +517,6 @@ class AuthController extends Controller
     {
         $wasPlatformAdmin = ApiSession::isPlatformAdmin();
 
-        // Revoke the correct Backend token; ignore transport failures and always clear local session.
         if ($wasPlatformAdmin) {
             $this->admins->logout();
         } else {
@@ -334,63 +524,99 @@ class AuthController extends Controller
         }
 
         ApiSession::forget();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect()->route(
-            $wasPlatformAdmin ? 'frontend.account.admin-login' : 'frontend.account.login'
+            $wasPlatformAdmin
+                ? 'frontend.account.admin-login'
+                : 'frontend.account.login'
         );
     }
 
     /**
-     * Drop Backend debug payloads (SQLSTATE, stack traces) from Admin login flash errors.
+     * Drop Backend debug payloads from Admin login flash errors.
      */
-    private function safeAdminLoginMessage(?string $message, string $fallback): string
-    {
-        return SafeApiMessage::forUser($message, $fallback, ['action' => 'auth.admin_login']);
+    private function safeAdminLoginMessage(
+        ?string $message,
+        string $fallback
+    ): string {
+        return SafeApiMessage::forUser(
+            $message,
+            $fallback,
+            ['action' => 'auth.admin_login']
+        );
     }
 
     /**
      * Public registration errors must never include SQLSTATE, table names, hosts, or stack traces.
      *
-     * @param  array<string, mixed>  $response
+     * @param array<string, mixed> $response
      * @return array<string, string>
      */
     private function safeRegisterErrors(array $response): array
     {
         $fallback = __('auth.register.unavailable');
-        $rawMessage = is_string($response['message'] ?? null) ? $response['message'] : null;
-        $errors = is_array($response['errors'] ?? null) ? $response['errors'] : [];
+
+        $rawMessage = is_string($response['message'] ?? null)
+            ? $response['message']
+            : null;
+
+        $errors = is_array($response['errors'] ?? null)
+            ? $response['errors']
+            : [];
 
         $safe = [];
+
         foreach ($errors as $key => $value) {
             if (is_array($value)) {
                 $value = reset($value);
             }
+
             if (! is_string($value) || trim($value) === '') {
                 continue;
             }
+
             $field = is_string($key) ? $key : 'error';
-            $safe[$field] = SafeApiMessage::forUser($value, $fallback, [
-                'action' => 'auth.register',
-                'field' => $field,
-                'status' => $response['statusCode'] ?? null,
-            ]);
+
+            $safe[$field] = SafeApiMessage::forUser(
+                $value,
+                $fallback,
+                [
+                    'action' => 'auth.register',
+                    'field' => $field,
+                    'status' => $response['statusCode'] ?? null,
+                ]
+            );
         }
 
         if ($safe === []) {
-            $safe['error'] = SafeApiMessage::forUser($rawMessage, $fallback, [
-                'action' => 'auth.register',
-                'status' => $response['statusCode'] ?? null,
-            ]);
+            $safe['error'] = SafeApiMessage::forUser(
+                $rawMessage,
+                $fallback,
+                [
+                    'action' => 'auth.register',
+                    'status' => $response['statusCode'] ?? null,
+                ]
+            );
         }
 
-        // If Backend left a partial account but verification schema failed, keep failure UX (no success flash).
-        if (SafeApiMessage::looksSensitive((string) ($rawMessage ?? '')) || SafeApiMessage::looksSensitive(implode(' ', $safe))) {
-            Log::warning('Registration Backend error sanitized for user flash.', [
-                'status' => $response['statusCode'] ?? null,
-                'snippet' => mb_substr((string) ($rawMessage ?? reset($safe) ?: ''), 0, 180),
-            ]);
+        if (
+            SafeApiMessage::looksSensitive((string) ($rawMessage ?? ''))
+            || SafeApiMessage::looksSensitive(implode(' ', $safe))
+        ) {
+            Log::warning(
+                'Registration Backend error sanitized for user flash.',
+                [
+                    'status' => $response['statusCode'] ?? null,
+                    'snippet' => mb_substr(
+                        (string) ($rawMessage ?? reset($safe) ?: ''),
+                        0,
+                        180
+                    ),
+                ]
+            );
         }
 
         return $safe;
@@ -402,7 +628,11 @@ class AuthController extends Controller
             return null;
         }
 
-        if (isset($data['data']) && is_array($data['data']) && ! isset($data['email'])) {
+        if (
+            isset($data['data'])
+            && is_array($data['data'])
+            && ! isset($data['email'])
+        ) {
             $data = $data['data'];
         }
 
@@ -411,10 +641,13 @@ class AuthController extends Controller
         }
 
         $roles = $data['roles'] ?? [];
+
         if (! is_array($roles)) {
             $roles = [];
         }
+
         $permissions = $data['permissions'] ?? [];
+
         if (! is_array($permissions)) {
             $permissions = [];
         }

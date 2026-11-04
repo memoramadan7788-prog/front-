@@ -31,12 +31,13 @@
     $hasSummary = filled($headline) || filled($bio) || $years !== null || $hasNoExperience;
 @endphp
 
-{{-- Profile picture (preview-only until Backend avatar APIs exist) --}}
+{{-- Profile picture preview --}}
 <div class="mb-6">
     @include('frontend.partials.profile-avatar', [
         'profile' => $profile,
         'avatarName' => $name ?: (auth()->user()?->name ?? ''),
     ])
+    <div id="saved-platforms-preview" class="flex flex-wrap gap-2 mt-3"></div>
 </div>
 
 {{-- Personal Information --}}
@@ -76,9 +77,6 @@
         </dl>
     @else
         <p class="text-sm text-hb-muted">{{ __('candidate.profile.empty_personal') }}</p>
-        <div class="mt-3">
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.profile.update')">{{ __('candidate.profile.edit_profile') }}</x-button>
-        </div>
     @endif
 </x-card>
 
@@ -116,9 +114,6 @@
         </div>
     @else
         <p class="text-sm text-hb-muted">{{ __('candidate.profile.empty_summary') }}</p>
-        <div class="mt-3">
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.profile.update')">{{ __('candidate.profile.edit_profile') }}</x-button>
-        </div>
     @endif
 </x-card>
 
@@ -127,7 +122,7 @@
     <x-slot:header>
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-bold text-hb-navy">{{ __('candidate.profile.section_experience') }}</h2>
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.experience.add')">{{ __('candidate.profile.add_experience') }}</x-button>
+            <x-button variant="light" size="sm" :href="route('frontend.candidate.experience.add')">{{ __('Manage Experience') }}</x-button>
         </div>
     </x-slot:header>
     @forelse ($experiences as $row)
@@ -149,9 +144,6 @@
         </div>
     @empty
         <p class="text-sm text-hb-muted">{{ __('candidate.profile.empty_experience') }}</p>
-        <div class="mt-3">
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.experience.add')">{{ __('candidate.profile.add_experience') }}</x-button>
-        </div>
     @endforelse
 </x-card>
 
@@ -160,7 +152,7 @@
     <x-slot:header>
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-bold text-hb-navy">{{ __('candidate.profile.section_education') }}</h2>
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.education.add')">{{ __('candidate.profile.add_education') }}</x-button>
+            <x-button variant="light" size="sm" :href="route('frontend.candidate.education.add')">{{ __('Manage Education') }}</x-button>
         </div>
     </x-slot:header>
     @forelse ($educations as $row)
@@ -181,9 +173,6 @@
         </div>
     @empty
         <p class="text-sm text-hb-muted">{{ __('candidate.profile.empty_education') }}</p>
-        <div class="mt-3">
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.education.add')">{{ __('candidate.profile.add_education') }}</x-button>
-        </div>
     @endforelse
 </x-card>
 
@@ -192,7 +181,7 @@
     <x-slot:header>
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-lg font-bold text-hb-navy">{{ __('candidate.profile.section_skills') }}</h2>
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.skills.add')">{{ __('candidate.profile.manage_skills') }}</x-button>
+            <x-button variant="light" size="sm" :href="route('frontend.candidate.skills.add')">{{ __('Manage Skills') }}</x-button>
         </div>
     </x-slot:header>
     @if (! empty($skills))
@@ -216,10 +205,35 @@
         </div>
     @else
         <p class="text-sm text-hb-muted" data-profile-skills-empty>{{ __('candidate.profile.empty_skills') }}</p>
-        <div class="mt-3">
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.skills.add')">{{ __('candidate.profile.add_skill') }}</x-button>
-        </div>
     @endif
+</x-card>
+
+{{-- Platforms Section (Display Only) --}}
+<x-card id="platforms-section-card" class="mt-6">
+    <x-slot:header>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-lg font-bold text-hb-navy">{{ __('Platforms') }}</h2>
+        </div>
+    </x-slot:header>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-hb-muted font-semibold">
+                    <th class="py-3 px-4 w-1/12">{{ __('ID') }}</th>
+                    <th class="py-3 px-4 w-1/6">{{ __('Icon') }}</th>
+                    <th class="py-3 px-4 w-1/4">{{ __('Platform Name') }}</th>
+                    <th class="py-3 px-4 w-1/2">{{ __('URL') }}</th>
+                </tr>
+            </thead>
+            <tbody id="platforms-table-body" class="divide-y divide-gray-100">
+                <tr id="empty-platforms-row">
+                    <td colspan="4" class="py-6 text-center text-sm text-hb-muted">
+                        No platforms listed yet.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </x-card>
 
 {{-- Resume --}}
@@ -257,13 +271,10 @@
         </div>
     @empty
         <p class="text-sm text-hb-muted">{{ __('candidate.profile.empty_resume') }}</p>
-        <div class="mt-3">
-            <x-button variant="light" size="sm" :href="route('frontend.candidate.resume.upload')">{{ __('candidate.profile.upload_resume') }}</x-button>
-        </div>
     @endforelse
 </x-card>
 
-{{-- Account deletion (not professional profile content; password lives in account menu) --}}
+{{-- Account deletion --}}
 <x-card class="mt-6">
     <h2 class="text-lg font-bold text-hb-navy">{{ __('candidate.profile.section_danger') }}</h2>
     <p class="mt-1 text-sm text-hb-muted">{{ __('candidate.profile.danger_body') }}</p>

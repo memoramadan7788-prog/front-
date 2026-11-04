@@ -1,7 +1,11 @@
 // TalentBridge frontend behaviour.
 // Hooks are plain data-attributes in the Blade views (topbar, layouts, modal).
+import Alpine from 'alpinejs';
 import './candidate-dashboard-analytics.js';
 import './hall-landing.js';
+
+window.Alpine = Alpine;
+Alpine.start();
 
 /* ---------- Dropdowns: [data-dropdown-trigger] + [data-dropdown-panel] ---------- */
 function closeDropdown(trigger) {

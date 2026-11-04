@@ -69,6 +69,20 @@ class CompanyAPI
         ];
     }
 
+    /**
+     * Public company profile by id (no login required) — used by /companies/{id}.
+     * ASSUMPTION: the backend exposes GET /companies/{id}. If the real endpoint is
+     * different (e.g. /public/companies/{id}), change only the URL below.
+     */
+    public function getPublicProfile(int $companyId): array
+    {
+        $res = $this->api->reset()->method('GET')
+            ->url("/companies/{$companyId}")
+            ->send();
+
+        return $this->profileResult($res);
+    }
+
     public function updateProfile($data)
     {
         $message = '';
